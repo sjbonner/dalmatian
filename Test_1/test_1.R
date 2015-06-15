@@ -23,6 +23,9 @@ pfdata$boxcoidx <- sapply(pfdata$boxco,function(x) which(boxco==x))
 ## Renumber individuals within box in order
 pfdata$indidx <- factor(pfdata$indid)
 
+## Save data into R package
+save(pfdata,file="../dalmation/data/pied_flycatchers_1.Rdata")
+
 ## Variable transformations
 pfdata$logIVI <- log(pfdata$IVI)
 pfdata$lower <- ifelse(pfdata$load==0,log(.001),log(pfdata$load-.049))

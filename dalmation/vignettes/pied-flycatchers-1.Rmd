@@ -1,0 +1,222 @@
+---
+title: "Analysis of the Pied Flycatcher Data"
+author: "Simon Bonner"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+As a first example of the functions in this package we will fit a model to the pied flycatcher data. We will start by fitting a model with fixed effects on the mean and variance components. Specifically, we will model the load returned on each trip by the adult flycatchers a independent normal random variables with mean given by a linear combination of the logarithm of the inter-visit interval (IVI), the broodsize manipulation (broodsize), and the adult's sex, and standard deviation given by a linear combination of broodsize and sex, on the log scale. We will then incorporate individual random effects into this model. 
+
+# Library
+
+First you have to load the package:
+```{r}
+## Load package
+library(dalmation)
+```
+
+# Raw data
+
+The raw data for this example is provided in the package and can be accessed with:
+```{r}
+## Load pied flycatcher data
+data(pied_flycatchers_1)
+```
+This data contains records on 5795 different food deliveries recorded during the pied flycatcher experiment. The response variable, `load`, records the load rounded to the nearest .1 gram. We want to model the logarithm of the load, and we also want to account for the rounding. To do this we will create two new variables in the data frame, `lower` and `upper`, which bound the logarithm of the true load. Not that we add .001 when the observed value is zero to avoid problems with the logarithm. 
+```{r}
+## Create variables bounding the true load
+pfdata$lower=ifelse(pfdata$load==0,log(.001),log(pfdata$load-.049))
+pfdata$upper=log(pfdata$load+.05)
+```
+
+# Model 1: Fixed Effects
+Our initial model for the logarithm of the load returned on the $j$th trip by adult $i$  will be $N(\mu_{ij},\sigma_{ij}^2)$ where:
+$$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)_{ij} + \beta_2 broodsize_i + \beta_3 sex_i}$$
+and
+$$\log(\sigma)=\psi_0 + \psi_1 \mathrm{broodsize}_i + \psi_2\mathrm{sex}_i$$.
+
+## Model 
+
+The first step is to define the models for the mean and variance components. These models are simply lists with (up to) two named components, `fixed` and `random`, which provide the details on the fixed and random effects. Both lists must contain a variable `name` specifying the basename for the coefficients and a variable `formula` specifying the effects. The `fixed` list should also contain an object called `priors` which specifies the priors for coefficients in the fixed effects portion of the model. Random effects are currently assumed to be normal with mean zero and unknown variances which are assigned the half $t$-distribution with ? degrees of freedom and scale ?. The optional parameter `link` can also be used to specify a link function for either component. 
+
+The components of the model for the pied flycatcher data specified above would be generated with:
+
+```{r}
+mymean=list(fixed=list(name="alpha",
+       formula=~ log(IVI) + broodsize + sex,
+       priors=list(c("dnorm",0,.001))))
+
+myvar=list(fixed=list(name="psi",
+      link="log",
+      formula=~broodsize + sex,
+      priors=list(c("dnorm",0,.001))))
+```
+These two objects will now be used to generate the JAGS code, data, and initial values for running the model.
+
+## Code
+
+The second step is to generate the JAGS code. This is performed with the function `generateJAGScode` which requires the name of the model file and the two model objects created above. We will also use the optional argument `rounding=TRUE` to indicate that the observed values have been rounded. 
+
+```{r}
+## Generate JAGS script
+modelFile1="pied_flycatcher_1_jags.R"
+generateJAGScode(modelFile1,mymean,myvar,rounding=TRUE)
+```
+
+## Data
+
+Next we will generate the input data to JAGS using the function `generateJAGSdata`. The required arguments of this function are the raw data set and the model objects created above. We will also provide the optional arguments naming the upper and lower bounds for rounding. 
+```{r}
+## Generate JAGS input data
+jags.data1=generateJAGSdata(pfdata,mymean,myvar,lower="lower",upper="upper")
+```
+
+## Initial Values
+Finally, we need to generate initial values for the model. This is achieved with the function `generateJAGSinits` whose required arguments are the two model objects created above and the JAGS input data created in the previous step. 
+
+```{r}
+## Generate JAGS initial values
+jags.inits1=generateJAGSinits(mymean,myvar,jags.data1)
+```
+
+## Running the Model
+
+Having defined all of the components of the model, we can now run the model in JAGS using the commands from the `rjags` library. In this run we will monitor two sets of variables, the coefficients of the fixed effects for the mean and variance components. 
+
+```{r}
+library(rjags)
+
+## Initialize model
+model1=jags.model(modelFile1,data=jags.data1,inits=jags.inits1)
+
+## List parameters to monitor
+parameters1=c(mymean$fixed$name,myvar$fixed$name)
+
+## Generate 1000 samples
+samples1=coda.samples(model1,parameters1,1000)
+```
+
+Output from the Markov chain can now be summarized using a variety of tools. For example, we can use the tools in the package `ggmcmc` to create traceplots and density plots, and to summarize the posterior distribition with plots of the posterior means and credible intervals. 
+
+First we examine the posterior distribution of the fixed effects of the mean component.
+```{r}
+library(ggmcmc)
+
+## Examine fixed effects of mean component
+ggs.mean=ggs(samples1,mymean$fixed$name)
+
+ggs_traceplot(ggs.mean)
+ggs_density(ggs.mean)
+ggs_caterpillar(ggs.mean) + geom_vline(xintercept=0)
+```
+
+Then we examine the posterior distribution of the fixed effects of the variance component.
+```{r}
+## Examine fixed effects of variance component
+ggs.var=ggs(samples1,myvar$fixed$name)
+
+ggs_traceplot(ggs.var)
+ggs_density(ggs.var)
+ggs_caterpillar(ggs.var) + geom_vline(xintercept=0)
+```
+
+# Model 2: Random Effects
+
+We will now consider adding individual (bird) random effects to both the fixed and random components of our model. This can be done by simply adding to the model components created above and then rerunnig the model. The new model will have mean and variance
+$$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)_{ij} + \beta_2 broodsize_i + \beta_3 sex_i + \epsilon_{i}}$$
+and
+$$\log(\sigma)=\psi_0 + \psi_1 \mathrm{broodsize}_i + \psi_2\mathrm{sex}_i + \xi_j$$
+where $\epsilon_i \sim N(0,\tau^2_\mu)$ and $\xi_i \sim N(0,\tau^2_\sigma)$. By default the variances $\tau^2_\epsilon and $\tau^2_\xi are assigned half-$t$ prior distributions. 
+
+## Model
+
+Instead of creating new model objects we can simply add to the old objects by creating the `random` fields. As with the fixed effects, these fields are lists which must include a basename for the random effects and formula specifying the random effects model. 
+
+```{r}
+# Random component of mean
+mymean$random=list(name="epsilon",formula=~indidx)
+
+# Random component of variance
+myvar$random=list(name="xi",formula=~indidx)
+```
+
+## Code
+
+Code for the model including random effects can now be generated exactly as before. We will simply change the name of the model file so we don't overwrite the previous code. 
+
+```{r}
+## Generate JAGS script
+modelFile="pied_flycatcher_2_jags.R"
+generateJAGScode(modelFile,mymean,myvar,rounding=TRUE)
+```
+
+## Data
+
+Once again we need to generate and format the data for `JAGS`.
+
+```{r}
+## Generate JAGS input data
+jags.data2=generateJAGSdata(pfdata,mymean,myvar,lower="lower",upper="upper")
+```
+
+## Initial values
+
+Initial values can be generated witht the function `generateJAGSinits` as above. However, we will instead base the initial values off of the results of the fixed effects model using the final sample from the posterior distribution. To complete this, we will set the intial values of $\tau^2_{\epsilon}$ and $\tau^2_{\xi}$ to 1. 
+
+```{r}
+## Set initial values
+n=nrow(samples1[[1]])
+jags.inits2=list(alpha=samples1[[1]][n,1:4],
+	   psi=samples1[[1]][n,5:7],
+	   y=jags.inits1$y,
+	   tau.epsilon=1,
+	   tau.xi=1)
+```
+
+## Running the Model
+
+We are now ready to run the new model exactly as above.  
+
+```{r}
+## Initialize model
+model2=jags.model(modelFile,data=jags.data2,inits=jags.inits2)
+
+## List parameters to monitor
+parameters2=c(parameters1,"sd.epsilon","sd.xi")
+
+## Generate 1000 samples
+samples2=coda.samples(model2,parameters2,1000)
+```
+
+As before, we can examine the samples from the posterior distributions of the cofficients in the mean and variance components.
+
+library(ggmcmc)
+
+## Examine fixed effects of mean component
+ggs.mean=ggs(samples2,paste0("^",mymean$fixed$name))
+
+ggs_traceplot(ggs.mean)
+ggs_density(ggs.mean)
+ggs_caterpillar(ggs.mean) + geom_vline(xintercept=0)
+
+## Examine fixed effects of variance component
+ggs.var=ggs(samples2,paste0("^",myvar$fixed$name))
+
+ggs_traceplot(ggs.var)
+ggs_density(ggs.var)
+ggs_caterpillar(ggs.var) + geom_vline(xintercept=0)
+```
+
+We can also examine traceplots and posterior summaries for the standard deviations of the random effects. 
+
+```{r}
+ggs.random=ggs(samples2,family="sd")
+
+ggs_traceplot(ggs.random)
+ggs_density(ggs.random)
+ggs_caterpillar(ggs.random)
+```

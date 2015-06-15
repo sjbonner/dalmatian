@@ -1,4 +1,4 @@
-generateJAGScode <- function(file,mean.model,variance.model,priors,rounding=FALSE){
+generateJAGScode <- function(file,mean.model,variance.model,rounding=FALSE){
     ## Opening header
     cat("## Created by generateJAGS: ", date(),"\n\n",file=file)
 
@@ -23,11 +23,13 @@ generateJAGScode <- function(file,mean.model,variance.model,priors,rounding=FALS
     ## 2) Mean model
     cat("\t\t ## Mean Model\n",file=file,append=TRUE)
 
+    ## 2a) Fixed effects
     if(!is.null(mean.model$fixed$link))
         mean.jags <- paste("\t\t ",mean.model$fixed$link,"(muy[i]) <- inprod(mean.fixed[i,],",mean.model$fixed$name,"[])",sep="")
     else
         mean.jags <- paste("\t\t muy[i] <- inprod(mean.fixed[i,],",mean.model$fixed$name,"[])",sep="")
 
+    ## 2b) Random effects
     if(!is.null(mean.model$random))
         mean.jags <- paste(mean.jags," + inprod(mean.random[i,],",mean.model$random$name,"[])",sep="")
 
@@ -36,12 +38,17 @@ generateJAGScode <- function(file,mean.model,variance.model,priors,rounding=FALS
     ## 3) Variance model
     cat("\t\t ## Variance Model\n",file=file,append=TRUE)
 
+    ## 3a) Fixed effects
     if(!is.null(variance.model$fixed$link))
-        variance.jags <- paste("\t\t ",variance.model$fixed$link,"(sdy[i]) <- inprod(variance.fixed[i,],",variance.model$fixed$name,"[])\n",sep="")
+        variance.jags <- paste("\t\t ",variance.model$fixed$link,"(sdy[i]) <- inprod(variance.fixed[i,],",variance.model$fixed$name,"[])",sep="")
     else
-        variance.jags <- paste("\t\t sdy[i] <- inprod(variance.fixed[i,],",variance.model$fixed$name,"[])\n\n",sep="")
+        variance.jags <- paste("\t\t sdy[i] <- inprod(variance.fixed[i,],",variance.model$fixed$name,"[])",sep="")
 
-    cat(variance.jags,file=file,append=TRUE,sep="")
+    ## 3b) Random effects
+    if(!is.null(variance.model$random))
+        variance.jags <- paste(variance.jags," + inprod(variance.random[i,],",variance.model$random$name,"[])",sep="")
+    
+    cat(variance.jags,"\n\n",file=file,append=TRUE,sep="")
 
     cat("\t }\n\n",file=file,append=TRUE)
     

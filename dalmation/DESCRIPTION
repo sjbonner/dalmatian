@@ -2,7 +2,9 @@ Package: dalmation
 Title: Automating the Fitting of Double GLM in JAGS
 Version: 0.0.0.9000
 Authors@R: person("Simon", "Bonner", , "simon.bonner@uky.edu", role = c("aut", "cre"))
-Description: This package automates the fitting of double GLM in JAGS. This includes automatic generattion of JAGS scripts, running JAGS via rjags, and summarizing the resulting output. 
+Description: Automates fitting of double GLM in JAGS. Includes automatic generation of JAGS scripts, running JAGS via rjags, and summarizing the resulting output. 
 Depends: R (>= 3.0.0)
 License: GPL-2
 LazyData: true
+Suggests: knitr
+VignetteBuilder: knitr
