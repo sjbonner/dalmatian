@@ -8,3 +8,5 @@ License: GPL-2
 LazyData: true
 Suggests: knitr
 VignetteBuilder: knitr
+Imports: rjags,
+    coda
