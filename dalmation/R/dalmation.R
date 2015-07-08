@@ -17,7 +17,6 @@
 ##' @return samples (mcmc.list)
 ##' @author Simon Bonner
 ##' @export
-##' @importFrom coda mcmc
 dalmation <- function(df,
                       mean.model,
                       variance.model,
@@ -101,14 +100,32 @@ dalmation <- function(df,
         parameters <- c(parameters,
                         paste0("sd.",variance.model$random$name))
     
-    ## Generate 1000 samples
+    ## Generate samples
     cat("   Generating samples\n")
     coda.samples.args$model <- model
     coda.samples.args$variable.names <- parameters
     
     coda <- do.call(rjags::coda.samples,coda.samples.args)
     cat("Done\n")
+
+    ## Replace column names in coda with names from formula
+    mean.names <- paste0(mean.model$fixed$name,".",
+                         colnames(jags.model.args$data$mean.fixed))
+
+    variance.names <- paste0(variance.model$fixed$name,".",
+                         colnames(jags.model.args$data$variance.fixed))
+
+    mean.index <- grep(paste0(mean.model$fixed$name,"\\["),
+                       colnames(coda[[1]]))
     
+    variance.index <- grep(paste0(variance.model$fixed$name,"\\["),
+                       colnames(coda[[1]]))
+    
+    for(i in 1:length(coda)){
+        colnames(coda[[i]])[mean.index] <- mean.names
+        colnames(coda[[i]])[variance.index] <- variance.names
+    }
+
     ## Return list of output
     return(list(jags.model.args=jags.model.args,
                 coda.samples.args=coda.samples.args,
