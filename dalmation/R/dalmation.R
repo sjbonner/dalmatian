@@ -27,6 +27,7 @@ dalmation <- function(df,
                       lower=NULL,
                       upper=NULL,
                       parameters=NULL,
+                      svd=TRUE,
                       debug=FALSE){
 
     if(debug)
@@ -58,6 +59,28 @@ dalmation <- function(df,
     jags.model.args$data <- generateJAGSdata(df,mean.model,variance.model,lower=lower,upper=upper)
 
     cat("Done\n")
+
+    ## Create useful variable names that will be assigned later
+    mean.names <- paste0(mean.model$fixed$name,".",
+                         colnames(jags.model.args$data$mean.fixed))
+
+    variance.names <- paste0(variance.model$fixed$name,".",
+                         colnames(jags.model.args$data$variance.fixed))
+
+    ## Perform SVD if requested
+    if(svd){
+        cat("    Computing singular value decompositions to improve mixing...")
+
+        ## Compute SVD
+        mean.fixed.svd <- svd(jags.model.args$data$mean.fixed)
+        variance.fixed.svd <- svd(jags.model.args$data$variance.fixed)
+
+        ## Replace design matrices with orthogal matrices
+        jags.model.args$data$mean.fixed <- mean.fixed.svd$u
+        jags.model.args$data$variance.fixed <- variance.fixed.svd$u
+        
+        cat("Done\n")
+    }
 
     ## Generate JAGS initial values
     cat("Step 3: Generating initial values...")
@@ -108,23 +131,31 @@ dalmation <- function(df,
     coda <- do.call(rjags::coda.samples,coda.samples.args)
     cat("Done\n")
 
-    ## Replace column names in coda with names from formula
-    mean.names <- paste0(mean.model$fixed$name,".",
-                         colnames(jags.model.args$data$mean.fixed))
+    ## Final tidying
+    cat("Step 5: Tidying Output...")
 
-    variance.names <- paste0(variance.model$fixed$name,".",
-                         colnames(jags.model.args$data$variance.fixed))
-
+    ## Identify indices of mean and variance parameters in coda output
     mean.index <- grep(paste0(mean.model$fixed$name,"\\["),
                        colnames(coda[[1]]))
     
     variance.index <- grep(paste0(variance.model$fixed$name,"\\["),
                        colnames(coda[[1]]))
     
+    ## 1) Transform chains to original scale
+    if(svd){
+        for(i in 1:jags.model.args$n.chains){
+            coda[[i]][,mean.index] <- t(solve(mean.fixed.svd$d * t(mean.fixed.svd$v),t(coda[[i]][,mean.index])))
+            coda[[i]][,variance.index] <- t(solve(variance.fixed.svd$d * t(variance.fixed.svd$v),t(coda[[i]][,variance.index])))
+        }
+    }
+        
+    ## Replace column names in coda with names from formula
     for(i in 1:length(coda)){
         colnames(coda[[i]])[mean.index] <- mean.names
         colnames(coda[[i]])[variance.index] <- variance.names
     }
+
+    cat("Done\n")
 
     ## Return list of output
     return(list(jags.model.args=jags.model.args,
