@@ -26,7 +26,7 @@ The raw data for this example is provided in the package and can be accessed wit
 ## Load pied flycatcher data
 data(pied_flycatchers_1)
 ```
-This data contains records on 5795 different food deliveries recorded during the pied flycatcher experiment. The response variable, `load`, records the load rounded to the nearest .1 gram. We want to model the logarithm of the load, and we also want to account for the rounding. To do this we will create two new variables in the data frame, `lower` and `upper`, which bound the logarithm of the true load. Not that we add .001 when the observed value is zero to avoid problems with the logarithm. 
+This data contains records on 5795 different food deliveries recorded during the pied flycatcher experiment. The response variable, `load`, records the load rounded to the nearest .1 gram. We want to model the logarithm of the load, and we also want to account for the rounding. To do this we will create two new variables in the data frame, `lower` and `upper`, which bound the logarithm of the true load. Note that we add .001 when the observed value is zero to avoid problems with the logarithm. 
 ```{r}
 ## Create variables bounding the true load
 pfdata$lower=ifelse(pfdata$load==0,log(.001),log(pfdata$load-.049))
@@ -134,7 +134,7 @@ We will now consider adding individual (bird) random effects to both the fixed a
 $$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)_{ij} + \beta_2 broodsize_i + \beta_3 sex_i + \epsilon_{i}}$$
 and
 $$\log(\sigma)=\psi_0 + \psi_1 \mathrm{broodsize}_i + \psi_2\mathrm{sex}_i + \xi_j$$
-where $\epsilon_i \sim N(0,\tau^2_\mu)$ and $\xi_i \sim N(0,\tau^2_\sigma)$. By default the variances $\tau^2_\epsilon and $\tau^2_\xi are assigned half-$t$ prior distributions.
+where $\epsilon_i \sim N(0,\tau^2_\mu)$ and $\xi_i \sim N(0,\tau^2_\sigma)$. By default the variances $\tau^2_{\epsilon}$ and $\tau^2_{\xi}$ are assigned half-$t$ prior distributions.
 
 ## Model
 
@@ -142,7 +142,7 @@ Instead of creating new model objects we can simply add to the old objects by cr
 
 ```{r}
 # Random component of mean
-mymean$random=list(name="epsilon",formula=~indidx)
+mymean$random=list(name="epsilon",formula=~-1 + indidx)
 
 # Random component of variance
 myvar$random=list(name="xi",formula=~-1 + indidx)

@@ -142,7 +142,7 @@ Instead of creating new model objects we can simply add to the old objects by cr
 
 ```{r}
 # Random component of mean
-mymean$random=list(name="epsilon",formula=~indidx)
+mymean$random=list(name="epsilon",formula=~-1 + indidx)
 
 # Random component of variance
 myvar$random=list(name="xi",formula=~-1 + indidx)
