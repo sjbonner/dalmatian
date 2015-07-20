@@ -56,7 +56,7 @@ dalmation <- function(df,
     ## Generate JAGS input data
     cat("Step 2: Generating JAGS data...")
     
-    jags.model.args$data <- generateJAGSdata(df,mean.model,variance.model,lower=lower,upper=upper)
+    jags.model.args$data <- generateJAGSdata(df,mean.model,variance.model,response=response,lower=lower,upper=upper)
 
     cat("Done\n")
 
