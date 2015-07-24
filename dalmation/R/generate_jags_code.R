@@ -1,27 +1,27 @@
-generateJAGScode <- function(file,mean.model,variance.model,rounding=FALSE){
+generateJAGScode <- function(jags.model.args,mean.model,variance.model,rounding=FALSE){
     ## Opening header
-    cat("## Created by generateJAGS: ", date(),"\n\n",file=file)
+    cat("## Created by generateJAGS: ", date(),"\n\n",file=jags.model.args$file)
 
     ## Open model
-    cat("model {\n",file=file,append=TRUE)
+    cat("model {\n",file=jags.model.args$file,append=TRUE)
 
     ##### Likelihood #####
-    cat("\t ##### Likelihood #####\n",file=file,append=TRUE)
-    cat("\t for(i in 1:n){\n",file=file,append=TRUE)
+    cat("\t ##### Likelihood #####\n",file=jags.model.args$file,append=TRUE)
+    cat("\t for(i in 1:n){\n",file=jags.model.args$file,append=TRUE)
         
     ## 1) Data model
-    cat("\t\t ## Data distribution \n",file=file,append=TRUE)
-    cat("\t\t y[i] ~ dnorm(muy[i],1/pow(sdy[i],2))\n\n",file=file,append=TRUE)
+    cat("\t\t ## Data distribution \n",file=jags.model.args$file,append=TRUE)
+    cat("\t\t y[i] ~ dnorm(muy[i],1/pow(sdy[i],2))\n\n",file=jags.model.args$file,append=TRUE)
 
     if(rounding){
-        cat("\t\t ## Rounding\n",file=file,append=TRUE)
-        cat("\t\t round1[i] <- (lower[i] < y[i])\n",file=file,append=TRUE)
-        cat("\t\t round2[i] <- (y[i] < upper[i])\n",file=file,append=TRUE)
-        cat("\t\t dummy[i] ~ dbern(round1[i] * round2[i])\n\n",file=file,append=TRUE)
+        cat("\t\t ## Rounding\n",file=jags.model.args$file,append=TRUE)
+        cat("\t\t round1[i] <- (lower[i] < y[i])\n",file=jags.model.args$file,append=TRUE)
+        cat("\t\t round2[i] <- (y[i] < upper[i])\n",file=jags.model.args$file,append=TRUE)
+        cat("\t\t dummy[i] ~ dbern(round1[i] * round2[i])\n\n",file=jags.model.args$file,append=TRUE)
     }
 
     ## 2) Mean model
-    cat("\t\t ## Mean Model\n",file=file,append=TRUE)
+    cat("\t\t ## Mean Model\n",file=jags.model.args$file,append=TRUE)
 
     ## 2a) Fixed effects
     if(!is.null(mean.model$fixed$link))
@@ -33,10 +33,10 @@ generateJAGScode <- function(file,mean.model,variance.model,rounding=FALSE){
     if(!is.null(mean.model$random))
         mean.jags <- paste(mean.jags," + inprod(mean.random[i,],",mean.model$random$name,"[])",sep="")
 
-    cat(mean.jags,"\n\n",file=file,append=TRUE,sep="")
+    cat(mean.jags,"\n\n",file=jags.model.args$file,append=TRUE,sep="")
     
     ## 3) Variance model
-    cat("\t\t ## Variance Model\n",file=file,append=TRUE)
+    cat("\t\t ## Variance Model\n",file=jags.model.args$file,append=TRUE)
 
     ## 3a) Fixed effects
     if(!is.null(variance.model$fixed$link))
@@ -48,38 +48,38 @@ generateJAGScode <- function(file,mean.model,variance.model,rounding=FALSE){
     if(!is.null(variance.model$random))
         variance.jags <- paste(variance.jags," + inprod(variance.random[i,],",variance.model$random$name,"[])",sep="")
     
-    cat(variance.jags,"\n\n",file=file,append=TRUE,sep="")
+    cat(variance.jags,"\n\n",file=jags.model.args$file,append=TRUE,sep="")
 
-    cat("\t }\n\n",file=file,append=TRUE)
+    cat("\t }\n\n",file=jags.model.args$file,append=TRUE)
     
     ##### Priors #####
-    cat("\t ##### Priors #####\n",file=file,append=TRUE)
+    cat("\t ##### Priors #####\n",file=jags.model.args$file,append=TRUE)
 
-    cat("\t ## Mean Model: Fixed\n",file=file,append=TRUE)
-    generatePriorsFixed(mean.model,file)
+    cat("\t ## Mean Model: Fixed\n",file=jags.model.args$file,append=TRUE)
+    generatePriorsFixed(mean.model,jags.model.args$file)
 
-    cat("\n",file=file,append=TRUE)
+    cat("\n",file=jags.model.args$file,append=TRUE)
 
     if(!is.null(mean.model$random)){
-        cat("\t ## Mean Model: Random\n",file=file,append=TRUE)
-        generatePriorsRandom(mean.model,file)
+        cat("\t ## Mean Model: Random\n",file=jags.model.args$file,append=TRUE)
+        generatePriorsRandom(mean.model,jags.model.args)
         
-        cat("\n",file=file,append=TRUE)
+        cat("\n",file=jags.model.args$file,append=TRUE)
     }
         
-    cat("\t ## Variance Model: Fixed\n",file=file,append=TRUE)
-    generatePriorsFixed(variance.model,file)
+    cat("\t ## Variance Model: Fixed\n",file=jags.model.args$file,append=TRUE)
+    generatePriorsFixed(variance.model,jags.model.args$file)
 
     if(!is.null(variance.model$random)){
-        cat("\t ## Variance Model: Random\n",file=file,append=TRUE)
+        cat("\t ## Variance Model: Random\n",file=jags.model.args$file,append=TRUE)
         
-        generatePriorsRandom(variance.model,file)
+        generatePriorsRandom(variance.model,jags.model.args)
         
-        cat("\n",file=file,append=TRUE)
+        cat("\n",file=jags.model.args$file,append=TRUE)
     }
 
     ## Close model
-    cat("}\n",file=file,append=TRUE)
+    cat("}\n",file=jags.model.args$file,append=TRUE)
 }
 
 generatePriorsFixed <- function(model,file){
@@ -96,18 +96,26 @@ generatePriorsFixed <- function(model,file){
 
 }
 
-generatePriorsRandom <- function(model,file){
+generatePriorsRandom <- function(model,jags.model.args){
 
-    redun <- paste0("redun.",model$random$name)
-    tau <- paste0("tau.",model$random$name)
-    sd <- paste0("sd.",model$random$name)
+    ## Generate JAGS variable names
+    redun <- paste0("redun.",model$random$name,"[k]")
+    tau <- paste0("tau.",model$random$name,"[k]")
+    sd <- paste0("sd.",model$random$name,"[k]")
+
+    ## Random effects variances
+    cat("\t for(k in 1:",model$random$name,".ncomponents){\n",file=jags.model.args$file,append=TRUE,sep="")
+    cat("\t\t ",redun,"~ dnorm(0,1)\n",file=jags.model.args$file,append=TRUE,sep="")
+    cat("\t\t ",tau,"~ dgamma(1.5,37.5)\n",file=jags.model.args$file,append=TRUE,sep="")
+    cat("\t\t ",sd,"<- abs(",redun,")/sqrt(",tau,")\n",file=jags.model.args$file,append=TRUE,sep="")
+    cat("\t }\n\n",file=jags.model.args$file,append=TRUE,sep="")
+
+    ## Random effects
+    cat("\t for(k in 1:",model$random$name,".neffects){\n",file=jags.model.args$file,append=TRUE,sep="")
+    cat("\t\t",model$random$name,"[k] ~ dnorm(0,tau.",model$random$name,"[",model$random$name,".levels[k]])\n",
+        file=jags.model.args$file,append=TRUE,sep="")
+    cat("\t }\n",file=jags.model.args$file,append=TRUE,sep="")
     
-    cat("\t for(k in 1:",model$random$name,".n){\n",file=file,append=TRUE,sep="")
     
-    cat("\t\t",model$random$name,"[k] ~ dnorm(0,tau.",model$random$name,")\n",file=file,append=TRUE,sep="")
-    cat("\t }\n",file=file,append=TRUE,sep="")
-    cat("\t ",redun,"~ dnorm(0,1)\n",file=file,append=TRUE,sep="")
-    cat("\t ",tau,"~ dgamma(1.5,37.5)\n",file=file,append=TRUE,sep="")
-    cat("\t ",sd,"<- abs(",redun,")/sqrt(",tau,")\n",file=file,append=TRUE,sep="")
 }
 

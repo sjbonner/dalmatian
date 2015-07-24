@@ -1,0 +1,123 @@
+---
+title: "Analysis of the Pied Flycatcher Data: Random Slopes"
+author: "Simon Bonner"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This vignette continues the example of the pied flycatchers discussed in the vignette "pied-flycatchers-1" by adding a random slope to the fixed effects model. I highly recommend that you work through this vignette first.
+
+# Library
+
+First you have to load the package:
+```{r}
+## Load package
+library(dalmation)
+```
+
+# Raw data
+
+The raw data for this example is provided in the package and can be accessed with:
+```{r}
+## Load pied flycatcher data
+data(pied_flycatchers_1)
+```
+
+As before we will consider load as a response variable rounded to the nearest whole number and define the lower and upper bounds:
+```{r}
+## Create variables bounding the true load
+pfdata$lower=ifelse(pfdata$load==0,log(.001),log(pfdata$load-.049))
+pfdata$upper=log(pfdata$load+.05)
+```
+
+# Model
+
+The model we consider will be the similar to the random effects model in "pied-flycatchers-1". We will modify this model by including a random, individual slope for the effect of $log(IVI)$ as well as the random intercept in the mean model. The new model for the mean will be:
+$$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)_{ij} + \beta_2 broodsize_i + \beta_3 sex_i + \epsilon_{1i}} + \epsilon_{2i} \mathrm{log(IVI)_{ij}$$
+For convenience, we will also simplify the model of the variance by assuming that the variance is constant across all observations. This can be done by setting:
+$$\log(\sigma)=\psi_0$$.
+
+The objects defining the new mean and variance components are specified as:
+
+```{r}
+# Random component of mean
+mymean=list(fixed=list(name="alpha",
+                formula=~ log(IVI) + broodsize + sex,
+                priors=list(c("dnorm",0,.001))),
+    random=list(name="epsilon",formula=~-1 + indidx + indidx:log(IVI)))
+
+
+# Random component of variance
+myvar=list(fixed=list(name="psi",
+               link="log",
+               formula=~1,
+               priors=list(c("dnorm",0,.001))))
+
+```
+
+## Running the Model with Dalmation
+
+The new model can now be run using `dalmation` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and variance components by taking the values from the final iterations of each of the chains run for the fixed effects model. For convenience, we set the random effects variances equal to 1 in all three chains. 
+
+
+```{r}
+
+## Define list of arguments for jags.model()
+jm.args <- list(file="pied_flycatcher_3_jags.R",n.adapt=250)
+
+## Define list of arguments for coda.samples()
+cs.args <- list(n.iter=250)
+
+## Run the model using dalmation
+pfresults2 <- dalmation(df=pfdata,
+                           mean.model=mymean,
+                           variance.model=myvar,
+                           jags.model.args=jm.args,
+                           coda.samples.args=cs.args,
+                           rounding=TRUE,
+                           lower="lower",
+                           upper="upper",
+                           debug=FALSE)
+
+```
+
+## Results
+As before, we can use functions in the `coda` package to assess the convergence of the Markov chain. 
+```{r}
+library(coda)
+
+## Gelman Diagnostics
+gelman.diag(pfresults2$coda)
+```
+
+We can also examine traceplots and posterior summaries for the standard deviations of the random effects.
+```{r}
+## Numerical summaries
+summary(pfresults2$coda)
+
+## Graphical summaries of random effects standard deviations
+library(ggmcmc)
+
+ggs.random=ggs(pfresults2$coda,family="sd")
+
+ggs_traceplot(ggs.random)
+ggs_density(ggs.random)
+ggs_caterpillar(ggs.random)
+```
+
+Examining the values of the individual random effects themselves is somewhat more complicated at this point, because I have yet to develop a good mechanism to identify the names of these variables. The best way to do this, currently, is to use the `colnames` function to identify the indices of the random effects within the `coda` object. You can then use the functions in `coda` or `ggmcmc` to create summaries of these values. 
+
+```{r}
+## Graphical summaries of indivdual random slopes and intercepts
+colnames(pfresults2$coda[[1]])
+ggs.randomIntercepts=ggs(pfresults2$coda[,5:64])
+ggs.randomSlopes=ggs(pfresults2$coda[,66:124])
+
+ggs_caterpillar(ggs.randomIntercepts)
+ggs_caterpillar(ggs.randomSlopes)
+```
+
