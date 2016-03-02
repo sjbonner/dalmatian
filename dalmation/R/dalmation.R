@@ -122,11 +122,13 @@ dalmation <- function(df,
         parameters <- c(mean.model$fixed$name,
                         mean.model$random$name,
                         variance.model$fixed$name,
-                        variance.model$random$name)
+                        variance.model$random$name,
+                        "resid")
 
     if(!is.null(mean.model$random))
         parameters <- c(parameters,
-                        paste0("sd.",mean.model$random$name))
+                        paste0("sd.",mean.model$random$name),
+                        "varcomp")
 
     if(!is.null(variance.model$random))
         parameters <- c(parameters,
@@ -183,7 +185,9 @@ dalmation <- function(df,
     cat("Done\n")
 
     ## Return list of output
-    return(list(jags.model.args=jags.model.args,
+    return(list(mean.model=mean.model,
+                variance.model=variance.model,
+                jags.model.args=jags.model.args,
                 coda.samples.args=coda.samples.args,
                 coda=coda))
 }

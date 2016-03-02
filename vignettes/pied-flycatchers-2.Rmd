@@ -37,7 +37,7 @@ pfdata$upper=log(pfdata$load+.05)
 # Model
 
 The model we consider will be the similar to the random effects model in "pied-flycatchers-1". We will modify this model by including a random, individual slope for the effect of $log(IVI)$ as well as the random intercept in the mean model. The new model for the mean will be:
-$$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)_{ij} + \beta_2 broodsize_i + \beta_3 sex_i + \epsilon_{1i}} + \epsilon_{2i} \mathrm{log(IVI)_{ij}$$
+$$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)}_{ij} + \beta_2 \mathrm{broodsize}_i + \beta_3 \mathrm{sex}_i + \epsilon_{1i} + \epsilon_{2i} \mathrm{log(IVI)}_{ij}$$
 For convenience, we will also simplify the model of the variance by assuming that the variance is constant across all observations. This can be done by setting:
 $$\log(\sigma)=\psi_0$$.
 

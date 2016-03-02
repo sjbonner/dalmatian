@@ -172,14 +172,14 @@ cs.args <- list(n.iter=100)
 
 ## Run the model using dalmation
 pfresults2 <- dalmation(df=pfdata,
-                           mean.model=mymean,
-                           variance.model=myvar,
-                           jags.model.args=jm.args,
-                           coda.samples.args=cs.args,
-                           rounding=TRUE,
-                           lower="lower",
-                           upper="upper",
-                           debug=FALSE)
+                        mean.model=mymean,
+                        variance.model=myvar,
+                        jags.model.args=jm.args,
+                        coda.samples.args=cs.args,
+                        rounding=TRUE,
+                        lower="lower",
+                        upper="upper",
+                        debug=FALSE)
 
 ```
 
@@ -215,4 +215,23 @@ ggs.random=ggs(pfresults2$coda,family="sd")
 ggs_traceplot(ggs.random)
 ggs_density(ggs.random)
 ggs_caterpillar(ggs.random)
+```
+Here we compute the posterior distribution for the relative variance components. Since the variance of the residuals depends on covariates we need to compute the residual variance separately for each observation.
+```{r}
+## Compute linear predictor for log(sd) including random effects
+psi.names <- grep("^psi.",colnames(results$coda[[1]]),value=TRUE)
+xi.names <- grep("^xi.",colnames(results$coda[[1]]),value=TRUE)
+
+sigmasq.coda <- lapply(results$coda,function(coda){
+    fixed <- coda[,psi.names] %*% t(results$jags.model.args$data$variance.fixed)
+    random <- coda[,xi.names] %*% t(results$jags.model.args$data$variance.random)
+    exp(fixed + random)
+})
+
+varcomp.coda <- as.mcmc.list(lapply(1:results$jags.model.args$n.chains,function(k){
+    as.mcmc(sigmasq.coda[[k]]^2/(results$coda[[k]][,"sd.epsilon"]^2 + sigmasq.coda[[k]]^2))
+}))
+
+test <- summary(varcomp.coda)
+
 ```

@@ -1,7 +1,7 @@
 generateJAGSdata <- function(df,mean.model,variance.model,response=NULL,lower=NULL,upper=NULL){
     ## Generate data list
     jags.data <- list(n=nrow(df))
-    
+
     ## Construct design matrices for mean model
     jags.data$mean.fixed <- model.matrix(mean.model$fixed$formula,df)
     jags.data[[paste0(mean.model$fixed$name,".n")]] <- ncol(jags.data$mean.fixed)
@@ -29,6 +29,12 @@ generateJAGSdata <- function(df,mean.model,variance.model,response=NULL,lower=NU
         jags.data[[paste0(variance.model$random$name,".neffects")]] <- length(tmp)
         jags.data[[paste0(variance.model$random$name,".levels")]] <- tmp
     }
+
+    ## Construct weights for variance model
+    if(is.null(variance.model$weights))
+      jags.data$weights <- rep(1,nrow(df))
+    else
+      jags.data$weights <- variance.model$weights
 
     ## Add response variable
     if(!is.null(response))
