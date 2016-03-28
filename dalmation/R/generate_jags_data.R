@@ -1,6 +1,10 @@
-generateJAGSdata <- function(df,mean.model,variance.model,response=NULL,lower=NULL,upper=NULL){
+generateJAGSdata <- function(df,mean.model,variance.model,response=NULL,lower=NULL,upper=NULL,drop.levels=TRUE){
     ## Generate data list
     jags.data <- list(n=nrow(df))
+
+    ## Remove unused factor level from data frame
+    if(drop.levels)
+       df <- gdata::drop.levels(df,reorder=FALSE)
 
     ## Construct design matrices for mean model
     jags.data$mean.fixed <- model.matrix(mean.model$fixed$formula,df)
@@ -14,6 +18,9 @@ generateJAGSdata <- function(df,mean.model,variance.model,response=NULL,lower=NU
         jags.data[[paste0(mean.model$random$name,".ncomponents")]] <- max(tmp)
         jags.data[[paste0(mean.model$random$name,".neffects")]] <- length(tmp)
         jags.data[[paste0(mean.model$random$name,".levels")]] <- tmp
+
+        if(!is.null(mean.model$random$sigma))
+          jags.data[[paste0("sd.",mean.model$random$name)]] <- mean.model$random$sigma^2
     }
 
     ## Construct design matrices for variance model
@@ -31,10 +38,8 @@ generateJAGSdata <- function(df,mean.model,variance.model,response=NULL,lower=NU
     }
 
     ## Construct weights for variance model
-    if(is.null(variance.model$weights))
-      jags.data$weights <- rep(1,nrow(df))
-    else
-      jags.data$weights <- variance.model$weights
+    if(!is.null(variance.model$weights))
+      jags.data$weights <- df[[variance.model$weights]]
 
     ## Add response variable
     if(!is.null(response))
