@@ -1,11 +1,11 @@
 ##' The primary function which automates the running of \code{JAGS}.
 ##'
-##' The primary function in the package, dalmation automates the generation of code, data, and initial values. These are then passed as arguments to function from the \code{rjags} package which automates the generation of samplse from the posterior. 
+##' The primary function in the package, dalmation automates the generation of code, data, and initial values. These are then passed as arguments to function from the \code{rjags} package which automates the generation of samplse from the posterior.
 ##' @title Run DGLM in \code{JAGS} via \code{rjags}
+##'
 ##' @param df Data frame containing the response and predictor values for each individual. (data.frame)
 ##' @param mean.model Model list specifying the structure of the mean. (list)
 ##' @param variance.model Model list specifying the structure of the variance. (list)
-##' @param model.file Name of the model file. (character)
 ##' @param jags.model.args  List containing named arguments of \code{jags.model}. (list)
 ##' @param coda.samples.args List containing named arguments of \code{coda.samples}. (list)
 ##' @param response Name of variable in the data frame representing the response. (character)
@@ -13,7 +13,12 @@
 ##' @param lower Name of variable in the data frame representing the lower bound on the response if rounded. (character)
 ##' @param upper Name of variable in the data frame representing the upper bound on the response if rounded. (character)
 ##' @param parameters Names of parameters to monitor. If NULL then default values are selected. (character)
+##' @param svd Compute Singular Variable Decomposition of model matrices to improve convergence. (logical)
 ##' @param debug If TRUE then enter debug model. (logical)
+##' @param residuals If TRUE then compute residuals in output. (logical)
+##' @param gencode If TRUE then generate code potentially overwriting existing model file. By default generate code if the file does not exist and prompt user if it does. (logical)
+##' @param drop.levels If TRUE then drop unused levels from all factors in df. (logical)
+##'
 ##' @return samples (mcmc.list)
 ##' @author Simon Bonner
 ##' @export
@@ -28,11 +33,14 @@ dalmation <- function(df,
                       upper=NULL,
                       parameters=NULL,
                       svd=TRUE,
+                      residuals=FALSE,
+                      gencode=NULL,
+                      drop.levels=TRUE,
                       debug=FALSE){
 
     if(debug)
         browser()
-    
+
     ## Check that input is sufficient
     if(rounding && (is.null(lower) || is.null(upper)))
         stop("If rounding=TRUE then you must specify the names of both the lower and upper bounds of the response.\n\n")
@@ -45,18 +53,39 @@ dalmation <- function(df,
 
     if(is.null(coda.samples.args$n.iter))
         stop("The coda.samples.args list must include a variable n.iter. Please see help(coda.samples) for details.\n\n")
-    
+
     ## Generate JAGS code
     cat("Step 1: Generating JAGS code...")
-    
-    generateJAGScode(jags.model.args,mean.model,variance.model,rounding=rounding)
+
+    if(is.null(gencode)){
+      if(!file.exists(jags.model.args$file))
+        gencode <- TRUE
+      else{
+
+        tmp <- NULL
+
+        while(is.null(tmp)){
+          tmp <- readline("The model file already exists. Do you want to overwrite it? (y/n)")
+
+          if(tmp == "y" || tmp == "Y")
+            gencode <- TRUE
+          else if(tmp == "n" || tmp == "N")
+            gencode <- FALSE
+          else
+            tmp <- NULL
+        }
+      }
+    }
+
+    if(gencode)
+      generateJAGScode(jags.model.args,mean.model,variance.model,rounding=rounding,residuals=residuals)
 
     cat("Done\n")
 
 
     ## Generate JAGS input data
     cat("Step 2: Generating JAGS data...")
-    
+
     jags.model.args$data <- generateJAGSdata(df,mean.model,variance.model,response=response,lower=lower,upper=upper)
 
     cat("Done\n")
@@ -87,7 +116,7 @@ dalmation <- function(df,
         ## Replace design matrices with orthogal matrices
         jags.model.args$data$mean.fixed <- mean.fixed.svd$u
         jags.model.args$data$variance.fixed <- variance.fixed.svd$u
-        
+
         cat("Done\n")
     }
 
@@ -98,15 +127,15 @@ dalmation <- function(df,
         if(is.null(jags.model.args$n.chains))
             cat("\n    Running three parallel chains by default...")
         jags.model.args$n.chains <- 3
-        
+
         jags.model.args$inits <- generateJAGSinits(mean.model,variance.model,jags.model.args$data,jags.model.args$n.chains)
-        
+
         cat("Done\n")
     }
     else{
         if(is.null(jags.model.args$n.chains))
             jags.model.args$n.chains <- length(jags.model.args$inits)
-            
+
         cat("Skipped\n")
     }
 
@@ -116,7 +145,7 @@ dalmation <- function(df,
 
     cat("    Initializing model\n")
     model <- do.call(rjags::jags.model,jags.model.args)
-    
+
     ## List parameters to monitor
     if(is.null(parameters))
         parameters <- c(mean.model$fixed$name,
@@ -133,12 +162,12 @@ dalmation <- function(df,
     if(!is.null(variance.model$random))
         parameters <- c(parameters,
                         paste0("sd.",variance.model$random$name))
-    
+
     ## Generate samples
     cat("   Generating samples\n")
     coda.samples.args$model <- model
     coda.samples.args$variable.names <- parameters
-    
+
     coda <- do.call(rjags::coda.samples,coda.samples.args)
     cat("Done\n")
 
@@ -148,19 +177,19 @@ dalmation <- function(df,
     ## Identify indices of mean and variance parameters in coda output
     mean.index.fixed <- grep(paste0("^",mean.model$fixed$name),
                        colnames(coda[[1]]))
-    
+
     variance.index.fixed <- grep(paste0("^",variance.model$fixed$name),
                        colnames(coda[[1]]))
 
     if(!is.null(mean.model$random))
         mean.index.random <- grep(paste0("^",mean.model$random$name),
                                   colnames(coda[[1]]))
-    
+
     if(!is.null(variance.model$random))
         variance.index.random <- grep(paste0("^",variance.model$random$name),
                                   colnames(coda[[1]]))
 
-    
+
     ## 1) Transform chains to original scale
     if(svd){
         for(i in 1:jags.model.args$n.chains){
@@ -169,7 +198,7 @@ dalmation <- function(df,
             coda[[i]][,variance.index.fixed] <- t(solve(variance.fixed.svd$d * t(variance.fixed.svd$v),t(coda[[i]][,variance.index.fixed])))
         }
     }
-        
+
     ## Replace column names in coda with names from formula
     for(i in 1:length(coda)){
         colnames(coda[[i]])[mean.index.fixed] <- mean.names.fixed
