@@ -190,9 +190,11 @@ dalmation <- function(df,
       mean.model$fixed$name,
       mean.model$random$name,
       variance.model$fixed$name,
-      variance.model$random$name,
-      "resid"
+      variance.model$random$name
     )
+
+  if (residuals && !(residuals %in% parameters))
+      parameters <- c(parameters,"resid")
 
   if (!is.null(mean.model$random))
     parameters <- c(parameters,
