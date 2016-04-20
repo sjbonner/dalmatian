@@ -17,7 +17,7 @@ generateJAGSdata <-
                         which(!is.finite(df[[lower]])))
     }
     else if (drop.missing)
-      miss <- which(is.finite(df[[response]]))
+      miss <- which(!is.finite(df[[response]]))
 
     if (length(miss) > 0) {
       df <- df[-miss,]
