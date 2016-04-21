@@ -97,35 +97,21 @@ Summaries of the MCMC sampler and the posterior distribution can be constructed 
 
 First we will assess the convergence of the Markov chains using the function from the `coda` package.
 ```{r}
-library(coda)
-
-## Compute Gelman-Rubin Diagnostics
-gelman.diag(pfresults$coda)
-
-## Compute effective sample size
-effectiveSize(pfresults$coda)
+convergence(pfresults)
 ```
 These results show that the chains have not converged well (GRB diagnostic values as high as 2.13 in my run) and samples that are equivalent to between 6 and 22 independent draws from the posterior. This is not surprising. I have set the number of burn-in and sampling iterations to be very small so that the sampler finishes quickly, but they are far, far too small for the chain to adapt, converge, and mix properly. 
 
 Now we will examine the posterior distribution of the fixed effects of the mean component.
 ```{r}
-library(ggmcmc)
-
-## Examine fixed effects of mean component
-ggs.mean=ggs(pfresults$coda,mymean$fixed$name)
-
-ggs_traceplot(ggs.mean)
-ggs_density(ggs.mean)
-ggs_caterpillar(ggs.mean) + geom_vline(xintercept=0)
+traceplots(pfresults)
 ```
-Then we examine the posterior distribution of the fixed effects of the variance component.
-```{r}
-## Examine fixed effects of variance component
-ggs.var=ggs(pfresults$coda,myvar$fixed$name)
 
-ggs_traceplot(ggs.var)
-ggs_density(ggs.var)
-ggs_caterpillar(ggs.var) + geom_vline(xintercept=0)
+```{r}
+caterpillar(pfresults)
+```
+
+```{r}
+summary(pfresults)
 ```
 
 # Model 2: Random Effects
@@ -187,32 +173,18 @@ pfresults2 <- dalmation(df=pfdata,
 As before, we can examine the samples from the posterior distributions of the cofficients in the mean and variance components.
 
 ```{r}
-## Gelman Diagnostics
-gelman.diag(pfresults2$coda)
+## Convergence diagnostics
+convergence(pfresults2)
+
+## Traceplots
+traceplots(pfresults2)
+
 ```
 
 ```{r}
-## Examine fixed effects of mean component
-ggs.mean=ggs(pfresults2$coda,paste0("^",mymean$fixed$name))
+## Posterior summary statistics
+summary(pfresults2)
 
-ggs_traceplot(ggs.mean)
-ggs_density(ggs.mean)
-ggs_caterpillar(ggs.mean) + geom_vline(xintercept=0)
-
-## Examine fixed effects of variance component
-ggs.var=ggs(pfresults2$coda,paste0("^",myvar$fixed$name))
-
-ggs_traceplot(ggs.var)
-ggs_density(ggs.var)
-ggs_caterpillar(ggs.var) + geom_vline(xintercept=0)
-```
-
-We can also examine traceplots and posterior summaries for the standard deviations of the random effects.
-
-```{r}
-ggs.random=ggs(pfresults2$coda,family="sd")
-
-ggs_traceplot(ggs.random)
-ggs_density(ggs.random)
-ggs_caterpillar(ggs.random)
+## Caterpillar plots
+caterpillar(pfresults2)
 ```

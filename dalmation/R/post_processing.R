@@ -1,0 +1,445 @@
+#' @importFrom coda thin
+myCodaSummary <-
+  function(coda,
+           base,
+           nstart = start(coda),
+           nend = end(coda),
+           nthin = coda::thin(coda)) {
+    ## Generate summary for fixed effects components with names of the form base.xxx
+
+    ## Identify parameters matching the given form
+    pars <-
+      grep(paste0("^", base, "\\."), coda::varnames(coda), value = TRUE)
+
+    ## Create new coda object with specified parameters
+    ## Note: this is wasteful, but it is not possible to compute one set of HPD otherwise
+    ## Note: It's also exactly what summary.mcmc.list does!
+    coda1 <-
+      coda::as.mcmc(do.call(rbind, window(
+        coda[, pars, drop = FALSE],
+        start = nstart,
+        end = nend,
+        thin = nthin
+      )))
+
+    ## Compute means and standard deviations
+    basic <- cbind(apply(coda1, 2, mean),
+                   apply(coda1, 2, median),
+                   apply(coda1, 2, sd))
+
+    ## Compute HPD intervals
+    hpd1 <- coda::HPDinterval(coda1, prob = .95)
+    hpd2 <- coda::HPDinterval(coda1, prob = .50)
+
+    output <-
+      cbind(basic, hpd1[, 1], hpd2[, 1], hpd2[, 2], hpd1[, 2])
+
+    ## Add nice dimension names
+    dimnames(output) <-
+      list(
+        sapply(pars, function(x)
+          strsplit(x, split = paste0("^", base, "."))[[1]][2]),
+        c(
+          "Mean",
+          "Median",
+          "SD",
+          "Lower 95%",
+          "Lower 50%",
+          "Upper 50%",
+          "Upper 95%"
+        )
+      )
+
+    ## Return object
+    output
+  }
+
+#' Summary (dalmation)
+#'
+#' @param object Object of class \code{dalmation} created by \code{dalmation()}.
+#' @param nstart Start point for computing summary statistics (relative to true start of chain).
+#' @param nend End point for computing summary statistics (relative to true start of chain).
+#' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
+#'
+#' @return output (list)
+#' @export
+summary.dalmation <-
+  function(object,
+           nstart = start(object$coda),
+           nend = end(object$coda),
+           nthin = thin(object$coda)) {
+    ## Compute summaries of fixed effects
+    output <-
+      list(
+        meanFixed = myCodaSummary(
+          object$coda,
+          object$mean.model$fixed$name,
+          nstart,
+          nend,
+          nthin
+        ),
+        varFixed = myCodaSummary(
+          object$coda,
+          object$variance.model$fixed$name,
+          nstart,
+          nend,
+          nthin
+        ),
+        start = nstart,
+        end = nend,
+        thin = nthin,
+        nchain = coda::nchain(object$coda)
+      )
+
+    ## Compute summaries of random effects
+    if (!is.null(object$mean.model$random))
+      output$meanRandom = myCodaSummary(object$coda,
+                                        paste0("sd\\.", object$mean.model$random$name),
+                                        nstart,
+                                        nend,
+                                        nthin)
+
+    if (!is.null(object$variance.model$random))
+      output$varRandom = myCodaSummary(
+        object$coda,
+        paste0("sd\\.", object$variance.model$random$name),
+        nstart,
+        nend,
+        nthin
+      )
+
+    class(output) <- "dalmation.summary"
+
+    return(output)
+  }
+
+#' Print Summary (dalmation)
+#'
+#' @param summ Object of class \code{dalamtion.summary} created by \code{summary.dalmation()}.
+#' @param digits Number of digits to display after decimal.
+#'
+#' @export
+#'
+print.dalmation.summary <- function(summ, digits = 2) {
+  ## Basic information about chains
+
+  cat("\n", "Iterations = ", summ$start, ":", summ$end, "\n", sep = "")
+  cat("Thinning interval =", summ$thin, "\n")
+  cat("Number of chains =", summ$nchain, "\n")
+  cat("Sample size per chain =",
+      (summ$end - summ$start) / summ$thin +
+        1,
+      "\n\n")
+
+  cat("Posterior Summary Statistics for Each Model Component\n\n")
+
+  cat("Mean Model: Fixed Effects \n")
+  print(round(summ$meanFixed, digits))
+
+  if (!is.null(summ$meanRandom)) {
+    cat("\n")
+    cat("Mean Model: Random Effects \n")
+    print(round(summ$meanRandom, digits))
+  }
+
+  cat("\n")
+  cat("Variance Model: Fixed Effects \n")
+  print(round(summ$varFixed, digits))
+
+  if (!is.null(summ$varRandom)) {
+    cat("\n")
+    cat("Variance Model: Random Effects \n")
+    print(round(summ$varRandom, digits))
+  }
+}
+
+#' Random Effects (S3 Generic)
+#'
+#' Generic function for exporting summaries of random effects.
+#'
+#' @export
+#'
+ranef <- function(x) {
+  UseMethod("ranef")
+}
+
+#' Random Effects (dalmation)
+#'
+#' Compute posterior summary statistics for the individual random effects in each part of the model.
+#'
+#' @param object Object of class \code{dalmation} created by \code{dalmation()}.
+#' @param nstart Start point for computing summary statistics (relative to true start of chain).
+#' @param nend End point for computing summary statistics (relative to true start of chain).
+#' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
+#'
+#' @return output (list)
+#' @export
+#'
+ranef.dalmation <-
+  function(object,
+           nstart = start(object$coda),
+           nend = end(object$coda),
+           nthin = thin(object$coda)) {
+    output <- list()
+
+    if (!is.null(object$mean.model$random))
+      output$mean <-
+        myCodaSummary(object$coda, paste0("^", object$mean.model$random$name))
+
+    if (!is.null(object$variance.model$random))
+      output$variance <-
+        myCodaSummary(object$coda,
+                      paste0("^", object$variance.model$random$name))
+
+    return(output)
+  }
+
+#' Convergence Diagnostics (S3 Generic)
+#'
+#' Generic function for computing convergence diagnostics.
+#'
+#' @export
+#'
+convergence <- function(x) {
+  UseMethod("convergence")
+}
+
+#' Convergence
+#'
+#' Compute convergence diagnostics for a dalmation object.
+#'
+#' @param object Object of class \code{dalmation} created by \code{dalmation()}.
+#' @param pars List of parameters to assess. If NULL (default) then diagnostics are computed for the fixed effects and random effects standard deviations in both the mean and variance models.
+#' @param nstart Start point for computing summary statistics (relative to true start of chain).
+#' @param nend End point for computing summary statistics (relative to true start of chain).
+#' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
+#'
+#' @return List containing Gelman-Rubin and Raftery convergence diagnostics and effective sampel sizes for the selected parameters.
+#' @export
+convergence.dalmation <-
+  function(object,
+           pars = NULL,
+           nstart = start(object$coda),
+           nend = end(object$coda),
+           nthin = coda::thin(object$coda)) {
+    ## Select parameters to assess
+    if (is.null(pars)) {
+      pars <-
+        c(grep(
+          paste0("^", object$mean.model$fixed$name, "\\."),
+          coda::varnames(object$coda),
+          value = TRUE
+        ),
+        grep(
+          paste0("^", object$variance.model$fixed$name, "\\."),
+          coda::varnames(object$coda),
+          value = TRUE
+        ))
+
+      if (!is.null(object$mean.model$random))
+        pars <-
+          c(pars, grep(
+            paste0("sd\\.", object$mean.model$random$name),
+            coda::varnames(object$coda),
+            value = TRUE
+          ))
+
+      if (!is.null(object$variance.model$random))
+        pars <-
+          c(pars, grep(
+            paste0("sd\\.", object$variace.model$random$name),
+            coda::varnames(object$coda),
+            value = TRUE
+          ))
+    }
+
+    ## Compute convergence diagnostics
+    output <-
+      list(gelman = coda::gelman.diag(window(
+        object$coda[, pars],
+        start = nstart,
+        end = nend,
+        thin = nthin
+      )),
+      raftery = coda::raftery.diag(
+        window(
+          object$coda[, pars],
+          start = nstart,
+          end = nend,
+          thin = nthin
+        ),
+        q = .025,
+        r = .05,
+        s = .90
+      ),
+      effectiveSize=effectiveSize(window(object$coda[,pars],
+                               start=nstart,
+                               end=nend,
+                               thin=nthin)))
+
+    return(output)
+  }
+
+#' Traceplots (Generic)
+#'
+#' @export
+#'
+traceplots <- function(x) {
+  UseMethod("traceplots")
+}
+
+#' Traceplots (dalmation)
+#'
+#' Construct traceplots for key (or selected) parameters in a dalmation object.
+#'
+#' @param object Object of class \code{dalmation} created by \code{dalmation()}.
+#' @param pars List of parameters to assess. If NULL (default) then diagnostics are computed for the fixed effects and random effects standard deviations in both the mean and variance models.
+#' @param nstart Start point for computing summary statistics (relative to true start of chain).
+#' @param nend End point for computing summary statistics (relative to true start of chain).
+#' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
+#'
+#' @return If \code{return==TRUE} then returns a list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
+#' @export
+traceplots.dalmation <-
+  function(object,
+           family = NULL,
+           start = nstart,
+           end = nend,
+           thin = nthin,
+           plot = TRUE,
+           return = FALSE) {
+    if (is.null(family)) {
+      ## Mean: fixed effects
+      ggs1 <-
+        ggmcmc::ggs(object$coda,
+                    paste0("^", object$mean.model$fixed$name, "\\."))
+      output <- list(meanFixed = ggmcmc::ggs_traceplot(ggs1))
+
+      if (plot)
+        print(output$meanFixed)
+
+      ## Variance: fixed effects
+      ggs2 <-
+        ggmcmc::ggs(object$coda,
+                    paste0("^", object$variance.model$fixed$name, "\\."))
+      output <- list(varianceFixed = ggmcmc::ggs_traceplot(ggs2))
+
+      if (plot)
+        print(output$varianceFixed)
+
+      ## Mean: random effects
+      if (!is.null(object$mean.model$random)) {
+        ggs3 <-
+          ggmcmc::ggs(object$coda,
+                      paste0("^sd\\.", object$mean.model$random$name))
+        output <- list(meanRandom = ggmcmc::ggs_traceplot(ggs3))
+
+        if (plot)
+          print(output$meanRandom)
+      }
+
+      if (!is.null(object$variance.model$random)) {
+        ggs4 <-
+          ggmcmc::ggs(object$coda,
+                      paste0("^sd\\.", object$variance.model$random$name))
+        output <- list(varianceRandom = ggmcmc::ggs_traceplot(ggs4))
+
+        if (plot)
+          print(output$varianceRandom)
+      }
+    }
+    else{
+      ## Selected family
+      ggs1 <- ggmcmc::ggs(object$coda, family)
+      output <- ggmcmc::ggs_traceplot(ggs1)
+
+      if (plot)
+        print(output)
+    }
+
+    ## Return ouptut if requested
+    if (return)
+      return(output)
+  }
+
+#' Caterpillar (Generic)
+#'
+#' @export
+#'
+caterpillar <- function(x) {
+  UseMethod("caterpillar")
+}
+
+#' Caterpillar (dalmation)
+#'
+#' Construct caterpillar plots for key (or selected) parameters in a dalmation object.
+#'
+#' @param object Object of class \code{dalmation} created by \code{dalmation()}.
+#' @param pars List of parameters to assess. If NULL (default) then diagnostics are computed for the fixed effects and random effects standard deviations in both the mean and variance models.
+#' @param nstart Start point for computing summary statistics (relative to true start of chain).
+#' @param nend End point for computing summary statistics (relative to true start of chain).
+#' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
+#'
+#' @return If \code{return==TRUE} then returns a list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
+#' @export
+caterpillar.dalmation <-
+  function(object,
+           family = NULL,
+           start = nstart,
+           end = nend,
+           thin = nthin,
+           plot = TRUE,
+           return = FALSE) {
+    if (is.null(family)) {
+      ## Mean: fixed effects
+      ggs1 <-
+        ggmcmc::ggs(object$coda,
+                    paste0("^", object$mean.model$fixed$name, "\\."))
+      output <- list(meanFixed = ggmcmc::ggs_caterpillar(ggs1))
+
+      if (plot)
+        print(output$meanFixed)
+
+      ## Variance: fixed effects
+      ggs2 <-
+        ggmcmc::ggs(object$coda,
+                    paste0("^", object$variance.model$fixed$name, "\\."))
+      output <- list(varianceFixed = ggmcmc::ggs_caterpillar(ggs2))
+
+      if (plot)
+        print(output$varianceFixed)
+
+      ## Mean: random effects
+      if (!is.null(object$mean.model$random)) {
+        ggs3 <-
+          ggmcmc::ggs(object$coda,
+                      paste0("^sd\\.", object$mean.model$random$name))
+        output <- list(meanRandom = ggmcmc::ggs_caterpillar(ggs3))
+
+        if (plot)
+          print(output$meanRandom)
+      }
+
+      if (!is.null(object$variance.model$random)) {
+        ggs4 <-
+          ggmcmc::ggs(object$coda,
+                      paste0("^sd\\.", object$variance.model$random$name))
+        output <- list(varianceRandom = ggmcmc::ggs_caterpillar(ggs4))
+
+        if (plot)
+          print(output$varianceRandom)
+      }
+    }
+    else{
+      ## Selected family
+      ggs1 <- ggmcmc::ggs(object$coda, family)
+      output <- ggmcmc::ggs_caterpillar(ggs1)
+
+      if (plot)
+        print(output)
+    }
+
+    ## Return ouptut if requested
+    if (return)
+      return(output)
+  }

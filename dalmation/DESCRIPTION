@@ -15,5 +15,6 @@ VignetteBuilder: knitr
 Imports:
     rjags,
     coda,
-    gdata
+    gdata,
+    ggmcmc
 RoxygenNote: 5.0.1

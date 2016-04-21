@@ -39,7 +39,6 @@ dalmation <- function(df,
                       drop.levels = TRUE,
                       drop.missing = TRUE,
                       debug = FALSE) {
-
   ## Enter debug state
   if (debug)
     browser()
@@ -97,7 +96,6 @@ dalmation <- function(df,
 
   cat("Done\n")
 
-
   ## Generate JAGS input data
   cat("Step 2: Generating JAGS data...")
 
@@ -124,19 +122,32 @@ dalmation <- function(df,
                                  ".",
                                  colnames(jags.model.args$data$variance.fixed))
 
-  if (!is.null(mean.model$random))
+  if (!is.null(mean.model$random)) {
+    mean.names.sd <-
+      paste0("sd.",
+             mean.model$random$name,
+             ".",
+             attr(terms(mean.model$random$formula), "term.labels"))
+
     mean.names.random <- paste0(mean.model$random$name,
                                 ".",
                                 colnames(jags.model.args$data$mean.random))
+  }
 
-  if (!is.null(variance.model$random))
+  if (!is.null(variance.model$random)) {
+    variance.names.sd <-
+      paste0("sd.",
+             variance.model$random$name,
+             ".",
+             attr(terms(mean.model$random$formula), "term.labels"))
+
     variance.names.random <-
-    paste0(
-      variance.model$random$name,
-      ".",
-      colnames(jags.model.args$data$variance.random)
-    )
-
+      paste0(
+        variance.model$random$name,
+        ".",
+        colnames(jags.model.args$data$variance.random)
+      )
+  }
   ## Perform SVD if requested
   if (svd) {
     cat("    Computing singular value decompositions to improve mixing...")
@@ -194,12 +205,11 @@ dalmation <- function(df,
     )
 
   if (residuals && !(residuals %in% parameters))
-      parameters <- c(parameters,"resid")
+    parameters <- c(parameters, "resid")
 
   if (!is.null(mean.model$random))
     parameters <- c(parameters,
-                    paste0("sd.", mean.model$random$name),
-                    "varcomp")
+                    paste0("sd.", mean.model$random$name))
 
   if (!is.null(variance.model$random))
     parameters <- c(parameters,
@@ -218,21 +228,29 @@ dalmation <- function(df,
 
   ## Identify indices of mean and variance parameters in coda output
   mean.index.fixed <- grep(paste0("^", mean.model$fixed$name),
-                           colnames(coda[[1]]))
+                           coda::varnames(coda))
 
   variance.index.fixed <-
     grep(paste0("^", variance.model$fixed$name),
-         colnames(coda[[1]]))
+         coda::varnames(coda))
 
-  if (!is.null(mean.model$random))
+  if (!is.null(mean.model$random)) {
+    mean.index.sd <-
+      grep(paste0("^sd\\.", mean.model$random$name), coda::varnames(coda))
+
     mean.index.random <-
-    grep(paste0("^", mean.model$random$name),
-         colnames(coda[[1]]))
+      grep(paste0("^", mean.model$random$name),
+           coda::varnames(coda))
+  }
 
-  if (!is.null(variance.model$random))
+  if (!is.null(variance.model$random)) {
+    variance.index.sd <-
+      grep(paste0("^sd\\.", variance.model$random$name), coda::varnames(coda))
+
     variance.index.random <-
-    grep(paste0("^", variance.model$random$name),
-         colnames(coda[[1]]))
+      grep(paste0("^", variance.model$random$name),
+           coda::varnames(coda))
+  }
 
 
   ## 1) Transform chains to original scale
@@ -255,25 +273,34 @@ dalmation <- function(df,
     colnames(coda[[i]])[variance.index.fixed] <-
       variance.names.fixed
 
-    if (!is.null(mean.model$random))
-      colnames(coda[[i]])[mean.index.random] <-
-      mean.names.random
+    if (!is.null(mean.model$random)) {
+      colnames(coda[[i]])[mean.index.sd] <- mean.names.sd
 
-    if (!is.null(variance.model$random))
+      colnames(coda[[i]])[mean.index.random] <-
+        mean.names.random
+    }
+
+    if (!is.null(variance.model$random)) {
+      colnames(coda[[i]])[variance.index.sd] <- variance.names.sd
+
       colnames(coda[[i]])[variance.index.random] <-
-      variance.names.random
+        variance.names.random
+    }
   }
 
   cat("Done\n")
 
-  ## Return list of output
-  return(
-    list(
-      mean.model = mean.model,
-      variance.model = variance.model,
-      jags.model.args = jags.model.args,
-      coda.samples.args = coda.samples.args,
-      coda = coda
-    )
+  ## Create output object
+  output <- list(
+    mean.model = mean.model,
+    variance.model = variance.model,
+    jags.model.args = jags.model.args,
+    coda.samples.args = coda.samples.args,
+    coda = coda
   )
+
+  class(output) <- "dalmation"
+
+  ## Return output
+  output
 }
