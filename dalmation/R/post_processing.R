@@ -259,8 +259,10 @@ convergence.dalmation <-
         object$coda[, pars],
         start = nstart,
         end = nend,
-        thin = nthin
-      )),
+        thin = nthin,
+      ),
+      autoburnin = FALSE,
+      multivariate = FALSE),
       raftery = coda::raftery.diag(
         window(
           object$coda[, pars],
@@ -272,7 +274,7 @@ convergence.dalmation <-
         r = .05,
         s = .90
       ),
-      effectiveSize=effectiveSize(window(object$coda[,pars],
+      effectiveSize=coda::effectiveSize(window(object$coda[,pars],
                                start=nstart,
                                end=nend,
                                thin=nthin)))
@@ -284,7 +286,7 @@ convergence.dalmation <-
 #'
 #' @export
 #'
-traceplots <- function(x) {
+traceplots <- function(x,...) {
   UseMethod("traceplots")
 }
 
@@ -298,20 +300,25 @@ traceplots <- function(x) {
 #' @param nend End point for computing summary statistics (relative to true start of chain).
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
 #'
-#' @return If \code{return==TRUE} then returns a list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
+#' @return A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
 #' @export
 traceplots.dalmation <-
   function(object,
            family = NULL,
-           start = nstart,
-           end = nend,
-           thin = nthin,
-           plot = TRUE,
-           return = FALSE) {
+           nstart = start(object$coda),
+           nend = end(object$coda),
+           nthin = thin(object$coda),
+           plot = TRUE) {
     if (is.null(family)) {
+
+      coda <- object$coda
+
+      if(nstart != start(object$coda) || nend != end(object$coda) || nthin != thin(object$coda))
+        coda <- window(coda,start=nstart,end=nend,thin=nthin)
+
       ## Mean: fixed effects
       ggs1 <-
-        ggmcmc::ggs(object$coda,
+        ggmcmc::ggs(coda,
                     paste0("^", object$mean.model$fixed$name, "\\."))
       output <- list(meanFixed = ggmcmc::ggs_traceplot(ggs1))
 
@@ -320,9 +327,9 @@ traceplots.dalmation <-
 
       ## Variance: fixed effects
       ggs2 <-
-        ggmcmc::ggs(object$coda,
+        ggmcmc::ggs(coda,
                     paste0("^", object$variance.model$fixed$name, "\\."))
-      output <- list(varianceFixed = ggmcmc::ggs_traceplot(ggs2))
+      output$varianceFixed <- ggmcmc::ggs_traceplot(ggs2)
 
       if (plot)
         print(output$varianceFixed)
@@ -330,9 +337,9 @@ traceplots.dalmation <-
       ## Mean: random effects
       if (!is.null(object$mean.model$random)) {
         ggs3 <-
-          ggmcmc::ggs(object$coda,
+          ggmcmc::ggs(coda,
                       paste0("^sd\\.", object$mean.model$random$name))
-        output <- list(meanRandom = ggmcmc::ggs_traceplot(ggs3))
+        output$meanRandom <- ggmcmc::ggs_traceplot(ggs3)
 
         if (plot)
           print(output$meanRandom)
@@ -340,9 +347,9 @@ traceplots.dalmation <-
 
       if (!is.null(object$variance.model$random)) {
         ggs4 <-
-          ggmcmc::ggs(object$coda,
+          ggmcmc::ggs(coda,
                       paste0("^sd\\.", object$variance.model$random$name))
-        output <- list(varianceRandom = ggmcmc::ggs_traceplot(ggs4))
+        output$varianceRandom <- ggmcmc::ggs_traceplot(ggs4)
 
         if (plot)
           print(output$varianceRandom)
@@ -350,23 +357,22 @@ traceplots.dalmation <-
     }
     else{
       ## Selected family
-      ggs1 <- ggmcmc::ggs(object$coda, family)
+      ggs1 <- ggmcmc::ggs(coda, family)
       output <- ggmcmc::ggs_traceplot(ggs1)
 
       if (plot)
         print(output)
     }
 
-    ## Return ouptut if requested
-    if (return)
-      return(output)
+    ## Return output
+    output
   }
 
 #' Caterpillar (Generic)
 #'
 #' @export
 #'
-caterpillar <- function(x) {
+caterpillar <- function(x,...) {
   UseMethod("caterpillar")
 }
 
@@ -380,20 +386,25 @@ caterpillar <- function(x) {
 #' @param nend End point for computing summary statistics (relative to true start of chain).
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
 #'
-#' @return If \code{return==TRUE} then returns a list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
+#' @return A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
 #' @export
 caterpillar.dalmation <-
   function(object,
            family = NULL,
-           start = nstart,
-           end = nend,
-           thin = nthin,
-           plot = TRUE,
-           return = FALSE) {
+           nstart = start(object$coda),
+           nend = end(object$coda),
+           nthin = thin(object$coda),
+           plot = TRUE) {
     if (is.null(family)) {
+
+      coda <- object$coda
+
+      if(nstart != start(object$coda) || nend != end(object$coda) || nthin != thin(object$coda))
+        coda <- window(coda,start=nstart,end=nend,thin=nthin)
+
       ## Mean: fixed effects
       ggs1 <-
-        ggmcmc::ggs(object$coda,
+        ggmcmc::ggs(coda,
                     paste0("^", object$mean.model$fixed$name, "\\."))
       output <- list(meanFixed = ggmcmc::ggs_caterpillar(ggs1))
 
@@ -402,9 +413,9 @@ caterpillar.dalmation <-
 
       ## Variance: fixed effects
       ggs2 <-
-        ggmcmc::ggs(object$coda,
+        ggmcmc::ggs(coda,
                     paste0("^", object$variance.model$fixed$name, "\\."))
-      output <- list(varianceFixed = ggmcmc::ggs_caterpillar(ggs2))
+      output$varianceFixed <- ggmcmc::ggs_caterpillar(ggs2)
 
       if (plot)
         print(output$varianceFixed)
@@ -412,9 +423,9 @@ caterpillar.dalmation <-
       ## Mean: random effects
       if (!is.null(object$mean.model$random)) {
         ggs3 <-
-          ggmcmc::ggs(object$coda,
+          ggmcmc::ggs(coda,
                       paste0("^sd\\.", object$mean.model$random$name))
-        output <- list(meanRandom = ggmcmc::ggs_caterpillar(ggs3))
+        output$meanRandom <- ggmcmc::ggs_caterpillar(ggs3)
 
         if (plot)
           print(output$meanRandom)
@@ -422,9 +433,9 @@ caterpillar.dalmation <-
 
       if (!is.null(object$variance.model$random)) {
         ggs4 <-
-          ggmcmc::ggs(object$coda,
+          ggmcmc::ggs(coda,
                       paste0("^sd\\.", object$variance.model$random$name))
-        output <- list(varianceRandom = ggmcmc::ggs_caterpillar(ggs4))
+        output$varianceRandom <- ggmcmc::ggs_caterpillar(ggs4)
 
         if (plot)
           print(output$varianceRandom)
@@ -432,14 +443,13 @@ caterpillar.dalmation <-
     }
     else{
       ## Selected family
-      ggs1 <- ggmcmc::ggs(object$coda, family)
+      ggs1 <- ggmcmc::ggs(coda, family)
       output <- ggmcmc::ggs_caterpillar(ggs1)
 
       if (plot)
         print(output)
     }
 
-    ## Return ouptut if requested
-    if (return)
-      return(output)
+    ## Return ouptut
+    return(output)
   }
