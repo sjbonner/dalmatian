@@ -316,8 +316,6 @@ traceplots <- function(object, ...) {
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
 #' @param family String defining selected family of variables (see help for \code{ggs()}).
 #' @param plot If TRUE then generate plots. Otherwise, a list of \code{ggplot} objects will be returned.
-#' @param family String defining selected family of variables (see help for \code{ggs()}).
-#' @param plot If TRUE then generate plots. Otherwise, a list of \code{ggplot} objects will be returned.
 #' @param ... Ignored
 #'
 #' @return A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.

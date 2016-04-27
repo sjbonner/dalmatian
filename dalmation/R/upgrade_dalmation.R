@@ -13,6 +13,7 @@ upgradeDalmation <- function(input) {
 
   ## Attach input
   attach(input)
+  on.exit(detach(input))
 
   ## Create useful variable names that will be assigned later
   if (!is.null(mean.model$random)) {
@@ -66,9 +67,6 @@ upgradeDalmation <- function(input) {
 
   ## Change class
   class(output) <- "dalmation"
-
-  ## Detach input
-  detach(input)
 
   ## Return output
   output
