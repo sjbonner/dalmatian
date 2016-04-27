@@ -19,6 +19,7 @@
 ##' @param gencode If TRUE then generate code potentially overwriting existing model file. By default generate code if the file does not exist and prompt user if it does. (logical)
 ##' @param drop.levels If TRUE then drop unused levels from all factors in df. (logical)
 ##' @param drop.missing If TRUE then remove records with missing response variable. (logical)
+##' @param overwrite If TRUE then overwrite existing JAGS files (non-interactive sessions only). (logical)
 ##'
 ##' @return samples (mcmc.list)
 ##' @author Simon Bonner
@@ -38,6 +39,7 @@ dalmation <- function(df,
                       gencode = NULL,
                       drop.levels = TRUE,
                       drop.missing = TRUE,
+                      overwrite = FALSE,
                       debug = FALSE) {
   ## Enter debug state
   if (debug)
@@ -67,6 +69,8 @@ dalmation <- function(df,
 
   if (is.null(gencode)) {
     if (!file.exists(jags.model.args$file))
+      gencode <- TRUE
+    else if (overwrite)
       gencode <- TRUE
     else{
       tmp <- NULL

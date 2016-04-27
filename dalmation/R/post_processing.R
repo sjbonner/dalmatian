@@ -224,6 +224,7 @@ convergence <- function(object, ...) {
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
+#' @param raftery List of arguments to be passed to \code{raftery.diag()}. Any values not provided will be set to their defaults (see \code{help(raftery.diag())} for details).
 #' @param ... Ignored
 #'
 #' @return List containing Gelman-Rubin and Raftery convergence diagnostics and effective sampel sizes for the selected parameters.
@@ -234,6 +235,7 @@ convergence.dalmation <-
            nstart = start(object$coda),
            nend = end(object$coda),
            nthin = coda::thin(object$coda),
+           raftery=NULL,
            ...) {
     ## Select parameters to assess
     if (is.null(pars)) {
@@ -266,6 +268,16 @@ convergence.dalmation <-
           ))
     }
 
+    ## Set arguments for Raftery diagnostics
+    if(is.null(raftery$q))
+      raftery$q = .025
+    if(is.null(raftery$r))
+      raftery$r = .005
+    if(is.null(raftery$s))
+      raftery$s = .95
+    if(is.null(raftery$converge.eps))
+      raftery$converge.eps = .001
+
     ## Compute convergence diagnostics
     output <-
       list(gelman = coda::gelman.diag(window(
@@ -277,15 +289,16 @@ convergence.dalmation <-
       autoburnin = FALSE,
       multivariate = FALSE),
       raftery = coda::raftery.diag(
-        window(
-          object$coda[, pars],
+        coda::as.mcmc(do.call(rbind, window(
+          object$coda[, pars, drop = FALSE],
           start = nstart,
           end = nend,
           thin = nthin
-        ),
-        q = .025,
-        r = .05,
-        s = .90
+        ))),
+        q = raftery$q,
+        r = raftery$r,
+        s = raftery$s,
+        converge.eps = raftery$converge.eps
       ),
       effectiveSize=coda::effectiveSize(window(object$coda[,pars],
                                start=nstart,

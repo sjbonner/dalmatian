@@ -46,10 +46,12 @@ The first step is to define the models for the mean and variance components. The
 The components of the model for the pied flycatcher data specified above would be generated with:
 
 ```{r}
+## Mean model
 mymean=list(fixed=list(name="alpha",
        formula=~ log(IVI) + broodsize + sex,
        priors=list(c("dnorm",0,.001))))
 
+## Variance model
 myvar=list(fixed=list(name="psi",
       link="log",
       formula=~broodsize + sex,
@@ -119,7 +121,7 @@ pfconvergence$effectiveSize
 Details of these measures can be found in the help files of the `coda` package. Not surprisingly, these all suggest that the chains need to be run for longer. 
 
 Convergence and mixing of the chains can also be examined visually through traceplots. The wrapper function `traceplots` generates traces using the functions from the `ggmcmc` package and separates the variables by the model components. One of the advantages of using `ggmcmc` which is based on `ggplot2` is that the plots can be saved and easily reproduced
-```{r}
+```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
 pftraceplots <- traceplots(pfresults,plot=FALSE)
 
@@ -137,7 +139,7 @@ Numerical summaries of the posterior distribution computed from the output in `c
 summary(pfresults)
 ```
 For each component of the model the tables provide statistics including the estimated posterior mean, median, and standard deviation and the end points of the 50% and 95% highest posterior density credible intervals. Note that these summaries are only valid if the previous diagnostics have suggested that the chain has converged and the effective sample size is large enough. Graphical summaries can also be computed with the `caterpillar` which, like `traceplots`, is a simple wrapper for the functions in the `ggmcmc` package.
-```{r}
+```{r,fig.width=6,fig.align="center"}
 ## Generate caterpillar
 pfcaterpillar <- caterpillar(pfresults,plot = FALSE)
 
@@ -225,7 +227,7 @@ pfconvergence2$effectiveSize
 ```
 
 2. Traceplots
-```{r}
+```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
 pftraceplots2 <- traceplots(pfresults2,plot = FALSE)
 
@@ -250,7 +252,7 @@ summary(pfresults2)
 ```
 
 4. Graphical summaries
-```{r}
+```{r,fig.width=6,fig.align="center"}
 ## Generate caterpillar
 pfcaterpillar2 <- caterpillar(pfresults2,plot = FALSE)
 

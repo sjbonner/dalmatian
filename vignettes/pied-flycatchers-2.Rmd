@@ -9,7 +9,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-This vignette continues the example of the pied flycatchers discussed in the vignette "pied-flycatchers-1" by adding a random slope to the fixed effects model. I highly recommend that you work through this vignette first.
+This vignette continues the example of the pied flycatchers discussed in the vignette "pied-flycatchers-1" by adding a random slope to the fixed effects model. I highly recommend that you work through the other vignette first.
 
 # Library
 
@@ -37,7 +37,7 @@ pfdata$upper=log(pfdata$load+.05)
 # Model
 
 The model we consider will be the similar to the random effects model in "pied-flycatchers-1". We will modify this model by including a random, individual slope for the effect of $log(IVI)$ as well as the random intercept in the mean model. The new model for the mean will be:
-$$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)_{ij} + \beta_2 broodsize_i + \beta_3 sex_i + \epsilon_{1i}} + \epsilon_{2i} \mathrm{log(IVI)_{ij}$$
+$$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)_{ij}} + \beta_2 \mathrm{broodsize}_i + \beta_3 \mathrm{sex}_i + \epsilon_{1i} + \epsilon_{2i} \mathrm{log(IVI)_{ij}}$$
 For convenience, we will also simplify the model of the variance by assuming that the variance is constant across all observations. This can be done by setting:
 $$\log(\sigma)=\psi_0$$.
 
@@ -65,59 +65,103 @@ The new model can now be run using `dalmation` in exactly the same way as above.
 
 
 ```{r}
+## Set working directory
+## By default uses a system temp directory. You probably want to change this.
+workingDir <- tempdir()
 
 ## Define list of arguments for jags.model()
-jm.args <- list(file="pied_flycatcher_3_jags.R",n.adapt=250)
+jm.args <- list(file=file.path(workingDir,"pied_flycatcher_3_jags.R"),n.adapt=1000)
 
 ## Define list of arguments for coda.samples()
-cs.args <- list(n.iter=250)
+cs.args <- list(n.iter=1000)
 
 ## Run the model using dalmation
-pfresults2 <- dalmation(df=pfdata,
-                           mean.model=mymean,
-                           variance.model=myvar,
-                           jags.model.args=jm.args,
-                           coda.samples.args=cs.args,
-                           rounding=TRUE,
-                           lower="lower",
-                           upper="upper",
-                           debug=FALSE)
+# pfresults3 <- dalmation(df=pfdata,
+#                            mean.model=mymean,
+#                            variance.model=myvar,
+#                            jags.model.args=jm.args,
+#                            coda.samples.args=cs.args,
+#                            rounding=TRUE,
+#                            lower="lower",
+#                            upper="upper",
+#                            debug=FALSE)
+
+## Load output from previously run chain
+load(system.file("Pied_Flycatchers_2","pfresults3.RData",package="dalmation"))
 
 ```
 
 ## Results
-As before, we can use functions in the `coda` package to assess the convergence of the Markov chain. 
-```{r}
-library(coda)
+Once again, we can use the wrapper functions provided with `dalmation` to conduct convergence diagnostics and compute summary statistics for the posterior distribution from which we can make inference. 
 
-## Gelman Diagnostics
-gelman.diag(pfresults2$coda)
+1. Convergence diagnostics
+```{r}
+## Compute convergence diagnostics
+pfconvergence2 <- convergence(pfresults3,raftery=list(r=.01))
+
+## Gelman-Rubin diagnostics
+pfconvergence2$gelman
+
+## Raftery diagnostics
+pfconvergence2$raftery
+
+## Effective sample size
+pfconvergence2$effectiveSize
 ```
 
-We can also examine traceplots and posterior summaries for the standard deviations of the random effects.
-```{r}
-## Numerical summaries
-summary(pfresults2$coda)
+2. Traceplots
+```{r,fig.width=6,fig.align="center"}
+## Generate traceplots
+pftraceplots2 <- traceplots(pfresults3,plot = FALSE)
 
-## Graphical summaries of random effects standard deviations
-library(ggmcmc)
+## Fixed effects for mean
+pftraceplots2$meanFixed
 
-ggs.random=ggs(pfresults2$coda,family="sd")
+## Fixed effects for variance
+pftraceplots2$varianceFixed
 
-ggs_traceplot(ggs.random)
-ggs_density(ggs.random)
-ggs_caterpillar(ggs.random)
+## Random effects variances for mean
+pftraceplots2$meanRandom
+
+## Random effects variances for variances
+pftraceplots2$varianceRandom
+
 ```
 
-Examining the values of the individual random effects themselves is somewhat more complicated at this point, because I have yet to develop a good mechanism to identify the names of these variables. The best way to do this, currently, is to use the `colnames` function to identify the indices of the random effects within the `coda` object. You can then use the functions in `coda` or `ggmcmc` to create summaries of these values. 
-
+3. Numerical summaries
 ```{r}
-## Graphical summaries of indivdual random slopes and intercepts
-colnames(pfresults2$coda[[1]])
-ggs.randomIntercepts=ggs(pfresults2$coda[,5:64])
-ggs.randomSlopes=ggs(pfresults2$coda[,66:124])
-
-ggs_caterpillar(ggs.randomIntercepts)
-ggs_caterpillar(ggs.randomSlopes)
+## Compute numerical summaries
+summary(pfresults3)
 ```
+
+4. Graphical summaries
+```{r,fig.width=6,fig.align="center"}
+## Generate caterpillar
+pfcaterpillar2 <- caterpillar(pfresults3,plot = FALSE)
+
+## Fixed effects for mean
+pfcaterpillar2$meanFixed
+
+## Fixed effects for variance
+pfcaterpillar2$varianceFixed
+```
+
+The convergence diagnostics and traceplots suggest that the chains should be run for longer. In particular, the effective sample size for the variance of the random slopes is very small, but we will proceed with inference for illustration. In the numerical summaries we see that the estimated variance of the random slopes is very small, .02 with 95% credible interval (.00,.04). This suggests that there is very little inter-individual variation in the effect of `log(IVI)`.
+
+Estimates of the individual random effects (predictions for frequentists) can be obtained from the function `ranef()`. This function computes posterior summary statistics for the individual random effects. In this case, the random effects for the mean include both the intercept and the effect of `log(IVI)`. 
+
+The following code computes the summary statistics and plots the predicted values of the random slopes with HPD 95% confidence intervals. 
+```{r,fig.width=6,fig.align="center"}
+## Compute summary statistics for random effects
+ranef2 <- ranef(pfresults3)
+
+## Plot predicted random slopes
+library(ggplot2)
+
+ggplot(data=as.data.frame(ranef2$mean[61:120,]),aes(x=1:60,y=Mean)) + 
+  geom_point() + 
+  geom_errorbar(aes(ymin=`Lower 95%`,ymax=`Upper 95%`)) +
+  geom_abline(intercept=0,slope=0)
+```
+Note that the 95% crebile intervals for all of the values include 0. This is further evidence that the effect of `log(IVI)` does not vary significantly between the individuals.  
 
