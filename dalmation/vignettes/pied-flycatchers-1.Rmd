@@ -275,14 +275,14 @@ We can now get predictions.
 
 ```{r}
 # predictions for the Model 1
-pred.pfresults <- prediction(object = pfresults, 
+pred.pfresults <- predict(object = pfresults, 
                              df = pfdata,
                              method = "mean",
                              ci = TRUE,
                              level = 0.95)
 
 # predictions for the Model 2
-pred.pfresults2 <- prediction(object = pfresults2,
+pred.pfresults2 <- predict(object = pfresults2,
                               df = pfdata,
                               method = "mean",
                               ci = TRUE,

@@ -1,15 +1,15 @@
-# df is a data frame
 
-prediction <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
-	
+
+predict.dalmation <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
+
 	#########################
 	## PART 1: WRONG CASES ##
 	#########################
-	
+
 	# labels for FIXED effects in mean model and variance model
 	mean.fixed.label <- labels(terms(object$mean.model$fixed$formula))
 	var.fixed.label <- labels(terms(object$variance.model$fixed$formula))
-	
+
 	# labels for RANDOM effects in mean model and variance model
 	if (!is.null(object$mean.model$random)) { # mean model
 		mean.random.label <- labels(terms(object$mean.model$random$formula))
@@ -98,7 +98,7 @@ prediction <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 
 	# DISPERSION PARAMETER and coefficients for RANDOM effects in VARIANCE model
 	if (!is.null(var.random.designMat)) {
-		
+
 		var.disper <- lapply(object$coda, function(mat) mat[,cur.index])
 		cur.index <- cur.index + 1
 
@@ -126,10 +126,10 @@ prediction <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 	mean.fixed.pred <- Map("%*%", mean.fixed.designList, lapply(mean.fixed.coef, function(mat) t(mat)))
 	# FIXED effects prediction in VARIANCE model
 	var.fixed.pred <- Map("%*%", var.fixed.designList, lapply(var.fixed.coef, function(mat) t(mat)))
-	
+
 	### MEAN MODEL PREDICTION ###
 	if (!is.null(mean.random.designMat)) {
-		
+
 		# RANDOM effects prediction in MEAN model
 		mean.random.pred <-Map("%*%", mean.random.designList, lapply(mean.random.coef, function(mat) t(mat)))
 
@@ -137,7 +137,7 @@ prediction <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 		mean.pred <- Map("+", mean.fixed.pred, mean.random.pred)
 
 	} else { mean.pred <- mean.fixed.pred }
-	
+
 	# RANDOM effects prediction in VARIANCE model
 	if (!is.null(var.random.designMat)) {
 
@@ -149,7 +149,7 @@ prediction <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 
 	} else { var.pred <- var.fixed.pred }
 
-	
+
 	########################################################################################
 	## PART 4.2: PREDICTIONS FOR MEAN AND VARIANCE MODEL WITH MEAN (OR MODE) OF ESTIMATES ##
 	########################################################################################
@@ -157,26 +157,26 @@ prediction <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 	if (method != "mean") { # if method == "mode"
 
 		### get POSTERIOR MODES
-		
+
 		# mean model
-		est.mean.fixed.coef <- lapply(mean.fixed.coef, function(mat) 
+		est.mean.fixed.coef <- lapply(mean.fixed.coef, function(mat)
 			apply(mat, 2, function(vec) density(vec)$x[which.max(density(vec)$y)]))
-		
+
 		if (!is.null(mean.random.designMat)) {
-			
-			est.mean.random.coef <- lapply(mean.random.coef, function(mat) 
+
+			est.mean.random.coef <- lapply(mean.random.coef, function(mat)
 				apply(mat, 2, function(vec) density(vec)$x[which.max(density(vec)$y)]))
-			
+
 			est.mean.disper <- lapply(mean.disper, function(vec) density(vec)$x[which.max(density(vec)$y)])
 		}
 
 		# variance model
-		est.var.fixed.coef <- lapply(var.fixed.coef, function(mat) 
+		est.var.fixed.coef <- lapply(var.fixed.coef, function(mat)
 			apply(mat, 2, function(vec) density(vec)$x[which.max(density(vec)$y)]))
 
 		if (!is.null(var.random.designMat)) {
 
-			est.var.random.coef <- lapply(var.random.coef, function(mat) 
+			est.var.random.coef <- lapply(var.random.coef, function(mat)
 				apply(mat, 2, function(vec) density(vec)$x[which.max(density(vec)$y)]))
 
 			est.var.disper <- lapply(var.disper, function(vec) density(vec)$x[which.max(density(vec)$y)])
@@ -185,7 +185,7 @@ prediction <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 	} else {
 
 		### get POSTERIOR MEANS
-		
+
 		# mean model
 		est.mean.fixed.coef <- lapply(mean.fixed.coef, function(mat) apply(mat, 2, function(vec) mean(vec)))
 
@@ -210,10 +210,10 @@ prediction <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 	est.mean.fixed.pred <- Map("%*%", mean.fixed.designList, est.mean.fixed.coef)
 	# FIXED effects prediction in VARIANCE model
 	est.var.fixed.pred <- Map("%*%", var.fixed.designList, est.var.fixed.coef)
-	
+
 	### MEAN MODEL PREDICTION ###
 	if (!is.null(mean.random.designMat)) {
-		
+
 		# RANDOM effects prediction in MEAN model
 		est.mean.random.pred <-Map("%*%", mean.random.designList, est.mean.random.coef)
 
@@ -221,7 +221,7 @@ prediction <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 		est.mean.pred <- Map("+", est.mean.fixed.pred, est.mean.random.pred)
 
 	} else { est.mean.pred <- est.mean.fixed.pred }
-	
+
 	# RANDOM effects prediction in VARIANCE model
 	if (!is.null(var.random.designMat)) {
 
@@ -233,7 +233,7 @@ prediction <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 
 	} else { est.var.pred <- est.var.fixed.pred }
 
-	
+
 	##################################################
 	## PART 4.3: CREDIBLE INTERVALS FOR PREDICTIONS ##
 	##################################################
@@ -268,10 +268,10 @@ prediction <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 		ci.mean.fixed.pred <- Map("%*%", mean.fixed.designList, lapply(ci.mean.fixed.coef, function(mat) t(mat)))
 		# FIXED effects prediction in VARIANCE model
 		ci.var.fixed.pred <- Map("%*%", var.fixed.designList, lapply(ci.var.fixed.coef, function(mat) t(mat)))
-	
+
 		### MEAN MODEL PREDICTION ###
 		if (!is.null(mean.random.designMat)) {
-		
+
 			# RANDOM effects prediction in MEAN model
 			ci.mean.random.pred <-Map("%*%", mean.random.designList, lapply(ci.mean.random.coef, function(mat) t(mat)))
 
@@ -279,7 +279,7 @@ prediction <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 			ci.mean.pred <- Map("+", ci.mean.fixed.pred, ci.mean.random.pred)
 
 		} else { ci.mean.pred <- ci.mean.fixed.pred }
-	
+
 		# RANDOM effects prediction in VARIANCE model
 		if (!is.null(var.random.designMat)) {
 
@@ -293,13 +293,13 @@ prediction <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 
 	}
 
-	
+
 	########################################
 	## PART 5: CREATE A LIST TO BE RETURN ##
 	########################################
 
 	returnList <- list()
-	
+
 	returnList$pred <- list() # predictions with posterior means or modes
 	returnList$pred$mean <- est.mean.pred
 	returnList$pred$var <- est.var.pred
