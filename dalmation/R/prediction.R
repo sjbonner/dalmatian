@@ -2,6 +2,7 @@
 
 predict.dalmation <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 
+  # test
 	#########################
 	## PART 1: WRONG CASES ##
 	#########################
