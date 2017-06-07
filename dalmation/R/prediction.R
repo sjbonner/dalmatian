@@ -1,8 +1,5 @@
-
-
 predict.dalmation <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 
-  # test
 	#########################
 	## PART 1: WRONG CASES ##
 	#########################
@@ -74,82 +71,41 @@ predict.dalmation <- function(object, df, method = "mean", ci = TRUE, level = 0.
 	## PART 3: RE-ARRANGE ESTIMATES CREATED BY DALMATION ##
 	#######################################################
 
+	# combine all chains first
+	all.chains <- do.call(rbind, object$coda)
+
 	# I WILL SPLIT EACH CODA CHAIN MATRIX INTO COEFFICIENT VECTORS FORM FIRST TO LAST COLUMN OF IT
 	cur.index <- NULL
 
 	# coefficients for FIXED effects in MEAN model
-	mean.fixed.coef <- lapply(object$coda, function(mat) mat[,1:ncol(mean.fixed.designMat)])
+	mean.fixed.coef <- all.chains[,1:ncol(mean.fixed.designMat)]
 	cur.index <- ncol(mean.fixed.designMat) + 1
 
 	# coefficients for RANDOM effects in MEAN model
 	if (!is.null(mean.random.designMat)) {
-		mean.random.coef <- lapply(object$coda, function(mat) mat[,cur.index:(cur.index + ncol(mean.random.designMat) - 1)])
+		mean.random.coef <- all.chains[,cur.index:(cur.index + ncol(mean.random.designMat) - 1)]
 		cur.index <- cur.index + ncol(mean.random.designMat)
 	}
 
 	# coefficients for FIXED effects in VARIANCE model
-	var.fixed.coef <- lapply(object$coda, function(mat) mat[,cur.index:(cur.index + ncol(var.fixed.designMat) - 1)])
+	var.fixed.coef <- all.chains[,cur.index:(cur.index + ncol(var.fixed.designMat) - 1)]
 	cur.index <- cur.index + ncol(var.fixed.designMat)
 
 	# DISPERSION PARAMETER for RANDOM effects in MEAN model
 	if (!is.null(mean.random.designMat)) {
-		mean.disper <- lapply(object$coda, function(mat) mat[,cur.index])
+		mean.disper <- all.chains[,cur.index]
 		cur.index <- cur.index + 1
 	}
 
 	# DISPERSION PARAMETER and coefficients for RANDOM effects in VARIANCE model
 	if (!is.null(var.random.designMat)) {
 
-		var.disper <- lapply(object$coda, function(mat) mat[,cur.index])
+		var.disper <- all.chains[,cur.index]
 		cur.index <- cur.index + 1
 
-		var.random.coef <- lapply(object$coda, function(mat) mat[,cur.index:ncol(mat)])
+		var.random.coef <- all.chains[,cur.index:ncol(all.chains)]
 
 	}
-
-	########################################################
-	## PART 4.1: PREDICTIONS FOR MEAN AND VARIANCE MODELS ##
-	########################################################
-
-	# for design matrices, duplicate them for (number of chains created) times
-	mean.fixed.designList <- rep(list(mean.fixed.designMat), length(mean.fixed.coef)) # FIXED in MEAN model
-	var.fixed.designList <- rep(list(var.fixed.designMat), length(var.fixed.coef)) # FIXED in VARIANCE model
-
-	if (!is.null(mean.random.designMat)) { # RANDOM in MEAN model
-		mean.random.designList <- rep(list(mean.random.designMat), length(mean.random.coef))
-	}
-
-	if(!is.null(var.random.designMat)) { # RANDOM in VARIANCE model
-		var.random.designList <- rep(list(var.random.designMat), length(var.random.coef))
-	}
-
-	# FiXED effects prediction in MEAN model
-	mean.fixed.pred <- Map("%*%", mean.fixed.designList, lapply(mean.fixed.coef, function(mat) t(mat)))
-	# FIXED effects prediction in VARIANCE model
-	var.fixed.pred <- Map("%*%", var.fixed.designList, lapply(var.fixed.coef, function(mat) t(mat)))
-
-	### MEAN MODEL PREDICTION ###
-	if (!is.null(mean.random.designMat)) {
-
-		# RANDOM effects prediction in MEAN model
-		mean.random.pred <-Map("%*%", mean.random.designList, lapply(mean.random.coef, function(mat) t(mat)))
-
-		# SO THE FINAL PREDICTION FOR MEAN MODEL IS
-		mean.pred <- Map("+", mean.fixed.pred, mean.random.pred)
-
-	} else { mean.pred <- mean.fixed.pred }
-
-	# RANDOM effects prediction in VARIANCE model
-	if (!is.null(var.random.designMat)) {
-
-		# RANDOM effects prediction in VARIANCE model
-		var.random.pred <- Map("%*%", var.random.designList, lapply(var.random.coef, function(mat) t(mat)))
-
-		# SO THE FINAL PREDICTION FOR VARIANCE MODEL is
-		var.pred <- Map("+", var.fixed.pred, var.random.pred)
-
-	} else { var.pred <- var.fixed.pred }
-
 
 	########################################################################################
 	## PART 4.2: PREDICTIONS FOR MEAN AND VARIANCE MODEL WITH MEAN (OR MODE) OF ESTIMATES ##
@@ -160,27 +116,21 @@ predict.dalmation <- function(object, df, method = "mean", ci = TRUE, level = 0.
 		### get POSTERIOR MODES
 
 		# mean model
-		est.mean.fixed.coef <- lapply(mean.fixed.coef, function(mat)
-			apply(mat, 2, function(vec) density(vec)$x[which.max(density(vec)$y)]))
+		est.mean.fixed.coef <- apply(mean.fixed.coef, 2, function(vec) density(vec)$x[which.max(density(vec)$y)])
 
 		if (!is.null(mean.random.designMat)) {
 
-			est.mean.random.coef <- lapply(mean.random.coef, function(mat)
-				apply(mat, 2, function(vec) density(vec)$x[which.max(density(vec)$y)]))
-
-			est.mean.disper <- lapply(mean.disper, function(vec) density(vec)$x[which.max(density(vec)$y)])
+			est.mean.random.coef <- apply(mean.random.coef, 2, function(vec) density(vec)$x[which.max(density(vec)$y)])
+			est.mean.disper <- density(mean.disper)$x[which.max(density(mean.disper)$y)]
 		}
 
 		# variance model
-		est.var.fixed.coef <- lapply(var.fixed.coef, function(mat)
-			apply(mat, 2, function(vec) density(vec)$x[which.max(density(vec)$y)]))
+		est.var.fixed.coef <- apply(var.fixed.coef, 2, function(vec) density(vec)$x[which.max(density(vec)$y)])
 
 		if (!is.null(var.random.designMat)) {
 
-			est.var.random.coef <- lapply(var.random.coef, function(mat)
-				apply(mat, 2, function(vec) density(vec)$x[which.max(density(vec)$y)]))
-
-			est.var.disper <- lapply(var.disper, function(vec) density(vec)$x[which.max(density(vec)$y)])
+			est.var.random.coef <- apply(var.random.coef, 2, function(vec) density(vec)$x[which.max(density(vec)$y)])
+			est.var.disper <- density(var.disper)$x[which.max(density(var.disper)$y)]
 		}
 
 	} else {
@@ -188,38 +138,38 @@ predict.dalmation <- function(object, df, method = "mean", ci = TRUE, level = 0.
 		### get POSTERIOR MEANS
 
 		# mean model
-		est.mean.fixed.coef <- lapply(mean.fixed.coef, function(mat) apply(mat, 2, function(vec) mean(vec)))
+		est.mean.fixed.coef <- apply(mean.fixed.coef, 2, function(vec) mean(vec))
 
 		if (!is.null(mean.random.designMat)) {
 
-			est.mean.random.coef <- lapply(mean.random.coef, function(mat) apply(mat, 2, function(vec) mean(vec)))
-			est.mean.disper <- lapply(mean.disper, function(vec) mean(vec))
+			est.mean.random.coef <- apply(mean.random.coef, 2, function(vec) mean(vec))
+			est.mean.disper <- mean(mean.disper)
 		}
 
 		# variance model
-		est.var.fixed.coef <- lapply(var.fixed.coef, function(mat) apply(mat, 2, function(vec) mean(vec)))
+		est.var.fixed.coef <- apply(var.fixed.coef, 2, function(vec) mean(vec))
 
 		if (!is.null(var.random.designMat)) {
 
-			est.var.random.coef <- lapply(var.random.coef, function(mat) apply(mat, 2, function(vec) mean(vec)))
-			est.var.disper <- lapply(var.disper, function(vec) mean(vec))
+			est.var.random.coef <- apply(var.random.coef, 2, function(vec) mean(vec))
+			est.var.disper <- mean(var.disper)
 		}
 
 	}
 
 	# FiXED effects prediction in MEAN model
-	est.mean.fixed.pred <- Map("%*%", mean.fixed.designList, est.mean.fixed.coef)
+	est.mean.fixed.pred <- mean.fixed.designMat %*% est.mean.fixed.coef
 	# FIXED effects prediction in VARIANCE model
-	est.var.fixed.pred <- Map("%*%", var.fixed.designList, est.var.fixed.coef)
+	est.var.fixed.pred <- var.fixed.designMat %*% est.var.fixed.coef
 
 	### MEAN MODEL PREDICTION ###
 	if (!is.null(mean.random.designMat)) {
 
 		# RANDOM effects prediction in MEAN model
-		est.mean.random.pred <-Map("%*%", mean.random.designList, est.mean.random.coef)
+		est.mean.random.pred <- mean.random.designMat %*% est.mean.random.coef
 
 		# SO THE FINAL PREDICTION FOR MEAN MODEL IS
-		est.mean.pred <- Map("+", est.mean.fixed.pred, est.mean.random.pred)
+		est.mean.pred <- est.mean.fixed.pred + est.mean.random.pred
 
 	} else { est.mean.pred <- est.mean.fixed.pred }
 
@@ -227,10 +177,10 @@ predict.dalmation <- function(object, df, method = "mean", ci = TRUE, level = 0.
 	if (!is.null(var.random.designMat)) {
 
 		# RANDOM effects prediction in VARIANCE model
-		est.var.random.pred <- Map("%*%", var.random.designList, est.var.random.coef)
+		est.var.random.pred <- var.random.designMat %*% est.var.random.coef
 
 		# SO THE FINAL PREDICTION FOR VARIANCE MODEL is
-		est.var.pred <- Map("+", est.var.fixed.pred, est.var.random.pred)
+		est.var.pred <- est.var.fixed.pred + est.var.random.pred
 
 	} else { est.var.pred <- est.var.fixed.pred }
 
@@ -244,40 +194,36 @@ predict.dalmation <- function(object, df, method = "mean", ci = TRUE, level = 0.
 		### get CREDIBLE INTERVALS
 
 		# mean model
-		ci.mean.fixed.coef <- lapply(mean.fixed.coef, function(mat)
-			apply(mat, 2, function(vec) quantile(vec, c( (1-level)/2, 1-(1 - level)/2 ))))
+		ci.mean.fixed.coef <- apply(mean.fixed.coef, 2, function(vec) quantile(vec, c( (1-level)/2, 1-(1 - level)/2 )))
 
 		if (!is.null(mean.random.designMat)) {
 
-			ci.mean.random.coef <- lapply(mean.random.coef, function(mat)
-				apply(mat, 2, function(vec) quantile(vec, c( (1-level)/2, 1-(1 - level)/2 ))))
-			ci.mean.disper <- lapply(mean.disper, function(vec) quantile(vec, c( (1-level)/2, 1-(1 - level)/2 )))
+			ci.mean.random.coef <- apply(mean.random.coef, 2, function(vec) quantile(vec, c( (1-level)/2, 1-(1 - level)/2 )))
+			ci.mean.disper <- quantile(mean.disper, c( (1-level)/2, 1-(1 - level)/2 ))
 		}
 
 		# variance model
-		ci.var.fixed.coef <- lapply(var.fixed.coef, function(mat)
-			apply(mat, 2, function(vec) quantile(vec, c( (1-level)/2, 1-(1 - level)/2 ))))
+		ci.var.fixed.coef <- apply(var.fixed.coef, 2, function(vec) quantile(vec, c( (1-level)/2, 1-(1 - level)/2 )))
 
 		if (!is.null(var.random.designMat)) {
 
-			ci.var.random.coef <- lapply(var.random.coef, function(mat)
-				apply(mat, 2, function(vec) quantile(vec, c( (1-level)/2, 1-(1 - level)/2 ))))
-			ci.var.disper <- lapply(var.disper, function(vec) quantile(vec, c( (1-level)/2, 1-(1 - level)/2 )))
+			ci.var.random.coef <- apply(var.random.coef, 2, function(vec) quantile(vec, c( (1-level)/2, 1-(1 - level)/2 )))
+			ci.var.disper <- quantile(var.disper, c( (1-level)/2, 1-(1 - level)/2 ))
 		}
 
 		# FiXED effects prediction in MEAN model
-		ci.mean.fixed.pred <- Map("%*%", mean.fixed.designList, lapply(ci.mean.fixed.coef, function(mat) t(mat)))
+		ci.mean.fixed.pred <- mean.fixed.designMat %*% t(ci.mean.fixed.coef)
 		# FIXED effects prediction in VARIANCE model
-		ci.var.fixed.pred <- Map("%*%", var.fixed.designList, lapply(ci.var.fixed.coef, function(mat) t(mat)))
+		ci.var.fixed.pred <- var.fixed.designMat %*% t(ci.var.fixed.coef)
 
 		### MEAN MODEL PREDICTION ###
 		if (!is.null(mean.random.designMat)) {
 
 			# RANDOM effects prediction in MEAN model
-			ci.mean.random.pred <-Map("%*%", mean.random.designList, lapply(ci.mean.random.coef, function(mat) t(mat)))
+			ci.mean.random.pred <- mean.random.designMat %*% t(ci.mean.random.coef)
 
 			# SO THE FINAL PREDICTION FOR MEAN MODEL IS
-			ci.mean.pred <- Map("+", ci.mean.fixed.pred, ci.mean.random.pred)
+			ci.mean.pred <- ci.mean.fixed.pred + ci.mean.random.pred
 
 		} else { ci.mean.pred <- ci.mean.fixed.pred }
 
@@ -285,10 +231,10 @@ predict.dalmation <- function(object, df, method = "mean", ci = TRUE, level = 0.
 		if (!is.null(var.random.designMat)) {
 
 			# RANDOM effects prediction in VARIANCE model
-			ci.var.random.pred <- Map("%*%", var.random.designList, lapply(ci.var.random.coef, function(mat) t(mat)))
+			ci.var.random.pred <- var.random.designMat %*% t(ci.var.random.coef)
 
 			# SO THE FINAL PREDICTION FOR VARIANCE MODEL is
-			ci.var.pred <- Map("+", ci.var.fixed.pred, ci.var.random.pred)
+			ci.var.pred <- ci.var.fixed.pred + ci.var.random.pred
 
 		} else { ci.var.pred <- ci.var.fixed.pred }
 
@@ -301,19 +247,23 @@ predict.dalmation <- function(object, df, method = "mean", ci = TRUE, level = 0.
 
 	returnList <- list()
 
-	returnList$pred <- list() # predictions with posterior means or modes
-	returnList$pred$mean <- est.mean.pred
-	returnList$pred$var <- est.var.pred
+	mean.pred <- data.frame(Fit = est.mean.pred) # for mean model
+	var.pred <- data.frame(Fit = est.var.pred) # for variance model
 
 	if (ci) {
-		returnList$pred.ci <- list() # credible intervals for predictions
-		returnList$pred.ci$mean <- ci.mean.pred
-		returnList$pred.ci$var <- ci.var.pred
+	  lowerName <- paste0("Lower", level*100, "%")
+	  upperName <- paste0("Upper", level*100, "%")
+
+	  mean.pred[,2:3] <- ci.mean.pred
+	  colnames(mean.pred)[2:3] <- c(lowerName, upperName)
+
+	  var.pred[,2:3] <- ci.var.pred
+	  colnames(var.pred)[2:3] <- c(lowerName, upperName)
+
 	}
 
-	returnList$full.pred <- list() # predictions with all estimates in chains
-	returnList$full.pred$mean <- mean.pred
-	returnList$full.pred$var <- var.pred
+	returnList$mean <- mean.pred
+	returnList$var <- var.pred
 
 	return(returnList)
 
