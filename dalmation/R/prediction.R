@@ -1,3 +1,16 @@
+#' Prediction Method for dalmation Fitted Objects
+#'
+#' @param object
+#' @param df
+#' @param method
+#' @param ci
+#' @param level
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
 predict.dalmation <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 
 	#########################
@@ -239,7 +252,6 @@ predict.dalmation <- function(object, df, method = "mean", ci = TRUE, level = 0.
 		} else { ci.var.pred <- ci.var.fixed.pred }
 
 	}
-
 
 	########################################
 	## PART 5: CREATE A LIST TO BE RETURN ##
