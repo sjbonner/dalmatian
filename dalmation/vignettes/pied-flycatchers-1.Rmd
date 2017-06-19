@@ -156,7 +156,7 @@ We will now consider adding individual (bird) random effects to both the fixed a
 $$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)_{ij} + \beta_2 broodsize_i + \beta_3 sex_i + \epsilon_{i}}$$
 and
 $$\log(\sigma)=\psi_0 + \psi_1 \mathrm{broodsize}_i + \psi_2\mathrm{sex}_i + \xi_j$$
-where $\epsilon_i \sim N(0,\tau^2_\mu)$ and $\xi_i \sim N(0,\tau^2_\sigma)$. By default the variances $\tau^2_\epsilon and $\tau^2_\xi are assigned half-$t$ prior distributions.
+where $\epsilon_i \sim N(0,\tau^2_\mu)$ and $\xi_i \sim N(0,\tau^2_\sigma)$. By default the variances $\tau^2_\epsilon$ and $\tau^2_\xi$ are assigned half-$t$ prior distributions.
 
 ## Model
 
