@@ -16,7 +16,7 @@ This vignette continues the example of the pied flycatchers discussed in the vig
 First you have to load the package:
 ```{r}
 ## Load package
-library(dalmation)
+library(dalmatian)
 ```
 
 # Raw data
@@ -59,9 +59,9 @@ myvar=list(fixed=list(name="psi",
 
 ```
 
-## Running the Model with Dalmation
+## Running the Model with dalmatian
 
-The new model can now be run using `dalmation` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and variance components by taking the values from the final iterations of each of the chains run for the fixed effects model. For convenience, we set the random effects variances equal to 1 in all three chains. 
+The new model can now be run using `dalmatian` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and variance components by taking the values from the final iterations of each of the chains run for the fixed effects model. For convenience, we set the random effects variances equal to 1 in all three chains. 
 
 
 ```{r}
@@ -75,8 +75,8 @@ jm.args <- list(file=file.path(workingDir,"pied_flycatcher_3_jags.R"),n.adapt=10
 ## Define list of arguments for coda.samples()
 cs.args <- list(n.iter=1000)
 
-## Run the model using dalmation
-# pfresults3 <- dalmation(df=pfdata,
+## Run the model using dalmatian
+# pfresults3 <- dalmatian(df=pfdata,
 #                            mean.model=mymean,
 #                            variance.model=myvar,
 #                            jags.model.args=jm.args,
@@ -87,12 +87,12 @@ cs.args <- list(n.iter=1000)
 #                            debug=FALSE)
 
 ## Load output from previously run chain
-load(system.file("Pied_Flycatchers_2","pfresults3.RData",package="dalmation"))
+load(system.file("Pied_Flycatchers_2","pfresults3.RData",package="dalmatian"))
 
 ```
 
 ## Results
-Once again, we can use the wrapper functions provided with `dalmation` to conduct convergence diagnostics and compute summary statistics for the posterior distribution from which we can make inference. 
+Once again, we can use the wrapper functions provided with `dalmatian` to conduct convergence diagnostics and compute summary statistics for the posterior distribution from which we can make inference. 
 
 1. Convergence diagnostics
 ```{r}

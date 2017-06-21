@@ -1,4 +1,4 @@
-#' Prediction Method for dalmation Fitted Objects
+#' Prediction Method for dalmatian Fitted Objects
 #'
 #' @param object
 #' @param df
@@ -11,7 +11,7 @@
 #'
 #' @examples
 #'
-predict.dalmation <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
+predict.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 
 	#########################
 	## PART 1: WRONG CASES ##
@@ -81,7 +81,7 @@ predict.dalmation <- function(object, df, method = "mean", ci = TRUE, level = 0.
 	}
 
 	#######################################################
-	## PART 3: RE-ARRANGE ESTIMATES CREATED BY DALMATION ##
+	## PART 3: RE-ARRANGE ESTIMATES CREATED BY dalmatian ##
 	#######################################################
 
 	# combine all chains first

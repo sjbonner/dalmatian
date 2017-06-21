@@ -16,7 +16,7 @@ As a first example of the functions in this package we will fit a model to the p
 First you have to load the package:
 ```{r}
 ## Load package
-library(dalmation)
+library(dalmatian)
 ```
 
 # Raw data
@@ -60,9 +60,9 @@ myvar=list(fixed=list(name="psi",
 ```
 These two objects will now be used to generate the JAGS code, data, and initial values for running the model.
 
-## Running the Model with Dalmation
+## Running the Model with dalmatian
 
-The primary function in the package `dalmation` automates the creation of the `JAGS` code, data, and initial values and then passes these to `JAGS` via the functions in the `rjags` package. The `dalmation` function takes requires several arguments including the data frame for the analysis, the model objects created above, and the name of the `JAGS` model file. It also requires two lists containing named arguments for the functions `jags.model` and `coda.samples` from the `rjags` package. Descriptions of the arguments for these two functions are available in their own help pages. Any arguments that are not specified in these lists will take the default values given by `rjags`. The two exceptions are the `file` argument of `jags.model` and the `n.iter` argument of `coda.samples` which do not have default values and must be specified. The number of parallel chains will be taken from the `jags.model` list. If this value is not specified then three chains will be run in order that convergence diagnostics can be computed.
+The primary function in the package `dalmatian` automates the creation of the `JAGS` code, data, and initial values and then passes these to `JAGS` via the functions in the `rjags` package. The `dalmatian` function takes requires several arguments including the data frame for the analysis, the model objects created above, and the name of the `JAGS` model file. It also requires two lists containing named arguments for the functions `jags.model` and `coda.samples` from the `rjags` package. Descriptions of the arguments for these two functions are available in their own help pages. Any arguments that are not specified in these lists will take the default values given by `rjags`. The two exceptions are the `file` argument of `jags.model` and the `n.iter` argument of `coda.samples` which do not have default values and must be specified. The number of parallel chains will be taken from the `jags.model` list. If this value is not specified then three chains will be run in order that convergence diagnostics can be computed.
 
 ```{r}
 
@@ -76,9 +76,9 @@ jm.args <- list(file=file.path(workingDir,"pied_flycatcher_1_jags.R"),n.adapt=10
 ## Define list of arguments for coda.samples()
 cs.args <- list(n.iter=100)
 
-## Run the model using dalmation
+## Run the model using dalmatian
 ## This is how the model is run. However, to save you time we will load output from a previous run instead.
-# pfresults <- dalmation(df=pfdata,
+# pfresults <- dalmatian(df=pfdata,
 #                           mean.model=mymean,
 #                           variance.model=myvar,
 #                           jags.model.args=jm.args,
@@ -88,12 +88,12 @@ cs.args <- list(n.iter=100)
 #                           upper="upper",
 #                           debug=FALSE)
 
-load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmation"))
+load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
 
 ```
 
 ## Results
-The function `dalmation` returns list containing three objects:
+The function `dalmatian` returns list containing three objects:
 1. `jags.model.args`
    The full list of arguments passed to `jags.model`. This includes the variables in the input list along with the name of the model file, the formatted data, and the initial values.
 2. `coda.samples.args`
@@ -170,9 +170,9 @@ mymean$random=list(name="epsilon",formula=~-1 + indidx)
 myvar$random=list(name="xi",formula=~-1 + indidx)
 ```
 
-## Running the Model with Dalmation
+## Running the Model with dalmatian
 
-The new model can now be run using `dalmation` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and variance components by taking the values from the final iterations of each of the chains run for the fixed effects model. For convenience, we set the random effects variances equal to 1 in all three chains. 
+The new model can now be run using `dalmatian` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and variance components by taking the values from the final iterations of each of the chains run for the fixed effects model. For convenience, we set the random effects variances equal to 1 in all three chains. 
 
 
 ```{r}
@@ -192,9 +192,9 @@ jm.args <- list(file=file.path(workingDir,"pied_flycatcher_2_jags.R"),inits=init
 ## Define list of arguments for coda.samples()
 cs.args <- list(n.iter=1000)
 
-## Run the model using dalmation
+## Run the model using dalmatian
 ## This is how the model is run. However, to save you time we will load output from a previous run instead.
-# pfresults2 <- dalmation(df=pfdata,
+# pfresults2 <- dalmatian(df=pfdata,
 #                            mean.model=mymean,
 #                            variance.model=myvar,
 #                            jags.model.args=jm.args,
@@ -204,7 +204,7 @@ cs.args <- list(n.iter=1000)
 #                            upper="upper",
 #                            debug=FALSE)
 
-load(system.file("Pied_Flycatchers_1","pfresults2.RData",package="dalmation"))
+load(system.file("Pied_Flycatchers_1","pfresults2.RData",package="dalmatian"))
 
 ```
 
@@ -264,7 +264,7 @@ pfcaterpillar2$varianceFixed
 ```
 
 ## Predictions
-By using 'prediction' function, predictions for the mean and variance models can be calculated. The 'prediction' function should take a data frame including all variables required and their names defined for the usage of 'dalmation' function. For the Pied Flycatcher data, previously 'log(IVI)' was used to define the mean and variance models. Hence, it should be included in the data frame as following:
+By using 'prediction' function, predictions for the mean and variance models can be calculated. The 'prediction' function should take a data frame including all variables required and their names defined for the usage of 'dalmatian' function. For the Pied Flycatcher data, previously 'log(IVI)' was used to define the mean and variance models. Hence, it should be included in the data frame as following:
 
 ```{r}
 # add 'log(IVI)' variable in pfdata

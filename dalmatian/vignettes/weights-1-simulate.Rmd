@@ -11,7 +11,7 @@ vignette: >
 
 In some cases the response variable may be an average of responses from within the same subject or group. In this case, the variances for two observations having the same covariates will not be identical if the size of the groups vary. Instead, it will be inversely proportional to the size of the group. Mathematically, if the observed response is the group average $\bar{Y}_i=\sum_{j=1}^n_i Y_{ij}/n_i$ and $Y_{ij} \sim N(\mu_i,\sigma^2_i)$ where $\sigma^2_i$ may vary by group and depend on covariates then
 $$\bar{Y}_i \sim N(\mu_i,\sigma^2_i/n_i).$$
-This situation can be accommodated in `dalmation` by specifying a column of weights within the data frame that provides the group size. Here is an example with simulated data that demonstrates this feature and shows the importance of properly accounting for weights. 
+This situation can be accommodated in `dalmatian` by specifying a column of weights within the data frame that provides the group size. Here is an example with simulated data that demonstrates this feature and shows the importance of properly accounting for weights. 
 
 # Simulated data
 Data for this example are contained in the data frame `weights.df` saved within the file `weights-data-1.RData`. The data were generated from the model
@@ -20,7 +20,7 @@ with $i=1,\ldots,100$ indexing the groups and $j$ the observarions within groups
 
 ```{r}
 ## Load library
-library(dalmation)
+library(dalmatian)
 
 ## Load simulated data
 data(weights_1_simulate)
@@ -51,8 +51,8 @@ jm.args = list(file="weights_1_jags.R",n.adapt=1000)
 ## Define list of arguments for coda.samples()
 cs.args = list(n.iter=1000)
 
-## Run the model using dalmation
-results1 <- dalmation(
+## Run the model using dalmatian
+results1 <- dalmatian(
   df = weights.df,
   mean.model = mymean,
   variance.model = myvar,
@@ -83,7 +83,7 @@ myvar$weights = "n"
 ## Run model
 jm.args = list(file="weights_2_jags.R",n.adapt=1000)
 
-results2 = dalmation(df=weights.df,
+results2 = dalmatian(df=weights.df,
                         mean.model=mymean,
                         variance.model=myvar,
                         jags.model.args=jm.args,

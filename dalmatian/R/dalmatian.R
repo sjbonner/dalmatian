@@ -1,6 +1,6 @@
 ##' The primary function which automates the running of \code{JAGS}.
 ##'
-##' The primary function in the package, dalmation automates the generation of code, data, and initial values. These are then passed as arguments to function from the \code{rjags} package which automates the generation of samplse from the posterior.
+##' The primary function in the package, dalmatian automates the generation of code, data, and initial values. These are then passed as arguments to function from the \code{rjags} package which automates the generation of samplse from the posterior.
 ##' @title Run DGLM in \code{JAGS} via \code{rjags}
 ##'
 ##' @param df Data frame containing the response and predictor values for each individual. (data.frame)
@@ -24,7 +24,7 @@
 ##' @return samples (mcmc.list)
 ##' @author Simon Bonner
 ##' @export
-dalmation <- function(df,
+dalmatian <- function(df,
                       mean.model,
                       variance.model,
                       jags.model.args,
@@ -303,7 +303,7 @@ dalmation <- function(df,
     coda = coda
   )
 
-  class(output) <- "dalmation"
+  class(output) <- "dalmatian"
 
   ## Return output
   output

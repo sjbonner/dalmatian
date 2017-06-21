@@ -23,16 +23,16 @@ generateJAGSinits <- function(mean.model,variance.model,jags.data,n.chains=1){
     inits
 }
 
-##' Set initial values for \code{dalmation}
+##' Set initial values for \code{dalmatian}
 ##'
-##' Allows the user to set initial values for \code{dalmation}. Any values
+##' Allows the user to set initial values for \code{dalmatian}. Any values
 ##' not specified will by initialized by \code{JAGS}.
-##' @title Set initial values for \code{dalmation}
+##' @title Set initial values for \code{dalmatian}
 ##' @param mean.model Model list specifying the structure of the mean. (list)
 ##' @param variance.model Model list specifyint the structure of the variance. (list)
 ##' @param fixed.mean Initial values for the fixed effects of the mean. (numeric)
 ##' @param fixed.variance Initial values for the fixed effects of the variance. (numeric)
-##' @param y Inital values for the true response. This should only be specified if the \code{rounding = TRUE} in the main call to dalmation.
+##' @param y Inital values for the true response. This should only be specified if the \code{rounding = TRUE} in the main call to dalmatian.
 ##' @param random.mean Initial values for the random effects of the mean. (numeric)
 ##' @param sd.mean Initial values for the standard deviation of the random effects of the mean. (numeric)
 ##' @param random.variance Initial values for the random effects of the variance. (numeric

@@ -54,9 +54,9 @@ myCodaSummary <-
     output
   }
 
-#' Summary (dalmation)
+#' Summary (dalmatian)
 #'
-#' @param object Object of class \code{dalmation} created by \code{dalmation()}.
+#' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
@@ -64,7 +64,7 @@ myCodaSummary <-
 #'
 #' @return output (list)
 #' @export
-summary.dalmation <-
+summary.dalmatian <-
   function(object,
            nstart = start(object$coda),
            nend = end(object$coda),
@@ -110,20 +110,20 @@ summary.dalmation <-
         nthin
       )
 
-    class(output) <- "dalmation.summary"
+    class(output) <- "dalmatian.summary"
 
     return(output)
   }
 
-#' Print Summary (dalmation)
+#' Print Summary (dalmatian)
 #'
-#' @param x Object of class \code{dalamtion.summary} created by \code{summary.dalmation()}.
+#' @param x Object of class \code{dalamtion.summary} created by \code{summary.dalmatian()}.
 #' @param digits Number of digits to display after decimal.
 #' @param ... Ignored
 #'
 #' @export
 #'
-print.dalmation.summary <- function(x, digits = 2, ...) {
+print.dalmatian.summary <- function(x, digits = 2, ...) {
   ## Basic information about chains
 
   cat("\n", "Iterations = ", x$start, ":", x$end, "\n", sep = "")
@@ -169,11 +169,11 @@ ranef <- function(object, ...) {
   UseMethod("ranef")
 }
 
-#' Random Effects (dalmation)
+#' Random Effects (dalmatian)
 #'
 #' Compute posterior summary statistics for the individual random effects in each part of the model.
 #'
-#' @param object Object of class \code{dalmation} created by \code{dalmation()}.
+#' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
@@ -182,7 +182,7 @@ ranef <- function(object, ...) {
 #' @return output (list)
 #' @export
 #'
-ranef.dalmation <-
+ranef.dalmatian <-
   function(object,
            nstart = start(object$coda),
            nend = end(object$coda),
@@ -217,9 +217,9 @@ convergence <- function(object, ...) {
 
 #' Convergence
 #'
-#' Compute convergence diagnostics for a dalmation object.
+#' Compute convergence diagnostics for a dalmatian object.
 #'
-#' @param object Object of class \code{dalmation} created by \code{dalmation()}.
+#' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 #' @param pars List of parameters to assess. If NULL (default) then diagnostics are computed for the fixed effects and random effects standard deviations in both the mean and variance models.
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
@@ -229,7 +229,7 @@ convergence <- function(object, ...) {
 #'
 #' @return List containing Gelman-Rubin and Raftery convergence diagnostics and effective sampel sizes for the selected parameters.
 #' @export
-convergence.dalmation <-
+convergence.dalmatian <-
   function(object,
            pars = NULL,
            nstart = start(object$coda),
@@ -319,11 +319,11 @@ traceplots <- function(object, ...) {
   UseMethod("traceplots")
 }
 
-#' Traceplots (dalmation)
+#' Traceplots (dalmatian)
 #'
-#' Construct traceplots for key (or selected) parameters in a dalmation object.
+#' Construct traceplots for key (or selected) parameters in a dalmatian object.
 #'
-#' @param object Object of class \code{dalmation} created by \code{dalmation()}.
+#' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
@@ -333,7 +333,7 @@ traceplots <- function(object, ...) {
 #'
 #' @return A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
 #' @export
-traceplots.dalmation <-
+traceplots.dalmatian <-
   function(object,
            family = NULL,
            nstart = start(object$coda),
@@ -411,11 +411,11 @@ caterpillar <- function(object, ...) {
   UseMethod("caterpillar")
 }
 
-#' Caterpillar (dalmation)
+#' Caterpillar (dalmatian)
 #'
-#' Construct caterpillar plots for key (or selected) parameters in a dalmation object.
+#' Construct caterpillar plots for key (or selected) parameters in a dalmatian object.
 #'
-#' @param object Object of class \code{dalmation} created by \code{dalmation()}.
+#' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
@@ -425,7 +425,7 @@ caterpillar <- function(object, ...) {
 #'
 #' @return A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
 #' @export
-caterpillar.dalmation <-
+caterpillar.dalmatian <-
   function(object,
            family = NULL,
            nstart = start(object$coda),

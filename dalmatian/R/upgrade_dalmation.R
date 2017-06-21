@@ -1,15 +1,15 @@
-##' Upgrade dalmation object
+##' Upgrade dalmatian object
 ##'
-##' Upgrades dalmation object for use with new postprocessing functions.
+##' Upgrades dalmatian object for use with new postprocessing functions.
 ##'
 ##' @param input Existing object to upgrade
 ##'
-##' @title Upgrade dalmation object
+##' @title Upgrade dalmatian object
 ##'
-##' @return output (dalmation)
+##' @return output (dalmatian)
 ##' @author Simon Bonner
 ##' @export
-upgradeDalmation <- function(input) {
+upgradedalmatian <- function(input) {
 
   ## Attach input
   attach(input)
@@ -66,7 +66,7 @@ upgradeDalmation <- function(input) {
   )
 
   ## Change class
-  class(output) <- "dalmation"
+  class(output) <- "dalmatian"
 
   ## Return output
   output
