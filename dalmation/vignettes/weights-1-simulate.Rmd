@@ -26,7 +26,7 @@ library(dalmation)
 data(weights_1_simulate)
 head(weights.df)
 ```
-The three columns in the data frame record the number of responses per group (`n`), the value of the covairate (`x`), and the mean response (`y`).
+The three columns in the data frame record the number of responses per group (`n`), the value of the covariate (`x`), and the mean response (`y`).
 
 # Model 1: No Weights
 
