@@ -53,6 +53,10 @@ setJAGSInits <- function(mean.model,
     ## Initialize list of initial values
     inits <- list()
 
+    ## Set initial data values
+    if(!is.null(y)){
+      inits$y <- y
+    }
     ## Set initial values for mean component of model
     ## 1) Fixed effects
     if(!is.null(fixed.mean)){
@@ -61,20 +65,19 @@ setJAGSInits <- function(mean.model,
 
     ## 2) Random effects
     if(!is.null(random.mean)){
-        inits[[mean.model$random$name]] <- random.mean
+        inits[[paste0(mean.model$random$name,".tmp")]] <- random.mean
     }
 
-    ## 3) Random effects parameters
+    ## 3) Random effects variances
     if(!is.null(sd.mean)){
         ## Generate redundant variables for Gelman's parametrization of half-t
         ncomp <- length(sd.mean)
-        redun <- rnorm(ncomp)
 
         ## Compute variance parameter
-        tau <- (redun/sd.mean)^2
+        tau <- 1/sd.mean^2
 
         ## Set initial values
-        inits[[paste0("redun.",mean.model$random$name)]] <- redun
+        inits[[paste0("redun.",mean.model$random$name)]] <- rep(1,ncomp)
         inits[[paste0("tau.",mean.model$random$name)]] <- tau
     }
 
@@ -86,20 +89,19 @@ setJAGSInits <- function(mean.model,
 
     ## 2) Random effects
     if(!is.null(random.variance)){
-        inits[[variance.model$random$name]] <- random.variance
+        inits[[paste0(variance.model$random$name,".tmp")]] <- random.variance
     }
 
-    ## 3) Random effects parameters
+    ## 3) Random effects variance
     if(!is.null(sd.variance)){
         ## Generate redundant variables for Gelman's parametrization of half-t
         ncomp <- length(sd.variance)
-        redun <- rnorm(ncomp)
 
         ## Compute variance parameter
-        tau <- (redun/sd.variance)^2
+        tau <- 1/sd.variance^2
 
         ## Set initial values
-        inits[[paste0("redun.",variance.model$random$name)]] <- redun
+        inits[[paste0("redun.",variance.model$random$name)]] <- rep(1,ncomp)
         inits[[paste0("tau.",variance.model$random$name)]] <- tau
     }
 
