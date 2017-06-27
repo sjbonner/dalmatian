@@ -203,6 +203,7 @@ predict.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.
 		if (!is.null(var.random.designMat)) {
 			ci.var.disper <- quantile(var.disper, c( (1-level)/2, 1-(1 - level)/2 ))
 		}
+	}
 
 	########################################
 	## PART 5: CREATE A LIST TO BE RETURN ##
