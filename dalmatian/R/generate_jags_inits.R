@@ -1,4 +1,4 @@
-generateJAGSinits <- function(mean.model,variance.model,jags.data,n.chains=1,spread=3){
+generateJAGSinits <- function(mean.model,variance.model,jags.data){
   
   inits <- lapply(1:n.chains,function(i){
     ## Initial response when rounding
@@ -11,10 +11,10 @@ generateJAGSinits <- function(mean.model,variance.model,jags.data,n.chains=1,spr
     if(is.null(mean.model$fixed) && is.null(mean.model$random)){
       stop("You have specified no fixed or random effects for the mean component of the model.\n\n")
     }
-    else if(is.null(mean.model$random)){ # Only fixed effects
+    else if(i==1 || is.null(mean.model$random)){ # Only fixed effects
       mean.formula <- formula("y ~ jags.data$mean.fixed - 1")
     }
-    else if(is.null(mean.model$fixed)){ # Only random effects
+    else if(i==2 || is.null(mean.model$fixed)){ # Only random effects
       mean.formula <- formula("y ~ jags.data$mean.random - 1")
     }
     else{ # Mixed effects
@@ -25,10 +25,10 @@ generateJAGSinits <- function(mean.model,variance.model,jags.data,n.chains=1,spr
     if(is.null(variance.model$fixed) && is.null(variance.model$random)){
       stop("You have specified no fixed or random effects for the random component of the model.\n\n")
     }
-    else if(is.null(variance.model$random)){ # Only fixed effects
+    else if(i==1 || is.null(variance.model$random)){ # Only fixed effects
       variance.formula <- formula("epsilonsq ~ jags.data$variance.fixed - 1")
     }
-    else if(is.null(variance.model$fixed)){ # Only random effects
+    else if(i==2 || is.null(variance.model$fixed)){ # Only random effects
       variance.formula <- formula("epsilonsq ~ jags.data$variance.random - 1")
     }
     else{ # Mixed effects
