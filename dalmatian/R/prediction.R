@@ -41,6 +41,7 @@ predict.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.
 	### CHECK IF "df" INCLUDES ALL REQUIRED VARIABLES ###
 	check.names <- all.label %in% names(df)
 	if (all(check.names == TRUE) == FALSE) {
+        print(paste0("Missing variables: ", all.label[which(check.names == FALSE)]))
 		stop("df does not include all required variables. Check variable names in df.")
 	}
 
