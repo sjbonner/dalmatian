@@ -1,11 +1,11 @@
 generateJAGSinits <- function(mean.model,variance.model,jags.data){
   
-  inits <- lapply(1:n.chains,function(i){
+  inits <- lapply(1:3,function(i){
     ## Initial response when rounding
-    if(is.null(jags.data$response))
+    if(is.null(jags.data$y))
       y <- runif(jags.data$n,jags.data$lower,jags.data$upper)
     else
-      y <- jags.data$response
+      y <- jags.data$y
     
     ## Mean formula
     if(is.null(mean.model$fixed) && is.null(mean.model$random)){
@@ -79,48 +79,90 @@ generateJAGSinits <- function(mean.model,variance.model,jags.data){
     
     # Extract coefficients of mean model
     mean.coeff <- coef(dglmfit)
-    fixed.mean <- mean.coeff[grep("fixed",names(mean.coeff))]
-    random.mean <- mean.coeff[grep("random",names(mean.coeff))]
+ 
+    tmp <- grep("fixed",names(mean.coeff))
+    if(length(tmp)>0)
+      fixed.mean <- mean.coeff[tmp]
+    else
+      fixed.mean <- NULL
+    
+    tmp <- grep("random",names(mean.coeff))
+    if(length(tmp)>0)
+      random.mean <- mean.coeff[tmp]
+    else
+      random.mean <- NULL
     
     ## Compute random effects sd for mean
     if(!is.null(mean.model$random)){
-      ## Compute random effects standard deviations
-      ncomp <- jags.data[[paste0(mean.model$random$name,".ncomponents")]]
-      levels <- jags.data[[paste0(mean.model$random$name,".levels")]]
-      
-      sd.mean <- sapply(1:ncomp, function(j) sd(mean.coeff[which(levels==j)],na.rm=TRUE))
-      
-      ## Randomly fill in any missing random effects
-      miss <- which(is.na(random.mean))
-      
-      if(length(miss) > 0){
-        random.mean[miss] <- rnorm(length(miss),0,sd.mean[levels[miss]])
+      if(i %in% c(2,3)){
+        ## Compute random effects standard deviations
+        ncomp <- jags.data[[paste0(mean.model$random$name,".ncomponents")]]
+        levels <- jags.data[[paste0(mean.model$random$name,".levels")]]
+        
+        sd.mean <- sapply(1:ncomp, function(j) sd(mean.coeff[which(levels==j)],na.rm=TRUE))
+        
+        ## Randomly fill in any missing random effects
+        miss <- which(is.na(random.mean))
+        
+        if(length(miss) > 0){
+          random.mean[miss] <- rnorm(length(miss),0,sd.mean[levels[miss]])
+        }
       }
+      else{
+        ## Set random effects standard deviation to be very small
+        ncomp <- jags.data[[paste0(mean.model$random$name,".ncomponents")]]
+        
+        sd.mean <- rep(.001,ncomp)
+      }
+    }
+    else{
+      sd.mean <- NULL
     }
     
     # Extract coefficients of variance model
     variance.coeff <- coef(dglmfit$dispersion)
-    fixed.variance <- variance.coeff[grep("fixed",names(variance.coeff))]
-    random.variance <- variance.coeff[grep("random",names(variance.coeff))]
+    
+    tmp <- grep("fixed",names(variance.coeff))
+    if(length(tmp)>0)
+      fixed.variance <- variance.coeff[tmp]
+    else
+      fixed.variance <- NULL
+    
+    tmp <- grep("random",names(variance.coeff))
+    if(length(tmp)>0)
+      random.variance <- variance.coeff[tmp]
+    else
+      random.variance <- NULL
     
     ## Compute random effects sd for variance
     if(!is.null(variance.model$random)){
-      ## Compute random effects standard deviations
-      ncomp <- jags.data[[paste0(variance.model$random$name,".ncomponents")]]
-      levels <- jags.data[[paste0(variance.model$random$name,".levels")]]
-
-      sd.variance <- sapply(1:ncomp, function(j) sd(variance.coeff[which(levels==j)],na.rm=TRUE))
-
-      ## Randomly fill in any missing random effects
-      miss <- which(is.na(random.variance))
-
-      if(length(miss) > 0){
-        random.variance[miss] <- rnorm(length(miss),0,sd.variance[levels[miss]])
+      if(i %in% c(2,3)){
+        ## Compute random effects standard deviations
+        ncomp <- jags.data[[paste0(variance.model$random$name,".ncomponents")]]
+        levels <- jags.data[[paste0(variance.model$random$name,".levels")]]
+        
+        sd.variance <- sapply(1:ncomp, function(j) sd(variance.coeff[which(levels==j)],na.rm=TRUE))
+        
+        ## Randomly fill in any missing random effects
+        miss <- which(is.na(random.variance))
+        
+        if(length(miss) > 0){
+          random.variance[miss] <- rnorm(length(miss),0,sd.variance[levels[miss]])
+        }
       }
+      else{
+        ## Set random effects standard deviation to be very small
+        ncomp <- jags.data[[paste0(variance.model$random$name,".ncomponents")]]
+        
+        sd.variance <- rep(.001,ncomp)
+      }
+    }
+    else{
+      sd.variance <- NULL
     }
     
     ## Construct initial values list
-    if(is.null(jags.data$response))
+    if(is.null(jags.data$y))
       setJAGSInits(mean.model,
                    variance.model,
                    y=y,

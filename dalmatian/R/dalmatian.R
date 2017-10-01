@@ -20,6 +20,7 @@
 ##' @param drop.levels If TRUE then drop unused levels from all factors in df. (logical)
 ##' @param drop.missing If TRUE then remove records with missing response variable. (logical)
 ##' @param overwrite If TRUE then overwrite existing JAGS files (non-interactive sessions only). (logical)
+##' @param saveJAGSinput Directory to which jags.model input is saved prior to calling \code{jags.model()}. This is useful for debugging. No files saved if NULL. (character)
 ##'
 ##' @return samples (mcmc.list)
 ##' @author Simon Bonner
@@ -40,7 +41,8 @@ dalmatian <- function(df,
                       drop.levels = TRUE,
                       drop.missing = TRUE,
                       overwrite = FALSE,
-                      debug = FALSE) {
+                      debug = FALSE,
+                      saveJAGSinput=NULL) {
   ## Enter debug state
   if (debug)
     browser()
@@ -172,15 +174,18 @@ dalmatian <- function(df,
   cat("Step 3: Generating initial values...")
 
   if (is.null(jags.model.args$inits)) {
-    if (is.null(jags.model.args$n.chains))
+    if (is.null(jags.model.args$n.chains)){
       cat("\n    Running three parallel chains by default...")
+    }
+    else {
+      cat("\n    Automatic generation of initial values currently works only with three chains. Setting n.chains=3...")
+    }
     jags.model.args$n.chains <- 3
 
     jags.model.args$inits <-
       generateJAGSinits(mean.model,
                         variance.model,
-                        jags.model.args$data,
-                        jags.model.args$n.chains)
+                        jags.model.args$data)
 
     cat("Done\n")
   }
@@ -192,6 +197,14 @@ dalmatian <- function(df,
     cat("Skipped\n")
   }
 
+  ## Save JAGS files
+  if(!is.null(saveJAGSinput)){
+    if(!dir.exists(saveJAGSinput))
+      dir.create(saveJAGSinput)
+    
+    save(jags.model.args,file=file.path(saveJAGSinput,"jags_model_args.RData"))
+  }
+  
   ## Initialize model
 
   cat("Step 4: Running model in JAGS\n")
