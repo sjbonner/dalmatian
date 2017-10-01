@@ -1,26 +1,190 @@
-generateJAGSinits <- function(mean.model,variance.model,jags.data,n.chains=1){
-
-    ## Initialize list
-    inits <- vector(mode="list",length=n.chains)
-
-    for(i in 1:n.chains){
-        ## Generate initial values for parameters of mean model
-        inits[[i]][[mean.model$fixed$name]] <- rep(0,ncol(jags.data$mean.fixed))
-        if(!is.null(mean.model$random))
-            inits[[i]][[paste0(mean.model$random$name,".tmp")]] <- rep(0,ncol(jags.data$mean.random))
-
-        ## Generate initial values for parameters of variance model
-        inits[[i]][[variance.model$fixed$name]] <- rep(0,ncol(jags.data$variance.fixed))
-        if(!is.null(variance.model$random))
-            inits[[i]][[paste0(variance.model$random$name,".tmp")]] <- rep(0,ncol(jags.data$variance.random))
-
-        ## Initial response when rounding
-        if(is.null(jags.data$response))
-            inits[[i]]$y <- (jags.data$lower + jags.data$upper)/2
+generateJAGSinits <- function(mean.model,variance.model,jags.data){
+  
+  inits <- lapply(1:3,function(i){
+    ## Initial response when rounding
+    if(is.null(jags.data$y))
+      y <- runif(jags.data$n,jags.data$lower,jags.data$upper)
+    else
+      y <- jags.data$y
+    
+    ## Mean formula
+    if(is.null(mean.model$fixed) && is.null(mean.model$random)){
+      stop("You have specified no fixed or random effects for the mean component of the model.\n\n")
     }
-
-    ## Return initial values list
-    inits
+    else if(i==1 || is.null(mean.model$random)){ # Only fixed effects
+      mean.formula <- formula("y ~ jags.data$mean.fixed - 1")
+    }
+    else if(i==2 || is.null(mean.model$fixed)){ # Only random effects
+      mean.formula <- formula("y ~ jags.data$mean.random - 1")
+    }
+    else{ # Mixed effects
+      mean.formula <- formula("y ~ jags.data$mean.fixed + jags.data$mean.random - 1")
+    }
+    
+    # Variance formula
+    if(is.null(variance.model$fixed) && is.null(variance.model$random)){
+      stop("You have specified no fixed or random effects for the random component of the model.\n\n")
+    }
+    else if(i==1 || is.null(variance.model$random)){ # Only fixed effects
+      variance.formula <- formula("epsilonsq ~ jags.data$variance.fixed - 1")
+    }
+    else if(i==2 || is.null(variance.model$fixed)){ # Only random effects
+      variance.formula <- formula("epsilonsq ~ jags.data$variance.random - 1")
+    }
+    else{ # Mixed effects
+      variance.formula <- formula("epsilonsq ~ jags.data$variance.fixed + jags.data$variance.random - 1")
+    }
+    
+    ##### My simple implementation of a double glm fit non-iteratively #####
+    # ## Fit linear regression model
+    # if(!is.null(mean.model$fixed$link))
+    #   meanlm <- glm(mean.formula,family = gaussian(link=mean.model$fixed$link))
+    # else
+    #   meanlm <- lm(mean.formula)
+    # 
+    # ## Extract coefficients for fixed and random components of model
+    # mean.coeff <- coef(meanlm)
+    # 
+    # fixed.mean <- mean.coeff[grep("fixed",names(mean.coeff))]
+    # random.mean <- mean.coeff[grep("random",names(mean.coeff))]
+    # 
+    # ## Variance model
+    # 
+    # # Extract squared residuals from mean model
+    # epsilonsq <- residuals(meanlm)^2
+    # 
+    # # Fit gamma GLM to squared residuals
+    # variancelm <- glm(variance.formula,family=Gamma(link=variance.model$fixed$link))
+    # 
+    # # Extract coefficients
+    # variance.coeff <- coef(variancelm)
+    # fixed.variance <- variance.coeff[grep("fixed",names(variance.coeff))]
+    # random.variance <- variance.coeff[grep("random",names(variance.coeff))]
+    # 
+    
+    # Set link functions to identity if not specified
+    if(is.null(mean.model$fixed$link))
+      mean.model$fixed$link <- "identity"
+    
+    if(is.null(variance.model$fixed$link))
+      variance.model$fixed$link <- "identity"
+    
+    # Fit double GLM (without random effects)
+    dlink <- variance.model$fixed$link # I don't understand, but this is necessary.
+    
+    dglmfit <- dglm::dglm(formula=mean.formula,
+                 dformula=variance.formula,
+                 family=gaussian(link=mean.model$fixed$link),
+                 dlink=dlink)
+    
+    # Extract coefficients of mean model
+    mean.coeff <- coef(dglmfit)
+ 
+    tmp <- grep("fixed",names(mean.coeff))
+    if(length(tmp)>0)
+      fixed.mean <- mean.coeff[tmp]
+    else
+      fixed.mean <- NULL
+    
+    tmp <- grep("random",names(mean.coeff))
+    if(length(tmp)>0)
+      random.mean <- mean.coeff[tmp]
+    else
+      random.mean <- NULL
+    
+    ## Compute random effects sd for mean
+    if(!is.null(mean.model$random)){
+      if(i %in% c(2,3)){
+        ## Compute random effects standard deviations
+        ncomp <- jags.data[[paste0(mean.model$random$name,".ncomponents")]]
+        levels <- jags.data[[paste0(mean.model$random$name,".levels")]]
+        
+        sd.mean <- sapply(1:ncomp, function(j) sd(mean.coeff[which(levels==j)],na.rm=TRUE))
+        
+        ## Randomly fill in any missing random effects
+        miss <- which(is.na(random.mean))
+        
+        if(length(miss) > 0){
+          random.mean[miss] <- rnorm(length(miss),0,sd.mean[levels[miss]])
+        }
+      }
+      else{
+        ## Set random effects standard deviation to be very small
+        ncomp <- jags.data[[paste0(mean.model$random$name,".ncomponents")]]
+        
+        sd.mean <- rep(.001,ncomp)
+      }
+    }
+    else{
+      sd.mean <- NULL
+    }
+    
+    # Extract coefficients of variance model
+    variance.coeff <- coef(dglmfit$dispersion)
+    
+    tmp <- grep("fixed",names(variance.coeff))
+    if(length(tmp)>0)
+      fixed.variance <- variance.coeff[tmp]
+    else
+      fixed.variance <- NULL
+    
+    tmp <- grep("random",names(variance.coeff))
+    if(length(tmp)>0)
+      random.variance <- variance.coeff[tmp]
+    else
+      random.variance <- NULL
+    
+    ## Compute random effects sd for variance
+    if(!is.null(variance.model$random)){
+      if(i %in% c(2,3)){
+        ## Compute random effects standard deviations
+        ncomp <- jags.data[[paste0(variance.model$random$name,".ncomponents")]]
+        levels <- jags.data[[paste0(variance.model$random$name,".levels")]]
+        
+        sd.variance <- sapply(1:ncomp, function(j) sd(variance.coeff[which(levels==j)],na.rm=TRUE))
+        
+        ## Randomly fill in any missing random effects
+        miss <- which(is.na(random.variance))
+        
+        if(length(miss) > 0){
+          random.variance[miss] <- rnorm(length(miss),0,sd.variance[levels[miss]])
+        }
+      }
+      else{
+        ## Set random effects standard deviation to be very small
+        ncomp <- jags.data[[paste0(variance.model$random$name,".ncomponents")]]
+        
+        sd.variance <- rep(.001,ncomp)
+      }
+    }
+    else{
+      sd.variance <- NULL
+    }
+    
+    ## Construct initial values list
+    if(is.null(jags.data$y))
+      setJAGSInits(mean.model,
+                   variance.model,
+                   y=y,
+                   fixed.mean=fixed.mean,
+                   fixed.variance = fixed.variance,
+                   random.mean=random.mean,
+                   sd.mean=sd.mean,
+                   random.variance=random.variance,
+                   sd.variance = sd.variance)
+    else
+      setJAGSInits(mean.model,
+                   variance.model,
+                   fixed.mean=fixed.mean,
+                   fixed.variance = fixed.variance,
+                   random.mean=random.mean,
+                   sd.mean=sd.mean,
+                   random.variance=random.variance,
+                   sd.variance = sd.variance)
+  })
+  
+  ## Return initial values list
+  inits
 }
 
 ##' Set initial values for \code{dalmatian}

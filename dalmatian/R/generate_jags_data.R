@@ -78,17 +78,32 @@ generateJAGSdata <-
       jags.data$weights <- df[[variance.model$weights]]
 
     ## Add response variable
-    if (!is.null(response))
-      jags.data$y <- df[, response]
-    else if (!is.null(lower) && !is.null(upper)) {
-      jags.data$lower <- df[, lower]
-      jags.data$upper <- df[, upper]
-      jags.data$dummy <- rep(1, nrow(df))
+    if(("tbl" %in% class(df))){
+      if (!is.null(response))
+        jags.data$y <- pull(df,response)
+      else if (!is.null(lower) && !is.null(upper)) {
+        jags.data$lower <- pull(df,lower)
+        jags.data$upper <- pull(df,upper)
+        jags.data$dummy <- rep(1, nrow(df))
+      }
+      else
+        stop(
+          "You must either specify the exact response value or both lower and upper bounds for rounding.\n\n"
+        )
     }
-    else
-      stop(
-        "You must either specify the exact response value or both lower and upper bounds for rounding.\n\n"
-      )
+    else{
+      if (!is.null(response))
+        jags.data$y <- df[, response]
+      else if (!is.null(lower) && !is.null(upper)) {
+        jags.data$lower <- df[, lower]
+        jags.data$upper <- df[, upper]
+        jags.data$dummy <- rep(1, nrow(df))
+      }
+      else
+        stop(
+          "You must either specify the exact response value or both lower and upper bounds for rounding.\n\n"
+        )
+    }
 
     ## Return data list
     jags.data

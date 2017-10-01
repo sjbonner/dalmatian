@@ -14,4 +14,14 @@ vignettes/*.pdf
 
 # emacs backup files
 *~
+
+# Rstudio project files
+*.Rproj
 .Rproj.user
+
+# R build ignore
+.Rbuildignore
+
+# Git ignore
+.gitignore
+dalmatian/.gitignore
