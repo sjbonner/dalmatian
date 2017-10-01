@@ -1,15 +1,13 @@
 #' Prediction Method for dalmatian Fitted Objects
 #'
 #' @param object
-#' @param df
-#' @param method
-#' @param ci
-#' @param level
+#' @param df data frame containing predictor values to predict response variables. (data.frame)
+#' @param method Method to construct the fitted model. Either \code{"mean"} or \code{"mode"} (character)
+#' @param ci returning credible intervals for predictions if TRUE (logical)
+#' @param level level of credible intervals for predictions (numeric)
 #'
-#' @return
+#' @return predictions (list)
 #' @export
-#'
-#' @examples
 #'
 predict.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
 
@@ -41,6 +39,7 @@ predict.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.
 	### CHECK IF "df" INCLUDES ALL REQUIRED VARIABLES ###
 	check.names <- all.label %in% names(df)
 	if (all(check.names == TRUE) == FALSE) {
+        print(paste0("Missing variables: ", all.label[which(check.names == FALSE)]))
 		stop("df does not include all required variables. Check variable names in df.")
 	}
 
