@@ -16,18 +16,18 @@ predict.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.
 	#########################
 
 	# labels for FIXED effects in mean model and variance model
-	mean.fixed.label <- labels(terms(object$mean.model$fixed$formula))
-	var.fixed.label <- labels(terms(object$variance.model$fixed$formula))
+	mean.fixed.label <- all.vars(object$mean.model$fixed$formula)
+	var.fixed.label <- all.vars(object$variance.model$fixed$formula)
 
 	# labels for RANDOM effects in mean model and variance model
 	if (!is.null(object$mean.model$random)) { # mean model
-		mean.random.label <- labels(terms(object$mean.model$random$formula))
+		mean.random.label <- all.vars(object$mean.model$random$formula)
 	} else {
 		mean.random.label <- NULL
 	}
 
 	if (!is.null(object$variance.model$random)) { # variance model
-		var.random.label <- labels(terms(object$variance.model$random$formula))
+		var.random.label <- all.vars(object$variance.model$random$formula)
 	} else {
 		var.random.label <- NULL
 	}
