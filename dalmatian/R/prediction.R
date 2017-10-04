@@ -214,14 +214,12 @@ predict.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.
 	var.pred <- data.frame(Fit = est.var.pred) # for variance model
 
 	if (ci) {
-	  lowerName <- paste0("Lower", level*100, "%")
-	  upperName <- paste0("Upper", level*100, "%")
 
 	  mean.pred[,2:3] <- ci.mean.pred
-	  colnames(mean.pred)[2:3] <- c(lowerName, upperName)
+	  colnames(mean.pred)[2:3] <- c("Lower", "Upper")
 
 	  var.pred[,2:3] <- ci.var.pred
-	  colnames(var.pred)[2:3] <- c(lowerName, upperName)
+	  colnames(var.pred)[2:3] <- c("Lower", "Upper")
 
 	}
 
