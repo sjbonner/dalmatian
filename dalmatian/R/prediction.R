@@ -215,11 +215,11 @@ predict.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.
 
 	if (ci) {
 
-	  mean.pred[,2:3] <- ci.mean.pred
-	  colnames(mean.pred)[2:3] <- c("Lower", "Upper")
+	  mean.pred$Lower <- ci.mean.pred[1,]
+	  mean.pred$Upper <- ci.mean.pred[2,]
 
-	  var.pred[,2:3] <- ci.var.pred
-	  colnames(var.pred)[2:3] <- c("Lower", "Upper")
+	  var.pred$Lower <- ci.var.pred[1,]
+	  var.pred$Upper <- ci.var.pred[2,]
 
 	}
 
