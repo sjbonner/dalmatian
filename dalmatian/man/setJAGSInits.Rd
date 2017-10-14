@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_jags_inits.R
 \name{setJAGSInits}
 \alias{setJAGSInits}
-\title{Set initial values for \code{dalmation}}
+\title{Set initial values for \code{dalmatian}}
 \usage{
 setJAGSInits(mean.model, variance.model, fixed.mean = NULL,
   fixed.variance = NULL, y = NULL, random.mean = NULL, sd.mean = NULL,
@@ -17,7 +17,7 @@ setJAGSInits(mean.model, variance.model, fixed.mean = NULL,
 
 \item{fixed.variance}{Initial values for the fixed effects of the variance. (numeric)}
 
-\item{y}{Inital values for the true response. This should only be specified if the \code{rounding = TRUE} in the main call to dalmation.}
+\item{y}{Inital values for the true response. This should only be specified if the \code{rounding = TRUE} in the main call to dalmatian.}
 
 \item{random.mean}{Initial values for the random effects of the mean. (numeric)}
 
@@ -31,13 +31,12 @@ setJAGSInits(mean.model, variance.model, fixed.mean = NULL,
 inits (list)
 }
 \description{
-Set initial values for \code{dalmation}
+Set initial values for \code{dalmatian}
 }
 \details{
-Allows the user to set initial values for \code{dalmation}. Any values
+Allows the user to set initial values for \code{dalmatian}. Any values
 not specified will by initialized by \code{JAGS}.
 }
 \author{
 Simon Bonner
 }
-

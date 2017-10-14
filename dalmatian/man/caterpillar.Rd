@@ -14,4 +14,3 @@ caterpillar(object, ...)
 \description{
 Caterpillar (Generic)
 }
-

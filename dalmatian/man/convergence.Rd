@@ -14,4 +14,3 @@ convergence(object, ...)
 \description{
 Generic function for computing convergence diagnostics.
 }
-

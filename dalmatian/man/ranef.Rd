@@ -14,4 +14,3 @@ ranef(object, ...)
 \description{
 Generic function for exporting summaries of random effects.
 }
-

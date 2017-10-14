@@ -14,4 +14,3 @@ traceplots(object, ...)
 \description{
 Traceplots (Generic)
 }
-
