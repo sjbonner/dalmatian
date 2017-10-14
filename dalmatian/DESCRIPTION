@@ -1,7 +1,9 @@
 Package: dalmatian
 Title: Automating the Fitting of double linear models in JAGS
 Version: 0.2.6
-Authors@R: person("Simon", "Bonner", , "sbonner6@uwo.ca", role = c("aut", "cre"))
+Authors@R: c(
+  person("Simon", "Bonner",email="sbonner6@uwo.ca", role = c("aut", "cre")),
+  person("Hanna","Kim",email="hkim787@uwo.ca",role=c("aut")))
 Description: Automates fitting of double GLM in JAGS. Includes automatic
     generation of JAGS scripts, running JAGS via rjags, and summarizing the
     resulting output.
@@ -9,8 +11,7 @@ Depends:
     R (>= 3.0.0)
 License: GPL-2
 LazyData: true
-Suggests:
-    knitr
+Suggests: knitr
 VignetteBuilder: knitr
 Imports:
     rjags,
