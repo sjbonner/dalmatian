@@ -17,5 +17,6 @@ Imports:
     rjags,
     coda,
     gdata,
-    ggmcmc
+    ggmcmc,
+    dglm
 RoxygenNote: 6.0.1
