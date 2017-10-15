@@ -5,6 +5,7 @@
 #' @param method Method to construct the fitted model. Either \code{"mean"} or \code{"mode"} (character)
 #' @param ci returning credible intervals for predictions if TRUE (logical)
 #' @param level level of credible intervals for predictions (numeric)
+#' @param ... Ignored
 #'
 #' @return predictions (list)
 #' @export

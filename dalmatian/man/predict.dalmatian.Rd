@@ -17,6 +17,8 @@
 \item{ci}{returning credible intervals for predictions if TRUE (logical)}
 
 \item{level}{level of credible intervals for predictions (numeric)}
+
+\item{...}{Ignored}
 }
 \value{
 predictions (list)
