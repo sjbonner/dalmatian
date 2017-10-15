@@ -80,10 +80,10 @@ generateJAGSdata <-
     ## Add response variable
     if(("tbl" %in% class(df))){
       if (!is.null(response))
-        jags.data$y <- pull(df,response)
+        jags.data$y <- dplyr::pull(df,response)
       else if (!is.null(lower) && !is.null(upper)) {
-        jags.data$lower <- pull(df,lower)
-        jags.data$upper <- pull(df,upper)
+        jags.data$lower <- dplyr::pull(df,lower)
+        jags.data$upper <- dplyr::pull(df,upper)
         jags.data$dummy <- rep(1, nrow(df))
       }
       else
