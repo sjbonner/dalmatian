@@ -5,9 +5,11 @@
 \title{Prediction Method for dalmatian Fitted Objects}
 \usage{
 \method{predict}{dalmatian}(object, df, method = "mean", ci = TRUE,
-  level = 0.95)
+  level = 0.95, ...)
 }
 \arguments{
+\item{object}{Object of class \code{dalmatian} created by \code{dalmatian()}.}
+
 \item{df}{data frame containing predictor values to predict response variables. (data.frame)}
 
 \item{method}{Method to construct the fitted model. Either \code{"mean"} or \code{"mode"} (character)}

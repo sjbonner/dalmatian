@@ -1,6 +1,6 @@
 #' Prediction Method for dalmatian Fitted Objects
 #'
-#' @param object
+#' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 #' @param df data frame containing predictor values to predict response variables. (data.frame)
 #' @param method Method to construct the fitted model. Either \code{"mean"} or \code{"mode"} (character)
 #' @param ci returning credible intervals for predictions if TRUE (logical)
