@@ -9,7 +9,7 @@
 #' @return predictions (list)
 #' @export
 #'
-predict.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.95) {
+predict.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.95,...) {
 
 	#########################
 	## PART 1: WRONG CASES ##
