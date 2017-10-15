@@ -19,4 +19,6 @@ Imports:
     gdata,
     ggmcmc,
     dglm
+Suggests:
+    ggplot2
 RoxygenNote: 6.0.1
