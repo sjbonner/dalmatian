@@ -2,7 +2,7 @@
 % Please edit documentation in R/prediction.R
 \name{predict.dalmatian}
 \alias{predict.dalmatian}
-\title{Prediction Method for dalmatian Fitted Objects}
+\title{Prediction method for dalmatian Fitted Objects}
 \usage{
 \method{predict}{dalmatian}(object, df, method = "mean", ci = TRUE,
   level = 0.95, ...)
@@ -24,5 +24,5 @@
 predictions (list)
 }
 \description{
-Prediction Method for dalmatian Fitted Objects
+Prediction method for dalmatian Fitted Objects
 }

@@ -24,6 +24,7 @@
 ##'
 ##' @return samples (mcmc.list)
 ##' @author Simon Bonner
+##' @importFrom stats terms
 ##' @export
 dalmatian <- function(df,
                       mean.model,

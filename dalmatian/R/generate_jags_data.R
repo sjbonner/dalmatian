@@ -1,3 +1,4 @@
+##' @importFrom stats model.matrix
 generateJAGSdata <-
   function(df,
            mean.model,

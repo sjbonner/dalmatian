@@ -1,4 +1,6 @@
-#' @importFrom dglm dglm
+##' @importFrom stats coef formula gaussian rnorm runif sd
+##' @importFrom dglm dglm
+##'
 generateJAGSinits <- function(mean.model,variance.model,jags.data){
   
   inits <- lapply(1:3,function(i){

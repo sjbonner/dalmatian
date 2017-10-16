@@ -1,9 +1,10 @@
-#' @importFrom coda thin
+##' @importFrom stats start end window median sd
+##' @importFrom coda thin
 myCodaSummary <-
   function(coda,
            base,
-           nstart = coda::start(coda),
-           nend = coda::end(coda),
+           nstart = start(coda),
+           nend = end(coda),
            nthin = coda::thin(coda)) {
     ## Generate summary for fixed effects components with names of the form base.xxx
 
@@ -15,7 +16,7 @@ myCodaSummary <-
     ## Note: this is wasteful, but it is not possible to compute one set of HPD otherwise
     ## Note: It's also exactly what summary.mcmc.list does!
     coda1 <-
-      coda::as.mcmc(do.call(rbind, coda::window(
+      coda::as.mcmc(do.call(rbind, window(
         coda[, pars, drop = FALSE],
         start = nstart,
         end = nend,
@@ -66,8 +67,8 @@ myCodaSummary <-
 #' @export
 summary.dalmatian <-
   function(object,
-           nstart = coda::start(object$coda),
-           nend = coda::end(object$coda),
+           nstart = start(object$coda),
+           nend = end(object$coda),
            nthin = thin(object$coda),
            ...) {
     ## Compute summaries of fixed effects
@@ -184,8 +185,8 @@ ranef <- function(object, ...) {
 #'
 ranef.dalmatian <-
   function(object,
-           nstart = coda::start(object$coda),
-           nend = coda::end(object$coda),
+           nstart = start(object$coda),
+           nend = end(object$coda),
            nthin = thin(object$coda),
            ...) {
     output <- list()
@@ -232,8 +233,8 @@ convergence <- function(object, ...) {
 convergence.dalmatian <-
   function(object,
            pars = NULL,
-           nstart = coda::start(object$coda),
-           nend = coda::end(object$coda),
+           nstart = start(object$coda),
+           nend = end(object$coda),
            nthin = coda::thin(object$coda),
            raftery=NULL,
            ...) {
@@ -280,7 +281,7 @@ convergence.dalmatian <-
 
     ## Compute convergence diagnostics
     output <-
-      list(gelman = coda::gelman.diag(coda::window(
+      list(gelman = coda::gelman.diag(window(
         object$coda[, pars],
         start = nstart,
         end = nend,
@@ -289,7 +290,7 @@ convergence.dalmatian <-
       autoburnin = FALSE,
       multivariate = FALSE),
       raftery = coda::raftery.diag(
-        coda::as.mcmc(do.call(rbind, coda::window(
+        coda::as.mcmc(do.call(rbind, window(
           object$coda[, pars, drop = FALSE],
           start = nstart,
           end = nend,
@@ -300,7 +301,7 @@ convergence.dalmatian <-
         s = raftery$s,
         converge.eps = raftery$converge.eps
       ),
-      effectiveSize=coda::effectiveSize(coda::window(object$coda[,pars],
+      effectiveSize=coda::effectiveSize(window(object$coda[,pars],
                                start=nstart,
                                end=nend,
                                thin=nthin)))
@@ -336,8 +337,8 @@ traceplots <- function(object, ...) {
 traceplots.dalmatian <-
   function(object,
            family = NULL,
-           nstart = coda::start(object$coda),
-           nend = coda::end(object$coda),
+           nstart = start(object$coda),
+           nend = end(object$coda),
            nthin = thin(object$coda),
            plot = TRUE,
            ...) {
@@ -345,8 +346,8 @@ traceplots.dalmatian <-
 
       coda <- object$coda
 
-      if(nstart != coda::start(object$coda) || nend != coda::end(object$coda) || nthin != thin(object$coda))
-        coda <- coda::window(coda,start=nstart,end=nend,thin=nthin)
+      if(nstart != start(object$coda) || nend != end(object$coda) || nthin != thin(object$coda))
+        coda <- window(coda,start=nstart,end=nend,thin=nthin)
 
       ## Mean: fixed effects
       ggs1 <-
@@ -428,8 +429,8 @@ caterpillar <- function(object, ...) {
 caterpillar.dalmatian <-
   function(object,
            family = NULL,
-           nstart = coda::start(object$coda),
-           nend = coda::end(object$coda),
+           nstart = start(object$coda),
+           nend = end(object$coda),
            nthin = thin(object$coda),
            plot = TRUE,
            ...) {
@@ -437,8 +438,8 @@ caterpillar.dalmatian <-
 
       coda <- object$coda
 
-      if(nstart != coda::start(object$coda) || nend != coda::end(object$coda) || nthin != thin(object$coda))
-        coda <- coda::window(coda,start=nstart,end=nend,thin=nthin)
+      if(nstart != start(object$coda) || nend != end(object$coda) || nthin != thin(object$coda))
+        coda <- window(coda,start=nstart,end=nend,thin=nthin)
 
       ## Mean: fixed effects
       ggs1 <-

@@ -1,4 +1,5 @@
-#' Prediction Method for dalmatian Fitted Objects
+
+#' Prediction method for dalmatian Fitted Objects
 #'
 #' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 #' @param df data frame containing predictor values to predict response variables. (data.frame)
@@ -8,6 +9,7 @@
 #' @param ... Ignored
 #'
 #' @return predictions (list)
+#' @importFrom stats density model.matrix quantile
 #' @export
 #'
 predict.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.95,...) {
