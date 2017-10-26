@@ -7,12 +7,11 @@
 #' @param ci returning credible intervals for predictions if TRUE (logical)
 #' @param level level of credible intervals for predictions (numeric)
 #' @param ... Ignored
-#'
 #' @return predictions (list)
 #' @importFrom stats density model.matrix quantile
 #' @export
 #'
-predict.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.95,...) {
+fitted.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.95, ...) {
 
 	#########################
 	## PART 1: WRONG CASES ##
@@ -61,6 +60,26 @@ predict.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.
 		stop("level should be a real number between 0 and 1.")
 	}
 
+	### CHECK for random effects
+	# mean model
+	for (ranName in seq_along(mean.random.label)) {
+	  ranIdx <- match(mean.random.label[ranName], colnames(df))
+	  if (length(levels(df[,ranIdx])) != ncol(object$jags.model.args$data$mean.random)) {
+	    stop(paste0("The number of inidividuals in df does not match with that in the original
+	         dataset used for the function fitted. Check: ", colnames(df)[ranIdx]))
+	  }
+	}
+	
+	# variance model
+	for (ranName in seq_along(var.random.label)) {
+	  ranIdx <- match(var.random.label[ranName], colnames(df))
+	  if (length(levels(df[,ranIdx])) != ncol(object$jags.model.args$data$variance.random)) {
+	    stop(paste0("The number of inidividuals in df does not match with that in the original
+	         dataset used for the function fitted. Check: ", colnames(df)[ranIdx]))
+	  }
+	}
+	
+
 	####################################
 	## PART 2: CREATE DESIGN MATIRCES ##
 	####################################
@@ -71,13 +90,17 @@ predict.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.
 
 	# for random effects in mean and variance models
 	if (!is.null(object$mean.model$random)) { # mean model
+	  options(na.action='na.pass')
 		mean.random.designMat <- model.matrix(object$mean.model$random$formula, df)
+		mean.random.designMat[is.na(mean.random.designMat)] <- 0
 	} else {
 		mean.random.designMat <- NULL
 	}
 
 	if (!is.null(object$variance.model$random)) { # variance model
+	  options(na.action='na.pass')
 		var.random.designMat <- model.matrix(object$variance.model$random$formula, df)
+		var.random.designMat[is.na(var.random.designMat)] <- 0
 	} else {
 		var.random.designMat <- NULL
 	}
