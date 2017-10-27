@@ -11,7 +11,7 @@
 #' @importFrom stats density model.matrix quantile
 #' @export
 #'
-fitted.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.95, ...) {
+fitted.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.95,...) {
 
 	#########################
 	## PART 1: WRONG CASES ##

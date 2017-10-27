@@ -2,7 +2,7 @@
 
 S3method(caterpillar,dalmatian)
 S3method(convergence,dalmatian)
-S3method(predict,dalmatian)
+S3method(fitted,dalmatian)
 S3method(print,dalmatian.summary)
 S3method(ranef,dalmatian)
 S3method(summary,dalmatian)
