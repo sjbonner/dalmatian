@@ -344,11 +344,11 @@ traceplots.dalmatian <-
            ...) {
     if (is.null(family)) {
 
-      coda <- object$coda
-
       if(nstart != start(object$coda) || nend != end(object$coda) || nthin != thin(object$coda))
         coda <- window(coda,start=nstart,end=nend,thin=nthin)
-
+      else
+        coda <- object$coda
+      
       ## Mean: fixed effects
       ggs1 <-
         ggmcmc::ggs(coda,
@@ -390,7 +390,7 @@ traceplots.dalmatian <-
     }
     else{
       ## Selected family
-      ggs1 <- ggmcmc::ggs(coda, family)
+      ggs1 <- ggmcmc::ggs(object$coda, family)
       output <- ggmcmc::ggs_traceplot(ggs1)
 
       if (plot)
@@ -436,10 +436,10 @@ caterpillar.dalmatian <-
            ...) {
     if (is.null(family)) {
 
-      coda <- object$coda
-
       if(nstart != start(object$coda) || nend != end(object$coda) || nthin != thin(object$coda))
         coda <- window(coda,start=nstart,end=nend,thin=nthin)
+      else
+        coda <- object$coda
 
       ## Mean: fixed effects
       ggs1 <-
@@ -482,7 +482,7 @@ caterpillar.dalmatian <-
     }
     else{
       ## Selected family
-      ggs1 <- ggmcmc::ggs(coda, family)
+      ggs1 <- ggmcmc::ggs(object$coda, family)
       output <- ggmcmc::ggs_caterpillar(ggs1)
 
       if (plot)
