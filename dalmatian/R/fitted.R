@@ -249,9 +249,24 @@ fitted.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.9
 
 	}
 
-	returnList$mean <- mean.pred
-	returnList$var <- var.pred
-
-	return(returnList)
-
+	########################################
+	## PART 6: Back Transform             ##
+	########################################
+	
+	if(!is.null(object$mean.model$fixed$link)){
+	  mean.pred = switch(object$mean.model$link,
+	                     "log"=exp(mean.pred),
+	                     "logit"=(1+exp(-mean.pred))^-1,
+	                     "sqrt"=mean.pred^2)
+	}
+	
+	if(!is.null(object$variance.model$fixed$link)){
+	  var.pred = switch(object$variance.model$fixed$link,
+	                     "log"=exp(var.pred),
+	                     "logit"=(1+exp(-var.pred))^-1,
+	                     "sqrt"=var.pred^2)
+	}
+	
+	## Return output list
+	list(mean=cbind(df,mean.pred),variance=cbind(df,var.pred))
 }
