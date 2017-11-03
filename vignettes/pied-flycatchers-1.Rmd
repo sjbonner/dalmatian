@@ -88,7 +88,7 @@ cs.args <- list(n.iter=100)
 #                           upper="upper",
 #                           debug=FALSE)
 
-load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmation"))
+load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
 
 ```
 
