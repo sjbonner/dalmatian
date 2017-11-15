@@ -93,6 +93,8 @@ if(runModels){
                          lower="lower",
                          upper="upper",
                          debug=FALSE)
+  
+  save(pfresults2,"pfresults2.RData")
 }
 if(!runModels){
   load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
@@ -213,7 +215,9 @@ if(runModels){
                           rounding=TRUE,
                           lower="lower",
                           upper="upper",
-                          saveJAGSinput = "~/Scratch/dalmatian")
+                          debug=FALSE)
+  
+  save(pfresults2,"pfresults2.RData")
 }
 if(!runModels){
   load(system.file("Pied_Flycatchers_1","pfresults2.RData",package="dalmatian"))

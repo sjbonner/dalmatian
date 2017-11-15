@@ -9,6 +9,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r,echo=FALSE}
+runModels <- FALSE # If true rerun models. OTW, reload previous output.
+```
+
 This vignette continues the example of the pied flycatchers discussed in the vignette "pied-flycatchers-1" by adding a random slope to the fixed effects model. I highly recommend that you work through the other vignette first.
 
 # Library
@@ -76,18 +80,23 @@ jm.args <- list(file=file.path(workingDir,"pied_flycatcher_3_jags.R"),n.adapt=10
 cs.args <- list(n.iter=1000)
 
 ## Run the model using dalmatian
-# pfresults3 <- dalmatian(df=pfdata,
-#                            mean.model=mymean,
-#                            variance.model=myvar,
-#                            jags.model.args=jm.args,
-#                            coda.samples.args=cs.args,
-#                            rounding=TRUE,
-#                            lower="lower",
-#                            upper="upper",
-#                            debug=FALSE)
-
-## Load output from previously run chain
-load(system.file("Pied_Flycatchers_2","pfresults3.RData",package="dalmatian"))
+if(runModels){
+  pfresults3 <- dalmatian(df=pfdata,
+                          mean.model=mymean,
+                          variance.model=myvar,
+                          jags.model.args=jm.args,
+                          coda.samples.args=cs.args,
+                          rounding=TRUE,
+                          lower="lower",
+                          upper="upper",
+                          debug=FALSE)
+  
+  save(pfresults2,"pfresults3.RData")
+}
+else{
+  ## Load output from previously run chain
+  load(system.file("Pied_Flycatchers_2","pfresults3.RData",package="dalmatian"))
+}
 
 ```
 
