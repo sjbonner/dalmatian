@@ -93,7 +93,7 @@ if(runModels){
   
   save(pfresults2,"pfresults3.RData")
 }
-else{
+if(!runModels){
   ## Load output from previously run chain
   load(system.file("Pied_Flycatchers_2","pfresults3.RData",package="dalmatian"))
 }
@@ -164,10 +164,14 @@ The following code computes the summary statistics and plots the predicted value
 ## Compute summary statistics for random effects
 ranef2 <- ranef(pfresults3)
 
-## Plot predicted random slopes
+## Load ggplot2
 library(ggplot2)
 
-ggplot(data=as.data.frame(ranef2$mean[61:120,]),aes(x=1:60,y=Mean)) + 
+## Identify number of individuals
+nind <- nlevels(pfdata$indidx)
+
+## Plot predicted random slopes
+ggplot(data=as.data.frame(ranef2$mean[nind+(1:nind),]),aes(x=1:nind,y=Mean)) + 
   geom_point() + 
   geom_errorbar(aes(ymin=`Lower 95%`,ymax=`Upper 95%`)) +
   geom_abline(intercept=0,slope=0)

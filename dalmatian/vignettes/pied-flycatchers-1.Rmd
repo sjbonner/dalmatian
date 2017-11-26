@@ -13,7 +13,6 @@ vignette: >
 runModels <- FALSE # If true rerun models. OTW, reload previous output.
 ```
 
-
 As a first example of the functions in this package we will fit a model to the pied flycatcher data. We will start by fitting a model with fixed effects on the mean and variance components. Specifically, we will model the load returned on each trip by the adult flycatchers a independent normal random variables with mean given by a linear combination of the logarithm of the inter-visit interval (IVI), the broodsize manipulation (broodsize), and the adult's sex, and standard deviation given by a linear combination of broodsize and sex, on the log scale. We will then incorporate individual random effects into this model. 
 
 # Library
