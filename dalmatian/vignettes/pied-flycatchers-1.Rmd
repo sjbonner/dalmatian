@@ -93,7 +93,7 @@ if(runModels){
                          upper="upper",
                          debug=FALSE)
   
-  save(pfresults2,"pfresults2.RData")
+  save(pfresults,"pfresults.RData")
 }
 if(!runModels){
   load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))

@@ -2,7 +2,7 @@
 #' Prediction method for dalmatian Fitted Objects
 #'
 #' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
-#' @param df data frame containing predictor values to predict response variables. (data.frame)
+#' @param df data frame containing predictor values to predict response variables. Defaults to data in \code{object} if not supplied. (data.frame)
 #' @param method Method to construct the fitted model. Either \code{"mean"} or \code{"mode"} (character)
 #' @param ci returning credible intervals for predictions if TRUE (logical)
 #' @param level level of credible intervals for predictions (numeric)
@@ -11,7 +11,7 @@
 #' @importFrom stats density model.matrix quantile
 #' @export
 #'
-fitted.dalmatian <- function(object, df, method = "mean", ci = TRUE, level = 0.95,...) {
+fitted.dalmatian <- function(object, df=object$df, method = "mean", ci = TRUE, level = 0.95,...) {
 
 	#########################
 	## PART 1: WRONG CASES ##

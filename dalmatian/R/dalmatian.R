@@ -310,6 +310,7 @@ dalmatian <- function(df,
 
   ## Create output object
   output <- list(
+    df=df,
     mean.model = mean.model,
     variance.model = variance.model,
     jags.model.args = jags.model.args,

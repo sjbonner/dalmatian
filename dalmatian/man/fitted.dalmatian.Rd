@@ -4,13 +4,13 @@
 \alias{fitted.dalmatian}
 \title{Prediction method for dalmatian Fitted Objects}
 \usage{
-\method{fitted}{dalmatian}(object, df, method = "mean", ci = TRUE,
-  level = 0.95, ...)
+\method{fitted}{dalmatian}(object, df = object$df, method = "mean",
+  ci = TRUE, level = 0.95, ...)
 }
 \arguments{
 \item{object}{Object of class \code{dalmatian} created by \code{dalmatian()}.}
 
-\item{df}{data frame containing predictor values to predict response variables. (data.frame)}
+\item{df}{data frame containing predictor values to predict response variables. Defaults to data in \code{object} if not supplied. (data.frame)}
 
 \item{method}{Method to construct the fitted model. Either \code{"mean"} or \code{"mode"} (character)}
 
