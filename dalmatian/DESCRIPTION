@@ -1,5 +1,5 @@
 Package: dalmatian
-Title: Automating the Fitting of double linear models in JAGS
+Title: Automating the Fitting of Double Linear Mixed Models in JAGS
 Version: 0.3.0.19012018
 Authors@R: c(
   person("Simon", "Bonner",email="sbonner6@uwo.ca", role = c("aut", "cre")),
