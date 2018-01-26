@@ -282,14 +282,14 @@ pfcaterpillar2$varianceFixed
 By using 'prediction' function, predictions for the mean and variance models can be calculated. The 'prediction' function should take a data frame including all variables required and their names defined for the usage of 'dalmatian' function. For the Pied Flycatcher data, previously 'log(IVI)' was used to define the mean and variance models. Hence, it should be included in the data frame as following:
 
 ```{r}
-# add 'log(IVI)' variable in pfdata
+## Add 'log(IVI)' variable in pfdata
 pfdata$'log(IVI)' <- log(pfdata$IVI)
 ```
 
 We can now get predictions.
 
 ```{r}
-# predictions for the Model 1
+## Plot predictions for the Model 1
 pred.pfresults <- fitted(object = pfresults, 
                              df = pfdata,
                              method = "mean",
