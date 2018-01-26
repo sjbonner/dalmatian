@@ -3,3 +3,11 @@
 .RData
 inst/doc
 .gitignore
+vignettes/pied-flycatchers-1.R
+vignettes/pied-flycatchers-1.html
+vignettes/pied-flycatchers-2.R
+vignettes/pied-flycatchers-2.html
+vignettes/weights-1-simulate.R
+vignettes/weights-1-simulate.html
+vignettes/weights_1_jags.R
+vignettes/weights_2_jags.R
