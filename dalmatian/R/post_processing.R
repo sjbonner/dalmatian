@@ -65,6 +65,14 @@ myCodaSummary <-
 #'
 #' @return output (list)
 #' @export
+#' 
+#' @examples 
+#' 
+#' ## Load output from previously run model
+#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
+#' 
+#' ## Compute numerical summaries
+#' summary(pfresults)
 summary.dalmatian <-
   function(object,
            nstart = start(object$coda),
@@ -123,6 +131,14 @@ summary.dalmatian <-
 #' @param ... Ignored
 #'
 #' @export
+#' 
+#' @examples 
+#' 
+#' ## Load output from previously run model
+#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
+#' 
+#' ## Compute numerical summaries
+#' print(summary(pfresults))
 #'
 print.dalmatian.summary <- function(x, digits = 2, ...) {
   ## Basic information about chains
@@ -183,6 +199,14 @@ ranef <- function(object, ...) {
 #' @return output (list)
 #' @export
 #'
+#' @examples 
+#' 
+#' ## Load output from previously run model
+#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
+#' 
+#' ## Compute numerical summaries
+#' ranef(pfresults)
+#'
 ranef.dalmatian <-
   function(object,
            nstart = start(object$coda),
@@ -230,6 +254,15 @@ convergence <- function(object, ...) {
 #'
 #' @return List containing Gelman-Rubin and Raftery convergence diagnostics and effective sampel sizes for the selected parameters.
 #' @export
+#'
+#' @examples 
+#' 
+#' ## Load output from previously run model
+#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
+#' 
+#' ## Compute convergence diagnostics
+#' pfconvergence <- convergence(pfresults)
+#'
 convergence.dalmatian <-
   function(object,
            pars = NULL,
@@ -334,6 +367,15 @@ traceplots <- function(object, ...) {
 #'
 #' @return A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
 #' @export
+#'  
+#' @examples 
+#' 
+#' ## Load output from previously run model
+#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
+#' 
+#' ## Generate traceplots
+#' pftraceplots <- traceplots(pfresults)
+#'
 traceplots.dalmatian <-
   function(object,
            family = NULL,
@@ -426,6 +468,14 @@ caterpillar <- function(object, ...) {
 #'
 #' @return A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
 #' @export
+#' @examples 
+#' 
+#' ## Load output from previously run model
+#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
+#' 
+#' ## Generate caterpillar
+#' pfcaterpillar <- caterpillar(pfresults,plot = FALSE)
+#'
 caterpillar.dalmatian <-
   function(object,
            family = NULL,
