@@ -65,7 +65,7 @@ myvar=list(fixed=list(name="psi",
 
 ## Running the Model with dalmatian
 
-The new model can now be run using `dalmatian` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and variance components by taking the values from the final iterations of each of the chains run for the fixed effects model. For convenience, we set the random effects variances equal to 1 in all three chains. 
+The new model can now be run using `dalmatian` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and variance components by taking the values from the final iterations of each of the chains run for the fixed effects model. For convenience, we set the random effects variances equal to 1 in all three chains. Note that the chains have been run for a relatively small number of iterations and heavily subsampled to satisfy the size requirements for packages on \texttt{CRAN}. Neither of these is recommended in practice.
 
 
 ```{r}

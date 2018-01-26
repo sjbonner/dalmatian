@@ -66,7 +66,7 @@ These two objects will now be used to generate the JAGS code, data, and initial 
 
 ## Running the Model with dalmatian
 
-The primary function in the package `dalmatian` automates the creation of the `JAGS` code, data, and initial values and then passes these to `JAGS` via the functions in the `rjags` package. The `dalmatian` function takes requires several arguments including the data frame for the analysis, the model objects created above, and the name of the `JAGS` model file. It also requires two lists containing named arguments for the functions `jags.model` and `coda.samples` from the `rjags` package. Descriptions of the arguments for these two functions are available in their own help pages. Any arguments that are not specified in these lists will take the default values given by `rjags`. The two exceptions are the `file` argument of `jags.model` and the `n.iter` argument of `coda.samples` which do not have default values and must be specified. The number of parallel chains will be taken from the `jags.model` list. If this value is not specified then three chains will be run in order that convergence diagnostics can be computed.
+The primary function in the package `dalmatian` automates the creation of the `JAGS` code, data, and initial values and then passes these to `JAGS` via the functions in the `rjags` package. The `dalmatian` function takes requires several arguments including the data frame for the analysis, the model objects created above, and the name of the `JAGS` model file. It also requires two lists containing named arguments for the functions `jags.model` and `coda.samples` from the `rjags` package. Descriptions of the arguments for these two functions are available in their own help pages. Any arguments that are not specified in these lists will take the default values given by `rjags`. The two exceptions are the `file` argument of `jags.model` and the `n.iter` argument of `coda.samples` which do not have default values and must be specified. The number of parallel chains will be taken from the `jags.model` list. If this value is not specified then three chains will be run in order that convergence diagnostics can be computed. Note that the chains have been run for a relatively small number of iterations and heavily subsampled to satisfy the size requirements for packages on \texttt{CRAN}. Neither of these is recommended in practice.
 
 ```{r}
 
@@ -180,8 +180,7 @@ myvar$random=list(name="xi",formula=~-1 + indidx)
 
 ## Running the Model with dalmatian
 
-The new model can now be run using `dalmatian` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and variance components by taking the values from the final iterations of each of the chains run for the fixed effects model. I have also found that it is best to set initial values for the response variable, `y`, if the response is rounded. Otherwise, JAGS often fails to generate initial values that fall between the rounding limits. For convenience, we set the random effects variances equal to 1 in all three chains. 
-
+The new model can now be run using `dalmatian` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and variance components by taking the values from the final iterations of each of the chains run for the fixed effects model. I have also found that it is best to set initial values for the response variable, `y`, if the response is rounded. Otherwise, JAGS often fails to generate initial values that fall between the rounding limits. For convenience, we set the random effects variances equal to 1 in all three chains. Note that the chains have been run for a relatively small number of iterations and heavily subsampled to satisfy the size requirements for packages on \texttt{CRAN}. Neither of these is recommended in practice.
 
 ```{r}
 
@@ -200,7 +199,7 @@ inits <- lapply(1:3,function(i){
 jm.args <- list(file=file.path(workingDir,"pied_flycatcher_2_jags.R"),inits=inits,n.adapt=1000)
 
 ## Define list of arguments for coda.samples()
-cs.args <- list(n.iter=5000)
+cs.args <- list(n.iter=5000,thin=10)
 
 ## Run the model using dalmatian
 ## This is how the model is run. However, to save you time we will load output from a previous run instead.
