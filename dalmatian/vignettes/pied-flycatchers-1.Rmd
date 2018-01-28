@@ -78,7 +78,7 @@ workingDir <- tempdir()
 jm.args <- list(file=file.path(workingDir,"pied_flycatcher_1_jags.R"),n.adapt=1000)
 
 ## Define list of arguments for coda.samples()
-cs.args <- list(n.iter=5000)
+cs.args <- list(n.iter=5000,thin=20)
 
 ## Run the model using dalmatian
 ## This is how the model is run. However, to save you time we will load output from a previous run instead.
@@ -128,10 +128,10 @@ pfconvergence$effectiveSize
 ```
 Details of these measures can be found in the help files of the `coda` package. Not surprisingly, these all suggest that the chains need to be run for longer. 
 
-Convergence and mixing of the chains can also be examined visually through traceplots. The wrapper function `traceplots` generates traces using the functions from the `ggmcmc` package and separates the variables by the model components. One of the advantages of using `ggmcmc` which is based on `ggplot2` is that the plots can be saved and easily reproduced
+Convergence and mixing of the chains can also be examined visually through traceplots. The wrapper function `traceplots` generates traces using the functions from the `ggmcmc` package and separates the variables by the model components. One of the advantages of using `ggmcmc` which is based on `ggplot2` is that the plots can be saved and easily reproduced. Here I have thinned the chains further prior to plotting to reduce the size of the vignette. Note that thinning is conducted relative to the original chain, not the already thinned chain. I.e., thinning by 100 selects the output from every 100th iteration of the original chain.
 ```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
-pftraceplots <- traceplots(pfresults,plot=FALSE)
+pftraceplots <- traceplots(pfresults,plot=FALSE,nthin=100)
 
 ## Fixed effects for mean
 pftraceplots$meanFixed
@@ -244,7 +244,7 @@ pfconvergence2$effectiveSize
 2. Traceplots
 ```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
-pftraceplots2 <- traceplots(pfresults2,plot = FALSE)
+pftraceplots2 <- traceplots(pfresults2,plot = FALSE,nthin=100)
 
 ## Fixed effects for mean
 pftraceplots2$meanFixed
