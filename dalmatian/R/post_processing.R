@@ -182,6 +182,14 @@ print.dalmatian.summary <- function(x, digits = 2, ...) {
 #'
 #' @export
 #'
+#' @examples 
+#' 
+#' ## Load output from previously run model
+#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
+#' 
+#' ## Compute numerical summaries
+#' ranef(pfresults)
+#'
 ranef <- function(object, ...) {
   UseMethod("ranef")
 }
@@ -235,6 +243,14 @@ ranef.dalmatian <-
 #' @param ... Ignored
 #'
 #' @export
+#'
+#' @examples 
+#' 
+#' ## Load output from previously run model
+#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
+#' 
+#' ## Compute convergence diagnostics
+#' pfconvergence <- convergence(pfresults)
 #'
 convergence <- function(object, ...) {
   UseMethod("convergence")
@@ -348,6 +364,14 @@ convergence.dalmatian <-
 #' @param ... Ignored
 #'
 #' @export
+#' 
+#' @examples 
+#' 
+#' ## Load output from previously run model
+#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
+#' 
+#' ## Generate traceplots
+#' pftraceplots <- traceplots(pfresults)
 #'
 traceplots <- function(object, ...) {
   UseMethod("traceplots")
@@ -449,6 +473,14 @@ traceplots.dalmatian <-
 #' @param ... Ignored
 #'
 #' @export
+#'
+#' @examples 
+#' 
+#' ## Load output from previously run model
+#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
+#' 
+#' ## Generate caterpillar
+#' pfcaterpillar <- caterpillar(pfresults,plot = FALSE)
 #'
 caterpillar <- function(object, ...) {
   UseMethod("caterpillar")
