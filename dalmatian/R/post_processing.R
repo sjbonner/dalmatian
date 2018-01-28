@@ -411,7 +411,7 @@ traceplots.dalmatian <-
     if (is.null(family)) {
 
       if(nstart != start(object$coda) || nend != end(object$coda) || nthin != thin(object$coda))
-        coda <- window(coda,start=nstart,end=nend,thin=nthin)
+        coda <- window(object$coda,start=nstart,end=nend,thin=nthin)
       else
         coda <- object$coda
       
@@ -519,7 +519,7 @@ caterpillar.dalmatian <-
     if (is.null(family)) {
 
       if(nstart != start(object$coda) || nend != end(object$coda) || nthin != thin(object$coda))
-        coda <- window(coda,start=nstart,end=nend,thin=nthin)
+        coda <- window(object$coda,start=nstart,end=nend,thin=nthin)
       else
         coda <- object$coda
 
