@@ -22,7 +22,8 @@
 ##' @param overwrite If TRUE then overwrite existing JAGS files (non-interactive sessions only). (logical)
 ##' @param saveJAGSinput Directory to which jags.model input is saved prior to calling \code{jags.model()}. This is useful for debugging. No files saved if NULL. (character)
 ##'
-##' @return samples (mcmc.list)
+##' @return An object of class \code{dalmatian} contiaining copies of the original data frame, the mean model, the
+##' variance model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler. 
 ##' @author Simon Bonner
 ##' @importFrom stats terms
 ##' @export
@@ -365,3 +366,59 @@ dalmatian <- function(df,
   ## Return output
   output
 }
+
+##' Prints summary information about a fitted model of class \code{dalmatian}.
+##'
+##' @title Printed Summary of a \code{dalmatian} Object
+##' @param obj 
+##' @return Summary computed by \code{summary.dalmatian()}.
+##' @author Simon Bonner
+##' @export
+##'
+##' @examples
+##' \dontrun{
+##' ## Print summary of dalmatian objects
+##' print(pfresults)
+##' print(pfresults2)
+##' }
+print.dalmatian <- function(obj){
+    ## Print information about model
+    cat("Model Components\n\n")
+
+    ## 1) Mean
+    cat("  Mean:\n")
+    cat("    Fixed:\n")
+    cat("      Formula: ",as.character(obj$mean.model$fixed$formula),"\n")
+    cat("      Parameter name: ",obj$mean.model$fixed$name,"\n\n")
+    
+    if(!is.null(obj$mean.model$random)){
+        cat("    Random:\n")
+        cat("      Formula: ",as.character(obj$mean.model$random$formula),"\n")
+        cat("      Parameter name: ",obj$mean.model$random$name,"\n\n")
+    }
+
+    ## 2) Variance
+    cat("  Variance:\n")
+    cat("    Fixed:\n")
+    cat("      Formula: ",as.character(obj$variance.model$fixed$formula),"\n")
+    cat("      Parameter name: ",obj$variance.model$fixed$name,"\n\n")
+    
+    if(!is.null(obj$variance.model$random)){
+        cat("    Random:\n")
+        cat("      Formula: ",as.character(obj$variance.model$random$formula),"\n")
+        cat("      Parameter name: ",obj$variance.model$random$name,"\n\n")
+    }
+
+    ## Print information about sampling
+    cat("MCMC Sampling\n\n")
+
+    ## Compute summary and print
+    summ <- summary(obj)
+
+    print(summ)
+
+    ## Return summary
+    summ
+}
+
+
