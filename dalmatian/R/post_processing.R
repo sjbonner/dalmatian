@@ -382,11 +382,12 @@ traceplots <- function(object, ...) {
 #' Construct traceplots for key (or selected) parameters in a dalmatian object.
 #'
 #' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
+#' @param family String defining selected family of variables (see help for \code{ggs()}).
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
-#' @param family String defining selected family of variables (see help for \code{ggs()}).
-#' @param plot If TRUE then generate plots. Otherwise, a list of \code{ggplot} objects will be returned.
+#' @param plot If TRUE then plots will be shown. Otherwise, a list of \code{ggplot} objects will be returned if $\code{return == TRUE}.
+#' @param return_plots If TRUE then return list of \code{ggplot} objects.
 #' @param ... Ignored
 #'
 #' @return A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
@@ -407,7 +408,12 @@ traceplots.dalmatian <-
            nend = end(object$coda),
            nthin = thin(object$coda),
            plot = TRUE,
+           return_plots = TRUE,
            ...) {
+
+      ## Identify whether session is interactive
+      isInteractive <- interactive()
+      
     if (is.null(family)) {
 
       if(nstart != start(object$coda) || nend != end(object$coda) || nthin != thin(object$coda))
@@ -421,17 +427,27 @@ traceplots.dalmatian <-
                     paste0("^", object$mean.model$fixed$name, "\\."))
       output <- list(meanFixed = ggmcmc::ggs_traceplot(ggs1))
 
-      if (plot)
-        print(output$meanFixed)
+        if (plot){
+            if(isInteractive){
+                readline(prompt="Press any key for the next plot:")
+            }
+            
+            print(output$meanFixed)
+        }
 
       ## Variance: fixed effects
-      ggs2 <-
-        ggmcmc::ggs(coda,
+        ggs2 <-
+          ggmcmc::ggs(coda,
                     paste0("^", object$variance.model$fixed$name, "\\."))
       output$varianceFixed <- ggmcmc::ggs_traceplot(ggs2)
 
-      if (plot)
-        print(output$varianceFixed)
+        if (plot){
+            if(isInteractive){
+                readline(prompt="Press any key for the next plot:")
+            }
+            
+            print(output$varianceFixed)
+        }
 
       ## Mean: random effects
       if (!is.null(object$mean.model$random)) {
@@ -440,8 +456,13 @@ traceplots.dalmatian <-
                       paste0("^sd\\.", object$mean.model$random$name))
         output$meanRandom <- ggmcmc::ggs_traceplot(ggs3)
 
-        if (plot)
-          print(output$meanRandom)
+        if (plot){
+            if(isInteractive){
+                readline(prompt="Press any key for the next plot:")
+            }
+            
+            print(output$meanRandom)
+        }
       }
 
       if (!is.null(object$variance.model$random)) {
@@ -450,8 +471,13 @@ traceplots.dalmatian <-
                       paste0("^sd\\.", object$variance.model$random$name))
         output$varianceRandom <- ggmcmc::ggs_traceplot(ggs4)
 
-        if (plot)
-          print(output$varianceRandom)
+        if (plot){
+            if(isInteractive){
+                readline(prompt="Press any key for the next plot:")
+            }
+            
+            print(output$varianceRandom)
+        }
       }
     }
     else{
@@ -463,8 +489,9 @@ traceplots.dalmatian <-
         print(output)
     }
 
-    ## Return output
-    output
+      ## Return output
+      if(return_plots)
+          output
   }
 
 #' Caterpillar (Generic)

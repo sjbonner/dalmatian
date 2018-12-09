@@ -421,4 +421,25 @@ print.dalmatian <- function(obj){
     summ
 }
 
-
+##' Create traceplots from output of the fitted model.
+##'
+##' This function is simply a wrapper for \code{traceplots.dalmatian()}.
+##' 
+##' @title Plot Function for \code{dalmatian} objects
+##' @param obj 
+##' @return
+##' @export
+##' @author Simon Bonner
+##'
+##' @example
+##' \dontrun{
+##' ## Plot results for pied-flycatcher model without random effects
+##' plot(pfresults)
+##' 
+##' ## Plot results for pied-flycatcher model with random effects
+##' plot(pfresults2)
+##' }
+plot.dalmatian <- function(obj){
+    ## Create traceplots
+    traceplots(obj,return_plots=FALSE)
+}
