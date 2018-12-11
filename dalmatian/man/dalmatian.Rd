@@ -4,11 +4,11 @@
 \alias{dalmatian}
 \title{Run DGLM in \code{JAGS} via \code{rjags}}
 \usage{
-dalmatian(df, mean.model, variance.model, jags.model.args, coda.samples.args,
-  response = NULL, rounding = FALSE, lower = NULL, upper = NULL,
-  parameters = NULL, svd = TRUE, residuals = FALSE, gencode = NULL,
-  drop.levels = TRUE, drop.missing = TRUE, overwrite = FALSE,
-  debug = FALSE, saveJAGSinput = NULL)
+dalmatian(df, mean.model, variance.model, jags.model.args,
+  coda.samples.args, response = NULL, rounding = FALSE, lower = NULL,
+  upper = NULL, parameters = NULL, svd = TRUE, residuals = FALSE,
+  gencode = NULL, drop.levels = TRUE, drop.missing = TRUE,
+  overwrite = FALSE, debug = FALSE, saveJAGSinput = NULL)
 }
 \arguments{
 \item{df}{Data frame containing the response and predictor values for each individual. (data.frame)}
@@ -48,7 +48,8 @@ dalmatian(df, mean.model, variance.model, jags.model.args, coda.samples.args,
 \item{saveJAGSinput}{Directory to which jags.model input is saved prior to calling \code{jags.model()}. This is useful for debugging. No files saved if NULL. (character)}
 }
 \value{
-samples (mcmc.list)
+An object of class \code{dalmatian} contaiining copies of the original data frame, the mean model, the
+variance model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler.
 }
 \description{
 The primary function which automates the running of \code{JAGS}.

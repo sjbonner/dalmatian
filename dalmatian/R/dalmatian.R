@@ -22,7 +22,7 @@
 ##' @param overwrite If TRUE then overwrite existing JAGS files (non-interactive sessions only). (logical)
 ##' @param saveJAGSinput Directory to which jags.model input is saved prior to calling \code{jags.model()}. This is useful for debugging. No files saved if NULL. (character)
 ##'
-##' @return An object of class \code{dalmatian} contiaining copies of the original data frame, the mean model, the
+##' @return An object of class \code{dalmatian} contaiining copies of the original data frame, the mean model, the
 ##' variance model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler. 
 ##' @author Simon Bonner
 ##' @importFrom stats terms
@@ -369,9 +369,15 @@ dalmatian <- function(df,
 
 ##' Prints summary information about a fitted model of class \code{dalmatian}.
 ##'
+##' This function produces a description of the model's structure and (by default) computes and prints the summary statistics
+##' computed via \code{summary.dalmatian()} and the MCMC convergence diagnostics computed via \code{convergence.dalmatian()}.
+##' Further control is available by calling these functions directly.
+##'
 ##' @title Printed Summary of a \code{dalmatian} Object
-##' @param obj 
-##' @return Summary computed by \code{summary.dalmatian()}.
+##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
+##' @param summary If TRUE (default) compute posterior summary statistics via \code{summary.dalmatian()}.
+##' @param convergence If TRUE (default) compute MCMC convergence diagnostics via \code{convergence()}.
+##' @return List of two elements containing posterior summary statstics and convergence diagnostics (if requested). 
 ##' @author Simon Bonner
 ##' @export
 ##'
@@ -381,57 +387,87 @@ dalmatian <- function(df,
 ##' print(pfresults)
 ##' print(pfresults2)
 ##' }
-print.dalmatian <- function(obj){
+print.dalmatian <- function(object,summary=TRUE,convergence=TRUE){
     ## Print information about model
     cat("Model Components\n\n")
 
     ## 1) Mean
     cat("  Mean:\n")
     cat("    Fixed:\n")
-    cat("      Formula: ",as.character(obj$mean.model$fixed$formula),"\n")
-    cat("      Parameter name: ",obj$mean.model$fixed$name,"\n\n")
+    cat("      Formula: ",as.character(object$mean.model$fixed$formula),"\n")
+    cat("      Parameter name: ",object$mean.model$fixed$name,"\n\n")
     
-    if(!is.null(obj$mean.model$random)){
+    if(!is.null(object$mean.model$random)){
         cat("    Random:\n")
-        cat("      Formula: ",as.character(obj$mean.model$random$formula),"\n")
-        cat("      Parameter name: ",obj$mean.model$random$name,"\n\n")
+        cat("      Formula: ",as.character(object$mean.model$random$formula),"\n")
+        cat("      Parameter name: ",object$mean.model$random$name,"\n\n")
     }
 
     ## 2) Variance
     cat("  Variance:\n")
     cat("    Fixed:\n")
-    cat("      Formula: ",as.character(obj$variance.model$fixed$formula),"\n")
-    cat("      Parameter name: ",obj$variance.model$fixed$name,"\n\n")
+    cat("      Formula: ",as.character(object$variance.model$fixed$formula),"\n")
+    cat("      Parameter name: ",object$variance.model$fixed$name,"\n\n")
     
-    if(!is.null(obj$variance.model$random)){
+    if(!is.null(object$variance.model$random)){
         cat("    Random:\n")
-        cat("      Formula: ",as.character(obj$variance.model$random$formula),"\n")
-        cat("      Parameter name: ",obj$variance.model$random$name,"\n\n")
+        cat("      Formula: ",as.character(object$variance.model$random$formula),"\n")
+        cat("      Parameter name: ",object$variance.model$random$name,"\n\n")
     }
 
-    ## Print information about sampling
-    cat("MCMC Sampling\n\n")
 
     ## Compute summary and print
-    summ <- summary(obj)
+    if(summary){
+        summ <- summary(object)
 
-    print(summ)
+        cat("\n\n")
+        
+        print(summ)
+    }
+    else{
+        summ <- NULL
+    }
 
-    ## Return summary
-    summ
+    ## Compute convergence diagnostics and print
+    if(convergence){
+        diag <- convergence(object)
+
+        cat("\n\nConvergence Diagnostics\n\n")
+
+        cat("  Gelman and Rubin Diagnostics\n\n")
+        print(diag$gelman)
+        cat("\n\n")
+
+        cat("  Raftery Diagnostics\n")
+        print(diag$raftery)
+        cat("\n\n")
+    }
+    else{
+        diag <- NULL
+    }
+            
+    ## Return summary and diagnostics
+    list(summary=summ,
+         convergence=diag)
 }
 
-##' Create traceplots from output of the fitted model.
+##' Create traceplots and caterpillar plots from output of the fitted model.
 ##'
-##' This function is simply a wrapper for \code{traceplots.dalmatian()}.
+##' This function is a wrapper for the functions \code{traceplots.dalmatian()} and \code{caterpillar.dalmatian()} which
+##' create traceplots and caterpillar plots of all variables stored by the sampler. Further control is available by calling
+##' these functions directly.
 ##' 
 ##' @title Plot Function for \code{dalmatian} objects
-##' @param obj 
-##' @return
+##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
+##' @param trace If TRUE (default) then generate traceplots.
+##' @param caterpillar If TRUE (default) then generate caterpillar plots
+##' @param show If TRUE (default) then display plots as they are generated.
+##' @param return_plots If TRUE (not default) return a list of \code{ggplot} objects representing the plots. 
+##' @return List of \code{ggplot} objects if \code{return_plots} is true. 
 ##' @export
 ##' @author Simon Bonner
 ##'
-##' @example
+##' @examples
 ##' \dontrun{
 ##' ## Plot results for pied-flycatcher model without random effects
 ##' plot(pfresults)
@@ -439,7 +475,22 @@ print.dalmatian <- function(obj){
 ##' ## Plot results for pied-flycatcher model with random effects
 ##' plot(pfresults2)
 ##' }
-plot.dalmatian <- function(obj){
+plot.dalmatian <- function(object,trace=TRUE,caterpillar=TRUE,show=TRUE,return_plots=FALSE){
     ## Create traceplots
-    traceplots(obj,return_plots=FALSE)
+    if(trace)
+        traces <- traceplots(object,show=show,return_plots=return_plots)
+    else
+        traces <- NULL
+
+    ## Create caterpillar plots
+    if(caterpillar)
+        cater <- caterpillar(object,show=show,return_plots=return_plots)
+    else
+        traces <- NULL
+
+    ## Return plots if requested
+    if(return_plots)
+        list(traceplots=traces,caterpillar=cater)
+    else
+        NULL
 }

@@ -6,7 +6,7 @@
 \usage{
 \method{caterpillar}{dalmatian}(object, family = NULL,
   nstart = start(object$coda), nend = end(object$coda),
-  nthin = thin(object$coda), plot = TRUE, ...)
+  nthin = thin(object$coda), show = TRUE, return_plots = TRUE, ...)
 }
 \arguments{
 \item{object}{Object of class \code{dalmatian} created by \code{dalmatian()}.}
@@ -19,9 +19,9 @@
 
 \item{nthin}{Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).}
 
-\item{plot}{If TRUE then generate plots. Otherwise, a list of \code{ggplot} objects will be returned.}
-
 \item{...}{Ignored}
+
+\item{plot}{If TRUE then generate plots. Otherwise, a list of \code{ggplot} objects will be returned.}
 }
 \value{
 A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.

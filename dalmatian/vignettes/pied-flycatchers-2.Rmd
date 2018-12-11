@@ -121,7 +121,7 @@ pfconvergence2$effectiveSize
 2. Traceplots
 ```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
-pftraceplots2 <- traceplots(pfresults3,plot = FALSE)
+pftraceplots2 <- traceplots(pfresults3,show = FALSE)
 
 ## Fixed effects for mean
 pftraceplots2$meanFixed
@@ -146,7 +146,7 @@ summary(pfresults3)
 4. Graphical summaries
 ```{r,fig.width=6,fig.align="center"}
 ## Generate caterpillar
-pfcaterpillar2 <- caterpillar(pfresults3,plot = FALSE)
+pfcaterpillar2 <- caterpillar(pfresults3,show = FALSE)
 
 ## Fixed effects for mean
 pfcaterpillar2$meanFixed

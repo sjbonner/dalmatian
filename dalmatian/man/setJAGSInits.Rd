@@ -5,8 +5,8 @@
 \title{Set initial values for \code{dalmatian}}
 \usage{
 setJAGSInits(mean.model, variance.model, fixed.mean = NULL,
-  fixed.variance = NULL, y = NULL, random.mean = NULL, sd.mean = NULL,
-  random.variance = NULL, sd.variance = NULL)
+  fixed.variance = NULL, y = NULL, random.mean = NULL,
+  sd.mean = NULL, random.variance = NULL, sd.variance = NULL)
 }
 \arguments{
 \item{mean.model}{Model list specifying the structure of the mean. (list)}
