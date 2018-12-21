@@ -100,4 +100,4 @@ caterpillar2 <- caterpillar(results2)
 
 ```
 
-The new output shows that the estimate of the intercept for the variance model, .95, is now very close to the truth and the 95% credible interval, (.82,1.10) easily covers the true value of 1.  
+The new output shows that the estimate of the intercept for the variance model, .95, is now very close to the truth and the 95% credible interval, (.82,1.10) easily covers the true value of 1.

@@ -26,7 +26,7 @@ generateJAGSinits <- function(mean.model,variance.model,jags.data){
     
     # Variance formula
     if(is.null(variance.model$fixed) && is.null(variance.model$random)){
-      stop("You have specified no fixed or random effects for the random component of the model.\n\n")
+      stop("You have specified no fixed or random effects for the variance component of the model.\n\n")
     }
     else if(i==1 || is.null(variance.model$random)){ # Only fixed effects
       variance.formula <- formula("epsilonsq ~ jags.data$variance.fixed - 1")
@@ -74,7 +74,7 @@ generateJAGSinits <- function(mean.model,variance.model,jags.data){
     
     # Fit double GLM (without random effects)
     dlink <- variance.model$fixed$link # I don't understand, but this is necessary.
-    
+
     dglmfit <- dglm::dglm(formula=mean.formula,
                  dformula=variance.formula,
                  family=gaussian(link=mean.model$fixed$link),
