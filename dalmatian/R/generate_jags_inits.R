@@ -2,8 +2,11 @@
 ##' @importFrom dglm dglm
 ##'
 generateJAGSinits <- function(mean.model,variance.model,jags.data){
-  
-  inits <- lapply(1:3,function(i){
+
+    inits <- lapply(1:3,function(i){
+
+        cat("     Initializing chain",i,"...\n")
+        
     ## Initial response when rounding
     if(is.null(jags.data$y))
       y <- runif(jags.data$n,jags.data$lower,jags.data$upper)
@@ -71,7 +74,7 @@ generateJAGSinits <- function(mean.model,variance.model,jags.data){
     
     if(is.null(variance.model$fixed$link))
       variance.model$fixed$link <- "identity"
-    
+      
     # Fit double GLM (without random effects)
     dlink <- variance.model$fixed$link # I don't understand, but this is necessary.
 
