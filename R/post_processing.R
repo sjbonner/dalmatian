@@ -689,69 +689,106 @@ terms.dalmatian <- function(object,...){
        variance = terms.dalmatian.component(object$variance.model,...))
 }
 
-coef.dalmatian <- function(object,summary = NULL, ranef = NULL,...){## Compute posterior summaries if not provided'
+##' coef (dalmatian)
+##'
+##' Extracts coefficients for the mean and variance components of a
+##' dalmatian model.
+##' 
+##' @title Coefficients function for \code{dalmatian} objects
+##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
+##' @param summary Posterior summaries computed from the supplied \code{dalmatian} object (optional).
+##' @param ranef Random effects summary computed from the supplied \code{dalmatian} object (optional).
+##' @return List of two lists named mean and variance each containing the posterior means of the coefficients
+##' corresponding to the fixed and random terms of that model component (if present).
+##' @author Simon Bonner
+coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
+  ## Compute posterior summaries if not provided'
   if(is.null(summary))
     summary <- summary(object)
 
-  ## Compute posterior summaries of random effects if not provided
-  if(is.null(ranef))
+  ## Compute posterior summaries of random effects (if not provided and model contains random effects)
+  if((!is.null(object$mean.model$random) | !is.null(object$variance.model$random)) & is.null(ranef))
     ranef <- ranef(object)
 
-  ## Mean models
+  ## Mean model
+  
   ## Extract posterior means for fixed effects
   mean_fixef <- summary$meanFixed[,"Mean"]
 
-  ## Extract and format posterior means for random effects
-  mean_ranef <- as_tibble(ranef$mean,rownames = "Effect") %>%
-    select(Effect, Mean) %>%
-    separate(Effect, c("ID","Effect"),sep=":",fill="right") %>%
-    replace_na(list(Effect = "(Intercept)")) %>%
-    spread(key = Effect, value = Mean)
-
-  ## Combine fixed and random effects
-  allef <- unique(c(names(mean_fixef),names(mean_ranef)[-1]))
-
-  tmp <- lapply(allef,function(ef){
-    if(!ef %in% names(mean_fixef))
-      pull(mean_ranef,ef)
-    else if(!ef %in% names(mean_ranef))
-      rep(mean_fixef[ef],nrow(mean_ranef))
-    else
-      mean_fixef[ef] + pull(mean_ranef,ef)
-  }) 
-
-  coef <- do.call("cbind",tmp)
-
-  ## Add appropriate dimension names
-  dimnames(coef) <- list(pull(mean_ranef,"ID"),
-                         allef)
-
-  ## Return output
-  coef
-}
-
-coef.dalmatian.summary <- function(object,...){
-  ## Extract posterior means
-##:ess-bp-start::browser@nil:##
-browser(expr=is.null(.ESSBP.[["@2@"]]));##:ess-bp-end:##
-  coef.model <- function(model){
-    ## Local function to extract coefficients from either the mean or variance component
-
-    ## Fixed effects
-    if(exists("meanFixed",object))
-      fixed <- object$meanFixed[,"Mean"]
-    else
-      fixed <- NULL
+  ## If model only contains fixed effects
+  if(is.null(object$mean.model$random))
+    coef_mean <- mean_fixef
+  
+  ## Otherwise, combine fixed and random effects
+  else{
+    ## Extract and format posterior means for random effects
+    mean_ranef <- as_tibble(ranef$mean,rownames = "Effect") %>%
+      select(Effect, Mean) %>%
+      separate(Effect, c("ID","Effect"),sep=":",fill="right") %>%
+      replace_na(list(Effect = "(Intercept)")) %>%
+      spread(key = Effect, value = Mean)
     
-  ## 1) Mean component
-  mean <- list(fixed = ifelse(exists("meanFixed",object),object$meanFixed[,"Mean"],NULL),
-               random = ifelse(exists("meanRandom",object),object$meanRandom[,"Mean"],NULL))
+    ## Combine fixed and random effects
+    allef <- unique(c(names(mean_fixef),names(mean_ranef)[-1]))
+    
+    tmp <- lapply(allef,function(ef){
+      if(!ef %in% names(mean_fixef))
+        pull(mean_ranef,ef)
+      else if(!ef %in% names(mean_ranef))
+        rep(mean_fixef[ef],nrow(mean_ranef))
+      else
+        mean_fixef[ef] + pull(mean_ranef,ef)
+    }) 
 
-  ## 2) Mean component
-  variance <- list(fixed = ifelse(exists("varFixed",object),object$varFixed[,"Mean"],NULL),
-                   random = ifelse(exists("varRandom",object),object$varRandom[,"Mean"],NULL))
+    coef_mean <- do.call("cbind",tmp)
+
+    ## Add appropriate dimension names
+    dimnames(coef_mean) <- list(pull(mean_ranef,"ID"),allef)
+
+    ## Return output
+    coef_mean
+  }
+
+  ## Variance model
+  
+  ## Extract posterior means for fixed effects
+  var_fixef <- summary$varFixed[,"Mean"]
+
+  ## If model only contains fixed effects
+  if(is.null(object$var.model$random))
+    coef_var <- var_fixef
+  
+  ## Otherwise, combine fixed and random effects
+  else{
+    ## Extract and format posterior means for random effects
+    var_ranef <- as_tibble(ranef$var,rownames = "Effect") %>%
+      select(Effect, Mean) %>%
+      separate(Effect, c("ID","Effect"),sep=":",fill="right") %>%
+      replace_na(list(Effect = "(Intercept)")) %>%
+      spread(key = Effect, value = Mean)
+    
+    ## Combine fixed and random effects
+    allef <- unique(c(names(var_fixef),names(var_ranef)[-1]))
+    
+    tmp <- lapply(allef,function(ef){
+      if(!ef %in% names(var_fixef))
+        pull(var_ranef,ef)
+      else if(!ef %in% names(var_ranef))
+        rep(var_fixef[ef],nrow(var_ranef))
+      else
+        var_fixef[ef] + pull(var_ranef,ef)
+    }) 
+
+    coef_var <- do.call("cbind",tmp)
+
+    ## Add appropriate dimension names
+    dimnames(coef_var) <- list(pull(var_ranef,"ID"),allef)
+
+    ## Return output
+    coef_var
+  }
 
   ## Return output
-  list(mean = mean,
-       variance = variance)
+  list(mean = coef_mean,
+       variance = coef_var)
 }
