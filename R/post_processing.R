@@ -688,3 +688,70 @@ terms.dalmatian <- function(object,...){
   list(mean = terms.dalmatian.component(object$mean.model,...),
        variance = terms.dalmatian.component(object$variance.model,...))
 }
+
+coef.dalmatian <- function(object,summary = NULL, ranef = NULL,...){## Compute posterior summaries if not provided'
+  if(is.null(summary))
+    summary <- summary(object)
+
+  ## Compute posterior summaries of random effects if not provided
+  if(is.null(ranef))
+    ranef <- ranef(object)
+
+  ## Mean models
+  ## Extract posterior means for fixed effects
+  mean_fixef <- summary$meanFixed[,"Mean"]
+
+  ## Extract and format posterior means for random effects
+  mean_ranef <- as_tibble(ranef$mean,rownames = "Effect") %>%
+    select(Effect, Mean) %>%
+    separate(Effect, c("ID","Effect"),sep=":",fill="right") %>%
+    replace_na(list(Effect = "(Intercept)")) %>%
+    spread(key = Effect, value = Mean)
+
+  ## Combine fixed and random effects
+  allef <- unique(c(names(mean_fixef),names(mean_ranef)[-1]))
+
+  tmp <- lapply(allef,function(ef){
+    if(!ef %in% names(mean_fixef))
+      pull(mean_ranef,ef)
+    else if(!ef %in% names(mean_ranef))
+      rep(mean_fixef[ef],nrow(mean_ranef))
+    else
+      mean_fixef[ef] + pull(mean_ranef,ef)
+  }) 
+
+  coef <- do.call("cbind",tmp)
+
+  ## Add appropriate dimension names
+  dimnames(coef) <- list(pull(mean_ranef,"ID"),
+                         allef)
+
+  ## Return output
+  coef
+}
+
+coef.dalmatian.summary <- function(object,...){
+  ## Extract posterior means
+##:ess-bp-start::browser@nil:##
+browser(expr=is.null(.ESSBP.[["@2@"]]));##:ess-bp-end:##
+  coef.model <- function(model){
+    ## Local function to extract coefficients from either the mean or variance component
+
+    ## Fixed effects
+    if(exists("meanFixed",object))
+      fixed <- object$meanFixed[,"Mean"]
+    else
+      fixed <- NULL
+    
+  ## 1) Mean component
+  mean <- list(fixed = ifelse(exists("meanFixed",object),object$meanFixed[,"Mean"],NULL),
+               random = ifelse(exists("meanRandom",object),object$meanRandom[,"Mean"],NULL))
+
+  ## 2) Mean component
+  variance <- list(fixed = ifelse(exists("varFixed",object),object$varFixed[,"Mean"],NULL),
+                   random = ifelse(exists("varRandom",object),object$varRandom[,"Mean"],NULL))
+
+  ## Return output
+  list(mean = mean,
+       variance = variance)
+}
