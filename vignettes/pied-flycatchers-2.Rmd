@@ -91,7 +91,7 @@ if(runModels){
                           upper="upper",
                           debug=FALSE)
   
-  save(pfresults2,"pfresults3.RData")
+  save(pfresults3,"pfresults3.RData")
 }
 if(!runModels){
   ## Load output from previously run chain
