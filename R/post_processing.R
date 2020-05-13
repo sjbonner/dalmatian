@@ -641,3 +641,50 @@ caterpillar.dalmatian <-
             output
 
     }
+##' terms (dalmatian)
+##'
+##' Constructs a list of terms objects for each component of the model specified in the
+##' input object.
+##' 
+##' @title Terms function for \code{dalmatian} objects
+##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
+##' @param ... Further object passed directly to \code{terms}. Recycled for each model component.
+##' @return List of with two lists named mean and variance each containing \code{terms} objects
+##' corresponding to the fixed and random components of that model component (if present).
+##' @export
+##' @author Simon Bonner
+##' @examples
+##' \dontrun{
+##' ## Extract the terms objects corresponding to the pied-flycatcher model without random effects
+##' terms(pfresults)
+##'
+##' ## Extract the terms objects corresponding to the pied-flycatcher model with random effects
+##' terms(pfresults2)
+##' }
+terms.dalmatian <- function(object,...){
+  ## Extract terms objects for each component of the fitted model
+
+  terms.dalmatian.component <- function(model,...){
+    ## Local function to extract terms form mean or variance component individually
+
+    ## a) Fixed effects
+    if (!is.null(model$fixed))
+      terms_fixed <- terms(model$fixed$formula, ...)
+    else
+      terms_fixed <- NULL
+
+    ## b) Random effects
+    if (!is.null(model$random))
+      terms_random <- terms(model$random$formula, ...)
+    else
+      terms_random <- NULL
+
+    ## Return
+    list(fixed = terms_fixed,
+         random = terms_random)
+  }
+  
+  ## Return output
+  list(mean = terms.dalmatian.component(object$mean.model,...),
+       variance = terms.dalmatian.component(object$variance.model,...))
+}
