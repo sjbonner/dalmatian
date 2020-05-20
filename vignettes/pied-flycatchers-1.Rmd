@@ -91,6 +91,7 @@ if(runModels){
                          rounding=TRUE,
                          lower="lower",
                          upper="upper",
+                         residuals = TRUE,
                          debug=FALSE)
   
   save(pfresults,"pfresults.RData")
