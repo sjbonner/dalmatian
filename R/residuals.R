@@ -42,10 +42,9 @@ residuals.dalmatian <- function(object,...){
 
     ## Create output data frame
     output <- cbind(object$df,
-                    Residual = resid_summ[[1]]$Mean,
+                    Residual = resid_summ[[1]][,"Mean"],
                     Lower = resid_summ[[2]][,"2.5%"],
                     Upper = resid_summ[[2]][,"97.5%"])
-                 
   }
   ## Otherwise, if response is rounded
   else if(object$rounding){
