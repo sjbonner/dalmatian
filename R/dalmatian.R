@@ -358,8 +358,22 @@ dalmatian <- function(df,
     variance.model = variance.model,
     jags.model.args = jags.model.args,
     coda.samples.args = coda.samples.args,
+    rounding = rounding,
+    parameters = parameters,
+    svd = svd,
+    residuals = residuals,
+    drop.levels = drop.levels,
+    drop.missing = drop.missing,
     coda = coda
   )
+
+  if(rounding){
+    output$lower <- lower
+    output$upper <- upper
+  }
+  else{
+    output$response <- response
+  }
 
   class(output) <- "dalmatian"
 
