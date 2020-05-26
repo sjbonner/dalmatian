@@ -2,7 +2,7 @@
 ##' Prediction method for dalmatian objects
 ##'
 ##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
-##' @param df data frame containing predictor values to predict response variables. Defaults to data in \code{object} if not supplied. (data.frame)
+##' @param newdata data frame containing predictor values to predict response variables. Defaults to data in \code{object} if not supplied. (data.frame)
 ##' @param method Method to construct the fitted model. Either \code{"mean"} or \code{"mode"} (character)
 ##' @param ci returning credible intervals for predictions if TRUE (logical)
 ##' @param level level of credible intervals for predictions (numeric)
@@ -17,11 +17,11 @@
 ##' 
 ##' ## Compute predict values 
 ##' pred.pfresults <- predict(object = pfresults, 
-##'                          df = pfdata,
+##'                          newdata = pfdata,
 ##'                          method = "mean",
 ##'                          ci = TRUE,
 ##'                          level = 0.95)
-predict.dalmatian <- function(object, df=object$df, method = "mean", ci = TRUE, level = 0.95,...) {
+predict.dalmatian <- function(object, newdata=object$df, method = "mean", ci = TRUE, level = 0.95,...) {
 
 	#########################
 	## PART 1: WRONG CASES ##
@@ -48,11 +48,11 @@ predict.dalmatian <- function(object, df=object$df, method = "mean", ci = TRUE, 
 	all.label <- c(mean.fixed.label, mean.random.label, var.fixed.label, var.random.label)
 	all.label <- unique(all.label)
 
-	### CHECK IF "df" INCLUDES ALL REQUIRED VARIABLES ###
-	check.names <- all.label %in% names(df)
+	### CHECK IF "newdata" INCLUDES ALL REQUIRED VARIABLES ###
+	check.names <- all.label %in% names(newdata)
 	if (all(check.names == TRUE) == FALSE) {
         print(paste0("Missing variables: ", all.label[which(check.names == FALSE)]))
-		stop("df does not include all required variables. Check variable names in df.")
+		stop("newdata does not include all required variables. Check variable names in newdata.")
 	}
 
 	### CHECK IF "method" is entered correctly
@@ -73,19 +73,19 @@ predict.dalmatian <- function(object, df=object$df, method = "mean", ci = TRUE, 
 	### CHECK for random effects
 	# mean model
 	for (ranName in seq_along(mean.random.label)) {
-	  ranIdx <- match(mean.random.label[ranName], colnames(df))
-	  if (length(levels(df[,ranIdx])) != ncol(object$jags.model.args$data$mean.random)) {
-	    stop(paste0("The number of inidividuals in df does not match with that in the original
-	         dataset used for the function fitted. Check: ", colnames(df)[ranIdx]))
+	  ranIdx <- match(mean.random.label[ranName], colnames(newdata))
+	  if (length(levels(newdata[,ranIdx])) != ncol(object$jags.model.args$data$mean.random)) {
+	    stop(paste0("The number of inidividuals in newdata does not match with that in the original
+	         dataset used for the function fitted. Check: ", colnames(newdata)[ranIdx]))
 	  }
 	}
 	
 	# variance model
 	for (ranName in seq_along(var.random.label)) {
-	  ranIdx <- match(var.random.label[ranName], colnames(df))
-	  if (length(levels(df[,ranIdx])) != ncol(object$jags.model.args$data$variance.random)) {
-	    stop(paste0("The number of inidividuals in df does not match with that in the original
-	         dataset used for the function fitted. Check: ", colnames(df)[ranIdx]))
+	  ranIdx <- match(var.random.label[ranName], colnames(newdata))
+	  if (length(levels(newdata[,ranIdx])) != ncol(object$jags.model.args$data$variance.random)) {
+	    stop(paste0("The number of inidividuals in newdata does not match with that in the original
+	         dataset used for the function fitted. Check: ", colnames(newdata)[ranIdx]))
 	  }
 	}
 	
@@ -95,13 +95,13 @@ predict.dalmatian <- function(object, df=object$df, method = "mean", ci = TRUE, 
 	####################################
 
 	# for fixed effects in mean and variance models
-	mean.fixed.designMat <- model.matrix(object$mean.model$fixed$formula, df)
-	var.fixed.designMat <- model.matrix(object$variance.model$fixed$formula, df)
+	mean.fixed.designMat <- model.matrix(object$mean.model$fixed$formula, newdata)
+	var.fixed.designMat <- model.matrix(object$variance.model$fixed$formula, newdata)
 
 	# for random effects in mean and variance models
 	if (!is.null(object$mean.model$random)) { # mean model
 	  options(na.action='na.pass')
-		mean.random.designMat <- model.matrix(object$mean.model$random$formula, df)
+		mean.random.designMat <- model.matrix(object$mean.model$random$formula, newdata)
 		mean.random.designMat[is.na(mean.random.designMat)] <- 0
 	} else {
 		mean.random.designMat <- NULL
@@ -109,7 +109,7 @@ predict.dalmatian <- function(object, df=object$df, method = "mean", ci = TRUE, 
 
 	if (!is.null(object$variance.model$random)) { # variance model
 	  options(na.action='na.pass')
-		var.random.designMat <- model.matrix(object$variance.model$random$formula, df)
+		var.random.designMat <- model.matrix(object$variance.model$random$formula, newdata)
 		var.random.designMat[is.na(var.random.designMat)] <- 0
 	} else {
 		var.random.designMat <- NULL
@@ -278,6 +278,6 @@ predict.dalmatian <- function(object, df=object$df, method = "mean", ci = TRUE, 
 	}
 	
 	## Return output list
-	list(mean=cbind(df,mean.pred),variance=cbind(df,var.pred))
+	list(mean=cbind(newdata,mean.pred),variance=cbind(newdata,var.pred))
 }
 
