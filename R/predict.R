@@ -3,7 +3,8 @@
 ##'
 ##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 ##' @param newdata data frame containing predictor values to predict response variables. Defaults to data in \code{object} if not supplied. (data.frame)
-##' @param method Method to construct the fitted model. Either \code{"mean"} or \code{"mode"} (character)
+##' @param method Method to construct the fitted model. Either posterior mean (\code{"mean"}) or posterior mode (\code{"mode"}) (character)
+##' @param se if TRUE return the posterior standard devition (logical)
 ##' @param ci returning credible intervals for predictions if TRUE (logical)
 ##' @param level level of credible intervals for predictions (numeric)
 ##' @param ... Ignored
@@ -21,7 +22,13 @@
 ##'                          method = "mean",
 ##'                          ci = TRUE,
 ##'                          level = 0.95)
-predict.dalmatian <- function(object, newdata=object$df, method = "mean", ci = TRUE, level = 0.95,...) {
+predict.dalmatian <- function(object,
+                              newdata=object$df,
+                              method = "mean",
+                              se = TRUE,
+                              ci = TRUE,
+                              type = c("link","response"),
+                              level = 0.95,...) {
 
 	#########################
 	## PART 1: WRONG CASES ##
@@ -60,7 +67,17 @@ predict.dalmatian <- function(object, newdata=object$df, method = "mean", ci = T
 		stop("method should be either 'mean' or 'mode'.")
 	}
 
-	### CHECK IF "ci" is entered correctly
+### CHECK IF "se" is entered correctly
+  if (!is.logical(se)){
+    stop("se should be a logical value: TRUE or FALSE.")
+  }
+  if(se & type == "response"){
+    warning("Computation of posterior standard deviations is only implemented for predictions on the scale of the linear predictor (type = \"link\"). Standard deviations will not be computed.")
+
+    se <- FALSE
+  }
+
+### CHECK IF "ci" is entered correctly
 	if (!is.logical(ci)) {
 		stop("ci should be a logical value: TRUE or FALSE.")
 	}
@@ -70,6 +87,11 @@ predict.dalmatian <- function(object, newdata=object$df, method = "mean", ci = T
 		stop("level should be a real number between 0 and 1.")
 	}
 
+### CHECK IF "type" is entered correctly
+  if(!type %in% c("link","response")){
+    stop("type must either be link (prediction on the scale of the linear predictor) or response (prediction on the scale of the response.")
+  }
+  
 	### CHECK for random effects
 	# mean model
 	for (ranName in seq_along(mean.random.label)) {
@@ -218,7 +240,21 @@ predict.dalmatian <- function(object, newdata=object$df, method = "mean", ci = T
 	}
 
 	##################################################
-	## PART 4.3: CREDIBLE INTERVALS FOR PREDICTIONS ##
+	## PART 4.3: STANDARD ERRORS FOR PREDICTIONS ##
+	##################################################
+
+  if (se) {
+    ## Compute posterior standard deviation
+
+    ## Mean model
+    se.mean.pred <- apply(mean.pred,1,sd)
+
+    ## Variance model
+    se.var.pred <- apply(var.pred,1,sd)
+  }
+
+        ##################################################
+	## PART 4.4: CREDIBLE INTERVALS FOR PREDICTIONS ##
 	##################################################
 
 	if (ci) { # if ci == TRUE
@@ -249,6 +285,11 @@ predict.dalmatian <- function(object, newdata=object$df, method = "mean", ci = T
 	mean.pred <- data.frame(Fit = est.mean.pred) # for mean model
 	var.pred <- data.frame(Fit = est.var.pred) # for variance model
 
+  if (se){
+    mean.pred$se <- se.mean.pred
+    var.pred$se <- se.var.pred
+  }
+  
 	if (ci) {
 
 	  mean.pred$Lower <- ci.mean.pred[1,]
@@ -262,7 +303,8 @@ predict.dalmatian <- function(object, newdata=object$df, method = "mean", ci = T
 	########################################
 	## PART 6: Back Transform             ##
 	########################################
-	
+
+  if(type == "response"){
 	if(!is.null(object$mean.model$fixed$link)){
 	  mean.pred = switch(object$mean.model$link,
 	                     "log"=exp(mean.pred),
@@ -276,8 +318,8 @@ predict.dalmatian <- function(object, newdata=object$df, method = "mean", ci = T
 	                     "logit"=(1+exp(-var.pred))^-1,
 	                     "sqrt"=var.pred^2)
 	}
-	
+  }
 	## Return output list
-	list(mean=cbind(newdata,mean.pred),variance=cbind(newdata,var.pred))
+  list(mean=cbind(newdata,mean.pred),variance=cbind(newdata,var.pred))
 }
 
