@@ -21,14 +21,14 @@
 ##'                          newdata = pfdata,
 ##'                          method = "mean",
 ##'                          ci = TRUE,
-##'                          level = 0.95)
+##'                          level = c(0.50,0.95))
 predict.dalmatian <- function(object,
                               newdata=object$df,
                               method = "mean",
                               se = TRUE,
                               ci = TRUE,
                               type = c("link","response"),
-                              level = 0.95,
+                              level = c(0.50,0.95),
                               ...) {
 
 	#########################
