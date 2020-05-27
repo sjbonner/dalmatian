@@ -34,7 +34,9 @@ predict.dalmatian <- function(object,
 	#########################
 	## PART 1: WRONG CASES ##
 	#########################
-
+##:ess-bp-start::browser@nil:##
+browser(expr=is.null(.ESSBP.[["@3@"]]));##:ess-bp-end:##
+  
 	# labels for FIXED effects in mean model and variance model
 	mean.fixed.label <- all.vars(object$mean.model$fixed$formula)
 	var.fixed.label <- all.vars(object$variance.model$fixed$formula)
@@ -141,66 +143,61 @@ predict.dalmatian <- function(object,
 	#######################################################
 	## PART 3: RE-ARRANGE ESTIMATES CREATED BY dalmatian ##
 	#######################################################
+  
+  ## combine all chains first
+  all.chains <- do.call(rbind, object$coda)
 
-	# combine all chains first
-	all.chains <- do.call(rbind, object$coda)
+  ## coefficients for FIXED effects in MEAN model
+  pars <- paste(object$mean.model$fixed$name,
+                colnames(mean.fixed.designMat), sep = ".")
+  mean.fixed.coef <- all.chains[,pars]
 
-	# I WILL SPLIT EACH CODA CHAIN MATRIX INTO COEFFICIENT VECTORS FORM FIRST TO LAST COLUMN OF IT
-	cur.index <- NULL
+  ## coefficients for RANDOM effects in MEAN model
+  if (!is.null(mean.random.designMat)) {
+    pars <- paste(object$mean.model$random$name,
+                  colnames(mean.random.designMat), sep = ".")
+    mean.random.coef <- all.chains[,pars]
+  }
 
-	# coefficients for FIXED effects in MEAN model
-	mean.fixed.coef <- all.chains[,1:ncol(mean.fixed.designMat)]
-	cur.index <- ncol(mean.fixed.designMat) + 1
+  ## coefficients for FIXED effects in VARIANCE model
+  pars <- paste(object$variance.model$fixed$name,
+                colnames(var.fixed.designMat), sep = ".")
+  var.fixed.coef <- all.chains[,pars]
 
-	# coefficients for RANDOM effects in MEAN model
-	if (!is.null(mean.random.designMat)) {
-		mean.random.coef <- all.chains[,cur.index:(cur.index + ncol(mean.random.designMat) - 1)]
-		cur.index <- cur.index + ncol(mean.random.designMat)
-	}
-
-	# coefficients for FIXED effects in VARIANCE model
-	var.fixed.coef <- all.chains[,cur.index:(cur.index + ncol(var.fixed.designMat) - 1)]
-	cur.index <- cur.index + ncol(var.fixed.designMat)
-
-	# DISPERSION PARAMETER for RANDOM effects in MEAN model
-	if (!is.null(mean.random.designMat)) {
-		mean.disper <- all.chains[,cur.index]
-		cur.index <- cur.index + 1
-	}
+  ## ## DISPERSION PARAMETER for RANDOM effects in MEAN model
+  ## if (!is.null(mean.random.designMat)) {
+  ##   mean.disper <- all.chains[,cur.index]
+  ## }
 
 	# DISPERSION PARAMETER and coefficients for RANDOM effects in VARIANCE model
 	if (!is.null(var.random.designMat)) {
-
-		var.disper <- all.chains[,cur.index]
-		cur.index <- cur.index + 1
-
-		var.random.coef <- all.chains[,cur.index:ncol(all.chains)]
-
+          pars <- paste(object$variance.model$random$name,
+                  colnames(var.random.designMat), sep = ".")
+          var.random.coef <- all.chains[,pars]
 	}
-
 	########################################################################################
 	## PART 4.2: PREDICTIONS FOR MEAN AND VARIANCE MODEL WITH MEAN (OR MODE) OF ESTIMATES ##
 	########################################################################################
 
 	### mean model predictions
-	mean.fixed.pred <- mean.fixed.designMat %*% t(mean.fixed.coef)
+	mean.pred <- mean.fixed.designMat %*% t(mean.fixed.coef)
 	
 	if (!is.null(mean.random.designMat)) {
 	  
 	  mean.random.pred <- mean.random.designMat %*% t(mean.random.coef)
-	  mean.pred <- mean.fixed.pred + mean.random.pred
+	  mean.pred <- mean.pred + mean.random.pred
 	  
-	} else {mean.pred <- mean.fixed.pred}
+	} 
 	
 	### variance model predictions
-	var.fixed.pred <- var.fixed.designMat %*% t(var.fixed.coef)
+  var.pred <- var.fixed.designMat %*% t(var.fixed.coef)
 	
 	if (!is.null(var.random.designMat)) {
 	  
 	  var.random.pred <- var.random.designMat %*% t(var.random.coef)
-	  var.pred <- var.fixed.pred + var.random.pred
+	  var.pred <- var.pred + var.random.pred
 	  
-	} else {var.pred <- var.fixed.pred}
+	} 
 	
 	if (method != "mean") { # if method == "mode"
 
@@ -209,16 +206,16 @@ predict.dalmatian <- function(object,
 		# mean model
 		est.mean.pred <- apply(mean.pred, 1, function(vec) density(vec)$x[which.max(density(vec)$y)])
 
-		if (!is.null(mean.random.designMat)) {
-			est.mean.disper <- density(mean.disper)$x[which.max(density(mean.disper)$y)]
-		}
+		## if (!is.null(mean.random.designMat)) {
+		## 	est.mean.disper <- density(mean.disper)$x[which.max(density(mean.disper)$y)]
+		## }
 
 		# variance model
 		est.var.pred <- apply(var.pred, 1, function(vec) density(vec)$x[which.max(density(vec)$y)])
 
-		if (!is.null(var.random.designMat)) {
-			est.var.disper <- density(var.disper)$x[which.max(density(var.disper)$y)]
-		}
+		## if (!is.null(var.random.designMat)) {
+		## 	est.var.disper <- density(var.disper)$x[which.max(density(var.disper)$y)]
+		## }
 
 	} else {
 
@@ -227,16 +224,16 @@ predict.dalmatian <- function(object,
 		# mean model
 		est.mean.pred <- apply(mean.pred, 1, function(vec) mean(vec))
 
-		if (!is.null(mean.random.designMat)) {
-			est.mean.disper <- mean(mean.disper)
-		}
+		## if (!is.null(mean.random.designMat)) {
+		## 	est.mean.disper <- mean(mean.disper)
+		## }
 
 		# variance model
 		est.var.pred <- apply(var.pred, 1, function(vec) mean(vec))
 
-		if (!is.null(var.random.designMat)) {
-			est.var.disper <- mean(var.disper)
-		}
+		## if (!is.null(var.random.designMat)) {
+		## 	est.var.disper <- mean(var.disper)
+		## }
 
 	}
 
@@ -265,16 +262,16 @@ predict.dalmatian <- function(object,
                                         # mean model
 		ci.mean.pred <- apply(mean.pred, 1, function(vec) quantile(vec, c( (1-level)/2, 1-(1 - level)/2 )))
 
-		if (!is.null(mean.random.designMat)) {
-			ci.mean.disper <- quantile(mean.disper, c( (1-level)/2, 1-(1 - level)/2 ))
-		}
+		## if (!is.null(mean.random.designMat)) {
+		## 	ci.mean.disper <- quantile(mean.disper, c( (1-level)/2, 1-(1 - level)/2 ))
+		## }
 
 		# variance model
 		ci.var.pred <- apply(var.pred, 1, function(vec) quantile(vec, c( (1-level)/2, 1-(1 - level)/2 )))
 
-		if (!is.null(var.random.designMat)) {
-			ci.var.disper <- quantile(var.disper, c( (1-level)/2, 1-(1 - level)/2 ))
-		}
+		## if (!is.null(var.random.designMat)) {
+		## 	ci.var.disper <- quantile(var.disper, c( (1-level)/2, 1-(1 - level)/2 ))
+		## }
 	}
 
 	########################################
@@ -315,6 +312,7 @@ predict.dalmatian <- function(object,
 	}
   }
 	## Return output list
-  list(mean=cbind(newdata,mean.pred),variance=cbind(newdata,var.pred))
+  list(mean=cbind(newdata,mean.pred),
+       variance=cbind(newdata,var.pred))
 }
 
