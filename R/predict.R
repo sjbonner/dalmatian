@@ -6,7 +6,7 @@
 ##' @param method Method to construct the fitted model. Either posterior mean (\code{"mean"}) or posterior mode (\code{"mode"}) (character)
 ##' @param se if TRUE return the posterior standard devition (logical)
 ##' @param ci returning credible intervals for predictions if TRUE (logical)
-##' @param level level of credible intervals for predictions (numeric)
+##' @param level vector of levels of credible intervals for predictions (numeric)
 ##' @param ... Ignored
 ##' @return predictions (list)
 ##' @importFrom stats density model.matrix quantile
@@ -84,8 +84,8 @@ predict.dalmatian <- function(object,
 	}
 
 	### CHECK IF "level" is entered correctly
-	if (!((level > 0) && (level < 1))) {
-		stop("level should be a real number between 0 and 1.")
+	if (any(level < 0) || any(level > 1)) {
+		stop("level)s) for credible intervals should be a real numbers between 0 and 1.")
 	}
 
 ### CHECK IF "type" is entered correctly
@@ -259,10 +259,10 @@ predict.dalmatian <- function(object,
 	##################################################
 
 	if (ci) { # if ci == TRUE
+          
+### get CREDIBLE INTERVALS
 
-		### get CREDIBLE INTERVALS
-
-		# mean model
+                                        # mean model
 		ci.mean.pred <- apply(mean.pred, 1, function(vec) quantile(vec, c( (1-level)/2, 1-(1 - level)/2 )))
 
 		if (!is.null(mean.random.designMat)) {
@@ -292,13 +292,9 @@ predict.dalmatian <- function(object,
   }
   
 	if (ci) {
+          mean.pred <- cbind(mean.pred, t(ci.mean.pred))
 
-	  mean.pred$Lower <- ci.mean.pred[1,]
-	  mean.pred$Upper <- ci.mean.pred[2,]
-
-	  var.pred$Lower <- ci.var.pred[1,]
-	  var.pred$Upper <- ci.var.pred[2,]
-
+          var.pred <- cbind(var.pred, t(ci.var.pred))
 	}
 
 	########################################
