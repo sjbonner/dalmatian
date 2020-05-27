@@ -281,8 +281,6 @@ predict.dalmatian <- function(object,
 	## PART 5: CREATE A LIST TO BE RETURN ##
 	########################################
 
-	returnList <- list()
-
 	mean.pred <- data.frame(Predicted = est.mean.pred) # for mean model
 	var.pred <- data.frame(Predicted = est.var.pred) # for variance model
 
