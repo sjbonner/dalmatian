@@ -28,7 +28,8 @@ predict.dalmatian <- function(object,
                               se = TRUE,
                               ci = TRUE,
                               type = c("link","response"),
-                              level = 0.95,...) {
+                              level = 0.95,
+                              ...) {
 
 	#########################
 	## PART 1: WRONG CASES ##
@@ -282,8 +283,8 @@ predict.dalmatian <- function(object,
 
 	returnList <- list()
 
-	mean.pred <- data.frame(Fit = est.mean.pred) # for mean model
-	var.pred <- data.frame(Fit = est.var.pred) # for variance model
+	mean.pred <- data.frame(Predicted = est.mean.pred) # for mean model
+	var.pred <- data.frame(Predicted = est.var.pred) # for variance model
 
   if (se){
     mean.pred$se <- se.mean.pred
