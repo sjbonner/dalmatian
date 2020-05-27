@@ -34,8 +34,6 @@ predict.dalmatian <- function(object,
 	#########################
 	## PART 1: WRONG CASES ##
 	#########################
-##:ess-bp-start::browser@nil:##
-browser(expr=is.null(.ESSBP.[["@3@"]]));##:ess-bp-end:##
   
 	# labels for FIXED effects in mean model and variance model
 	mean.fixed.label <- all.vars(object$mean.model$fixed$formula)
@@ -96,25 +94,23 @@ browser(expr=is.null(.ESSBP.[["@3@"]]));##:ess-bp-end:##
   }
   
 	### CHECK for random effects
-	# mean model
-	for (ranName in seq_along(mean.random.label)) {
-	  ranIdx <- match(mean.random.label[ranName], colnames(newdata))
-	  if (length(levels(newdata[,ranIdx])) != ncol(object$jags.model.args$data$mean.random)) {
-	    stop(paste0("The number of inidividuals in newdata does not match with that in the original
-	         dataset used for the function fitted. Check: ", colnames(newdata)[ranIdx]))
-	  }
-	}
-	
-	# variance model
-	for (ranName in seq_along(var.random.label)) {
-	  ranIdx <- match(var.random.label[ranName], colnames(newdata))
-	  if (length(levels(newdata[,ranIdx])) != ncol(object$jags.model.args$data$variance.random)) {
-	    stop(paste0("The number of inidividuals in newdata does not match with that in the original
-	         dataset used for the function fitted. Check: ", colnames(newdata)[ranIdx]))
-	  }
-	}
-	
+	for (ranName in unique(c(mean.random.label,var.random.label))) {
+          ## Check if all levels in newdata exist in original data
+          test <- all(levels(newdata[,ranName]) %in%
+                      levels(object$df[,ranName]))
 
+          if(test){
+            ## Relabel levels of newdata to match original data
+            newdata[,ranName] <- factor(newdata[,ranName],
+                                        levels=levels(object$df[,ranName]))
+          }
+          else{
+	    stop(paste("The random effect",ranName,"contains levels",
+                        "not present in the original data. This is ",
+                        "not yet supported."))
+          }
+	}
+	
 	####################################
 	## PART 2: CREATE DESIGN MATIRCES ##
 	####################################
@@ -122,7 +118,7 @@ browser(expr=is.null(.ESSBP.[["@3@"]]));##:ess-bp-end:##
 	# for fixed effects in mean and variance models
 	mean.fixed.designMat <- model.matrix(object$mean.model$fixed$formula, newdata)
 	var.fixed.designMat <- model.matrix(object$variance.model$fixed$formula, newdata)
-
+  
 	# for random effects in mean and variance models
 	if (!is.null(object$mean.model$random)) { # mean model
 	  options(na.action='na.pass')
