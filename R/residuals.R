@@ -3,7 +3,7 @@
 ##' Computes posterior summaries of the residuals for each observation.
 ##' Summary statistics include the posterior mean and the upper and
 ##' lower bounds of the 95% credible interval.
-##' @title 
+##'
 ##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 ##' @param ... Ignored
 ##' @return Data frame containing original data augmented with posterior
