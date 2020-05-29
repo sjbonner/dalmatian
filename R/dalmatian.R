@@ -112,10 +112,9 @@ dalmatian <- function(df,
     stop(
       "The coda.samples.args list must include a variable n.iter. Please see help(coda.samples) for details.\n\n"
     )
-
   
   ## Generate JAGS input data
-  cat("Step 2: Generating JAGS data...")
+  cat("Step 1: Generating JAGS data...")
 
   jags.model.args$data <-
     generateJAGSdata(
@@ -292,20 +291,13 @@ dalmatian <- function(df,
 
   if(engine == "nimble"){
     cat("Step 4: Running model in nimble\n")
-##:ess-bp-start::browser@nil:##
-browser(expr=is.null(.ESSBP.[["@2@"]]));##:ess-bp-end:##
     
     ## Initialize model
     cat("    Initializing model\n")
 
-    code <- readLines(jags.model.args$file)
-
-    test <- nimbleCode(code$text)
-
     model <- readBUGSmodel(model = jags.model.args$file,
-                           check = FALSE)
-    
-                           data = jags.model.args$data)
+                           data = jags.model.args$data,
+                           inits = jags.model.args$inits[[1]])
                            
     
     ## List parameters to monitor
@@ -330,10 +322,16 @@ browser(expr=is.null(.ESSBP.[["@2@"]]));##:ess-bp-end:##
     
     ## Generate samples
     cat("   Generating samples\n")
-    coda.samples.args$model <- model
-    coda.samples.args$variable.names <- parameters
-    
-    coda <- do.call(rjags::coda.samples, coda.samples.args)
+
+    coda <- nimbleMCMC(model = model,
+                       inits = jags.model.args$inits,
+                       monitors = parameters,
+                       niter = coda.samples.args$n.iter,
+                       thin = coda.samples.args$thin,
+                       nchains = jags.model.args$n.chains,
+                       nburnin = jags.model.args$n.adapt,
+                       samplesAsCodaMCMC = TRUE)
+                       
     cat("Done\n")
   }
   
