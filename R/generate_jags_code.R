@@ -1,4 +1,8 @@
-generateJAGScode <- function(jags.model.args,mean.model,variance.model,rounding=FALSE,residuals=FALSE){
+generateJAGScode <- function(jags.model.args,
+                             mean.model,
+                             variance.model,
+                             rounding=FALSE,
+                             residuals=FALSE){
   ## Opening header
   cat("## Created by generateJAGS: ", date(),"\n\n",file=jags.model.args$file)
 
@@ -29,16 +33,23 @@ generateJAGScode <- function(jags.model.args,mean.model,variance.model,rounding=
 
   ## 2) Mean model
   cat("\t\t ## Mean Model\n",file=jags.model.args$file,append=TRUE)
-
+##:ess-bp-start::browser@nil:##
+browser(expr=is.null(.ESSBP.[["@3@"]]));##:ess-bp-end:##
+  
   ## 2a) Fixed effects
+  dim.fixed <- paste0("1:",jags.model.args$data[paste0(mean.model$fixed$name,".n")])
+  
   if(!is.null(mean.model$fixed$link))
-    mean.jags <- paste("\t\t ",mean.model$fixed$link,"(muy[i]) <- inprod(mean.fixed[i,],",mean.model$fixed$name,"[])",sep="")
+    mean.jags <- paste("\t\t ",mean.model$fixed$link,"(muy[i]) <- inprod(mean.fixed[i,",dim.fixed,"],",mean.model$fixed$name,"[",dim.fixed,"])",sep="")
   else
-    mean.jags <- paste("\t\t muy[i] <- inprod(mean.fixed[i,],",mean.model$fixed$name,"[])",sep="")
+    mean.jags <- paste("\t\t muy[i] <- inprod(mean.fixed[i,",dim.fixed,"],",mean.model$fixed$name,"[",dim.fixed,"])",sep="")
 
   ## 2b) Random effects
-  if(!is.null(mean.model$random))
-    mean.jags <- paste(mean.jags," + inprod(mean.random[i,],",mean.model$random$name,"[])",sep="")
+  if(!is.null(mean.model$random)){
+    dim.random <- paste0("1:",jags.model.args$data[paste0(mean.model$random$name,".n")])
+    
+    mean.jags <- paste(mean.jags," + inprod(mean.random[i,",dim.random,"],",mean.model$random$name,"[",dim.random,"])",sep="")
+  }
 
   cat(mean.jags,"\n\n",file=jags.model.args$file,append=TRUE,sep="")
 
@@ -46,14 +57,19 @@ generateJAGScode <- function(jags.model.args,mean.model,variance.model,rounding=
   cat("\t\t ## Variance Model\n",file=jags.model.args$file,append=TRUE)
 
   ## 3a) Fixed effects
+   dim.fixed <- paste0("1:",jags.model.args$data[paste0(variance.model$fixed$name,".n")])
+
   if(!is.null(variance.model$fixed$link))
-    variance.jags <- paste("\t\t ",variance.model$fixed$link,"(sdy[i]) <- inprod(variance.fixed[i,],",variance.model$fixed$name,"[])",sep="")
+    variance.jags <- paste("\t\t ",variance.model$fixed$link,"(sdy[i]) <- inprod(variance.fixed[i,",dim.fixed,"],",variance.model$fixed$name,"[",dim.fixed,"])",sep="")
   else
-    variance.jags <- paste("\t\t sdy[i] <- inprod(variance.fixed[i,],",variance.model$fixed$name,"[])",sep="")
+    variance.jags <- paste("\t\t sdy[i] <- inprod(variance.fixed[i,",dim.fixed,"],",variance.model$fixed$name,"[",dim.fixed,"])",sep="")
 
   ## 3b) Random effects
-  if(!is.null(variance.model$random))
-    variance.jags <- paste(variance.jags," + inprod(variance.random[i,],",variance.model$random$name,"[])",sep="")
+  if(!is.null(variance.model$random)){
+       dim.random <- paste0("1:",jags.model.args$data[paste0(variance.model$random$name,".n")])
+
+       variance.jags <- paste(variance.jags," + inprod(variance.random[i,",dim.random,"],",variance.model$random$name,"[",dim.random,"])",sep="")
+  }
 
   cat(variance.jags,"\n\n",file=jags.model.args$file,append=TRUE,sep="")
 
