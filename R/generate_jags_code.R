@@ -33,8 +33,6 @@ generateJAGScode <- function(jags.model.args,
 
   ## 2) Mean model
   cat("\t\t ## Mean Model\n",file=jags.model.args$file,append=TRUE)
-##:ess-bp-start::browser@nil:##
-browser(expr=is.null(.ESSBP.[["@3@"]]));##:ess-bp-end:##
   
   ## 2a) Fixed effects
   dim.fixed <- paste0("1:",jags.model.args$data[paste0(mean.model$fixed$name,".n")])
@@ -43,10 +41,10 @@ browser(expr=is.null(.ESSBP.[["@3@"]]));##:ess-bp-end:##
     mean.jags <- paste("\t\t ",mean.model$fixed$link,"(muy[i]) <- inprod(mean.fixed[i,",dim.fixed,"],",mean.model$fixed$name,"[",dim.fixed,"])",sep="")
   else
     mean.jags <- paste("\t\t muy[i] <- inprod(mean.fixed[i,",dim.fixed,"],",mean.model$fixed$name,"[",dim.fixed,"])",sep="")
-
+  
   ## 2b) Random effects
   if(!is.null(mean.model$random)){
-    dim.random <- paste0("1:",jags.model.args$data[paste0(mean.model$random$name,".n")])
+    dim.random <- paste0("1:",jags.model.args$data[paste0(mean.model$random$name,".neffects")])
     
     mean.jags <- paste(mean.jags," + inprod(mean.random[i,",dim.random,"],",mean.model$random$name,"[",dim.random,"])",sep="")
   }
@@ -66,7 +64,7 @@ browser(expr=is.null(.ESSBP.[["@3@"]]));##:ess-bp-end:##
 
   ## 3b) Random effects
   if(!is.null(variance.model$random)){
-       dim.random <- paste0("1:",jags.model.args$data[paste0(variance.model$random$name,".n")])
+       dim.random <- paste0("1:",jags.model.args$data[paste0(variance.model$random$name,".neffects")])
 
        variance.jags <- paste(variance.jags," + inprod(variance.random[i,",dim.random,"],",variance.model$random$name,"[",dim.random,"])",sep="")
   }
