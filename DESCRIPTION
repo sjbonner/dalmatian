@@ -6,8 +6,8 @@ Authors@R: c(
   person("Simon", "Bonner",email="sbonner6@uwo.ca", role = c("aut", "cre")),
   person("Hanna","Kim",email="hkim787@uwo.ca",role=c("aut")))
 Description: Automates fitting of double GLM in 'JAGS'. Includes automatic
-    generation of 'JAGS' scripts, running 'JAGS' via 'rjags', and summarizing the
-    resulting output.
+    generation of 'JAGS' scripts, running 'JAGS' or 'nimble' via the 'rjags'
+    and 'nimble' packaged, and summarizing the resulting output.
 Depends:
     R (>= 3.0.0)
 License: GPL-2
@@ -15,10 +15,10 @@ LazyData: true
 VignetteBuilder: knitr
 Imports:
     coda,
-    gdata,
     ggmcmc,
     dglm
 Suggests:
+    gdata,
     rjags,
     nimble,
     knitr,
