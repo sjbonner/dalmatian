@@ -112,6 +112,23 @@ dalmatian <- function(df,
     stop(
       "The coda.samples.args list must include a variable n.iter. Please see help(coda.samples) for details.\n\n"
     )
+
+  if(engine == "JAGS"){
+    if (!requireNamespace("rjags", quietly = TRUE)) {
+      stop("The \"rjags\" packages is required to run models in JAGS. You may either install it with install.packages(\"rjags\") or run your model with \"nimble\" instead using the argument engine=\"nimble\".",
+      call. = FALSE)
+    }
+  }
+  else if(engine == "nimble"){
+    if (!requireNamespace("nimble", quietly = TRUE)) {
+      stop("The \"nimble\" packages is required to run models in nimble. You may either install it with install.packages(\"nimble\") or run your model with \"JAGS\" instead using the argument engine=\"JAGS\".",
+      call. = FALSE)
+    }
+  }
+  else{
+    stop(engine,"is not a recognized engine for MCMC sampling.",
+         call. = FALSE)
+  }
   
   ## Generate JAGS input data
   cat("Step 1: Generating JAGS data...")
@@ -216,7 +233,7 @@ dalmatian <- function(df,
     )
 
   cat("Done\n")
-
+  
   ## Generate JAGS initial values
   cat("Step 3: Generating initial values...")
 
