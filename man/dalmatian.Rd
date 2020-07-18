@@ -4,11 +4,27 @@
 \alias{dalmatian}
 \title{Run DGLM in \code{JAGS} via \code{rjags}}
 \usage{
-dalmatian(df, mean.model, variance.model, jags.model.args,
-  coda.samples.args, response = NULL, rounding = FALSE, lower = NULL,
-  upper = NULL, parameters = NULL, svd = TRUE, residuals = FALSE,
-  gencode = NULL, drop.levels = TRUE, drop.missing = TRUE,
-  overwrite = FALSE, debug = FALSE, saveJAGSinput = NULL)
+dalmatian(
+  df,
+  mean.model,
+  variance.model,
+  jags.model.args,
+  coda.samples.args,
+  response = NULL,
+  rounding = FALSE,
+  lower = NULL,
+  upper = NULL,
+  parameters = NULL,
+  svd = TRUE,
+  residuals = FALSE,
+  gencode = NULL,
+  engine = "JAGS",
+  drop.levels = TRUE,
+  drop.missing = TRUE,
+  overwrite = FALSE,
+  debug = FALSE,
+  saveJAGSinput = NULL
+)
 }
 \arguments{
 \item{df}{Data frame containing the response and predictor values for each individual. (data.frame)}
@@ -36,6 +52,8 @@ dalmatian(df, mean.model, variance.model, jags.model.args,
 \item{residuals}{If TRUE then compute residuals in output. (logical)}
 
 \item{gencode}{If TRUE then generate code potentially overwriting existing model file. By default generate code if the file does not exist and prompt user if it does. (logical)}
+
+\item{engine}{Specifies the sampling software. Packages currently supported include JAGS (the default) and nimble. (character)}
 
 \item{drop.levels}{If TRUE then drop unused levels from all factors in df. (logical)}
 

@@ -4,9 +4,15 @@
 \alias{convergence.dalmatian}
 \title{Convergence}
 \usage{
-\method{convergence}{dalmatian}(object, pars = NULL,
-  nstart = start(object$coda), nend = end(object$coda),
-  nthin = coda::thin(object$coda), raftery = NULL, ...)
+\method{convergence}{dalmatian}(
+  object,
+  pars = NULL,
+  nstart = start(object$coda),
+  nend = end(object$coda),
+  nthin = coda::thin(object$coda),
+  raftery = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{Object of class \code{dalmatian} created by \code{dalmatian()}.}

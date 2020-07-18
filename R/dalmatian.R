@@ -17,6 +17,7 @@
 ##' @param debug If TRUE then enter debug model. (logical)
 ##' @param residuals If TRUE then compute residuals in output. (logical)
 ##' @param gencode If TRUE then generate code potentially overwriting existing model file. By default generate code if the file does not exist and prompt user if it does. (logical)
+##' @param engine Specifies the sampling software. Packages currently supported include JAGS (the default) and nimble. (character)
 ##' @param drop.levels If TRUE then drop unused levels from all factors in df. (logical)
 ##' @param drop.missing If TRUE then remove records with missing response variable. (logical)
 ##' @param overwrite If TRUE then overwrite existing JAGS files (non-interactive sessions only). (logical)
@@ -82,11 +83,13 @@ dalmatian <- function(df,
                       svd = TRUE,
                       residuals = FALSE,
                       gencode = NULL,
+                      engine = "JAGS",
                       drop.levels = TRUE,
                       drop.missing = TRUE,
                       overwrite = FALSE,
                       debug = FALSE,
                       saveJAGSinput=NULL) {
+  
   ## Enter debug state
   if (debug)
     browser()
@@ -110,44 +113,25 @@ dalmatian <- function(df,
       "The coda.samples.args list must include a variable n.iter. Please see help(coda.samples) for details.\n\n"
     )
 
-  ## Generate JAGS code
-  cat("Step 1: Generating JAGS code...")
-
-  if (is.null(gencode)) {
-    if (!file.exists(jags.model.args$file))
-      gencode <- TRUE
-    else if (overwrite)
-      gencode <- TRUE
-    else{
-      tmp <- NULL
-
-      while (is.null(tmp)) {
-        tmp <-
-          readline("The model file already exists. Do you want to overwrite it? (y/n)")
-
-        if (tmp == "y" || tmp == "Y")
-          gencode <- TRUE
-        else if (tmp == "n" || tmp == "N")
-          gencode <- FALSE
-        else
-          tmp <- NULL
-      }
+  if(engine == "JAGS"){
+    if (!requireNamespace("rjags", quietly = TRUE)) {
+      stop("The \"rjags\" packages is required to run models in JAGS. You may either install it with install.packages(\"rjags\") or run your model with \"nimble\" instead using the argument engine=\"nimble\".",
+      call. = FALSE)
     }
   }
-
-  if (gencode)
-    generateJAGScode(
-      jags.model.args,
-      mean.model,
-      variance.model,
-      rounding = rounding,
-      residuals = residuals
-    )
-
-  cat("Done\n")
-
+  else if(engine == "nimble"){
+    if (!requireNamespace("nimble", quietly = TRUE)) {
+      stop("The \"nimble\" packages is required to run models in nimble. You may either install it with install.packages(\"nimble\") or run your model with \"JAGS\" instead using the argument engine=\"JAGS\".",
+      call. = FALSE)
+    }
+  }
+  else{
+    stop(engine,"is not a recognized engine for MCMC sampling.",
+         call. = FALSE)
+  }
+  
   ## Generate JAGS input data
-  cat("Step 2: Generating JAGS data...")
+  cat("Step 1: Generating JAGS data...")
 
   jags.model.args$data <-
     generateJAGSdata(
@@ -214,6 +198,42 @@ dalmatian <- function(df,
     cat("Done\n")
   }
 
+  ## Generate JAGS code
+  cat("Step 2: Generating JAGS code...")
+
+  if (is.null(gencode)) {
+    if (!file.exists(jags.model.args$file))
+      gencode <- TRUE
+    else if (overwrite)
+      gencode <- TRUE
+    else{
+      tmp <- NULL
+
+      while (is.null(tmp)) {
+        tmp <-
+          readline("The model file already exists. Do you want to overwrite it? (y/n)")
+
+        if (tmp == "y" || tmp == "Y")
+          gencode <- TRUE
+        else if (tmp == "n" || tmp == "N")
+          gencode <- FALSE
+        else
+          tmp <- NULL
+      }
+    }
+  }
+
+  if (gencode)
+    generateJAGScode(
+      jags.model.args,
+      mean.model,
+      variance.model,
+      rounding = rounding,
+      residuals = residuals
+    )
+
+  cat("Done\n")
+  
   ## Generate JAGS initial values
   cat("Step 3: Generating initial values...")
 
@@ -248,42 +268,90 @@ dalmatian <- function(df,
     
     save(jags.model.args,file=file.path(saveJAGSinput,"jags_model_args.RData"))
   }
+
+  ## Run model
+  if(engine == "JAGS"){
+    cat("Step 4: Running model in JAGS\n")
+
+    ## Initialize model
+    cat("    Initializing model\n")
+    model <- do.call(rjags::jags.model, jags.model.args)
+    
+    ## List parameters to monitor
+    if (is.null(parameters))
+      parameters <- c(
+        mean.model$fixed$name,
+        mean.model$random$name,
+        variance.model$fixed$name,
+        variance.model$random$name
+      )
+    
+    if (residuals && !(residuals %in% parameters))
+      parameters <- c(parameters, "resid")
+    
+    if (!is.null(mean.model$random))
+      parameters <- c(parameters,
+                      paste0("sd.", mean.model$random$name))
+    
+    if (!is.null(variance.model$random))
+      parameters <- c(parameters,
+                      paste0("sd.", variance.model$random$name))
+    
+    ## Generate samples
+    cat("   Generating samples\n")
+    coda.samples.args$model <- model
+    coda.samples.args$variable.names <- parameters
+    
+    coda <- do.call(rjags::coda.samples, coda.samples.args)
+    cat("Done\n")
+  }
+
+  if(engine == "nimble"){
+    cat("Step 4: Running model in nimble\n")
+    
+    ## Initialize model
+    cat("    Initializing model\n")
+
+    model <- readBUGSmodel(model = jags.model.args$file,
+                           data = jags.model.args$data,
+                           inits = jags.model.args$inits[[1]])
+                           
+    
+    ## List parameters to monitor
+    if (is.null(parameters))
+      parameters <- c(
+        mean.model$fixed$name,
+        mean.model$random$name,
+        variance.model$fixed$name,
+        variance.model$random$name
+      )
+    
+    if (residuals && !(residuals %in% parameters))
+      parameters <- c(parameters, "resid")
+    
+    if (!is.null(mean.model$random))
+      parameters <- c(parameters,
+                      paste0("sd.", mean.model$random$name))
+    
+    if (!is.null(variance.model$random))
+      parameters <- c(parameters,
+                      paste0("sd.", variance.model$random$name))
+    
+    ## Generate samples
+    cat("   Generating samples\n")
+
+    coda <- nimbleMCMC(model = model,
+                       inits = jags.model.args$inits,
+                       monitors = parameters,
+                       niter = coda.samples.args$n.iter,
+                       thin = coda.samples.args$thin,
+                       nchains = jags.model.args$n.chains,
+                       nburnin = jags.model.args$n.adapt,
+                       samplesAsCodaMCMC = TRUE)
+                       
+    cat("Done\n")
+  }
   
-  ## Initialize model
-
-  cat("Step 4: Running model in JAGS\n")
-
-  cat("    Initializing model\n")
-  model <- do.call(rjags::jags.model, jags.model.args)
-
-  ## List parameters to monitor
-  if (is.null(parameters))
-    parameters <- c(
-      mean.model$fixed$name,
-      mean.model$random$name,
-      variance.model$fixed$name,
-      variance.model$random$name
-    )
-
-  if (residuals && !(residuals %in% parameters))
-    parameters <- c(parameters, "resid")
-
-  if (!is.null(mean.model$random))
-    parameters <- c(parameters,
-                    paste0("sd.", mean.model$random$name))
-
-  if (!is.null(variance.model$random))
-    parameters <- c(parameters,
-                    paste0("sd.", variance.model$random$name))
-
-  ## Generate samples
-  cat("   Generating samples\n")
-  coda.samples.args$model <- model
-  coda.samples.args$variable.names <- parameters
-
-  coda <- do.call(rjags::coda.samples, coda.samples.args)
-  cat("Done\n")
-
   ## Final tidying
   cat("Step 5: Tidying Output...")
 

@@ -4,8 +4,13 @@
 \alias{ranef.dalmatian}
 \title{Random Effects (dalmatian)}
 \usage{
-\method{ranef}{dalmatian}(object, nstart = start(object$coda),
-  nend = end(object$coda), nthin = thin(object$coda), ...)
+\method{ranef}{dalmatian}(
+  object,
+  nstart = start(object$coda),
+  nend = end(object$coda),
+  nthin = thin(object$coda),
+  ...
+)
 }
 \arguments{
 \item{object}{Object of class \code{dalmatian} created by \code{dalmatian()}.}
