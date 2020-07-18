@@ -3,6 +3,7 @@ generateJAGSdata <-
   function(df,
            mean.model,
            variance.model,
+           joint.model,
            response = NULL,
            lower = NULL,
            upper = NULL,
@@ -77,6 +78,30 @@ generateJAGSdata <-
         length(tmp)
       jags.data[[paste0(variance.model$random$name, ".levels")]] <-
         tmp
+    }
+    
+    ## Construct design matrices for joint components of the model
+    if(!is.null(joint.model)){
+      if(!is.null(joint.model$fixed)){
+        jags.data$joint.fixed <-
+          model.matrix(joint.model$fixed$formula, df)
+        jags.data[[paste0(joint.model$fixed$name, ".n")]] <-
+          ncol(jags.data$joint.fixed)
+      }
+
+      if (!is.null(joint.model$random)) {
+        jags.data$joint.random <-
+          model.matrix(joint.model$random$formula, df)
+        
+        tmp <- attr(jags.data$joint.random, "assign")
+        
+        jags.data[[paste0(joint.model$random$name, ".ncomponents")]] <-
+          max(tmp)
+        jags.data[[paste0(joint.model$random$name, ".neffects")]] <-
+          length(tmp)
+        jags.data[[paste0(joint.model$random$name, ".levels")]] <-
+          tmp
+      }
     }
 
     ## Construct weights for variance model

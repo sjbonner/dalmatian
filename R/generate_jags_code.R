@@ -5,7 +5,8 @@ generateJAGScode <- function(jags.model.args,
                              rounding=FALSE,
                              residuals=FALSE){
   ## Opening header
-  cat("## Created by generateJAGS: ", date(),"\n\n",file=jags.model.args$file)
+  cat("## Created by generateJAGS: ",
+      date(),"\n\n",file=jags.model.args$file)
 
   ## Open model
   cat("model {\n",file=jags.model.args$file,append=TRUE)
@@ -48,7 +49,24 @@ generateJAGScode <- function(jags.model.args,
                                       data = jags.model.args$data,
                                       model = mean.model$random,
                                       random = TRUE)
+
+  if(!is.null(joint.model)){
+    ## 2c) Joint fixed effects
+    if(!is.null(joint.model$fixed))
+      mean.jags <- buildLinearPredictor(mean.jags,
+                                        component = "joint",
+                                        data = jags.model.args$data,
+                                        model = joint.model$fixed)
     
+    ## 2d) Joint random effects
+    if(!is.null(joint.model$random))
+      mean.jags <- buildLinearPredictor(mean.jags,
+                                        component = "joint",
+                                        data = jags.model.args$data,
+                                        model = joint.model$random,
+                                        random = TRUE)
+  }
+
   cat(mean.jags,"\n\n",file=jags.model.args$file,append=TRUE,sep="")
 
   ## 3) Variance model
@@ -60,13 +78,6 @@ generateJAGScode <- function(jags.model.args,
                                         model = variance.model$fixed,
                                         data = jags.model.args$data)
 
-  dim.fixed <- paste0("1:",jags.model.args$data[paste0(variance.model$fixed$name,".n")])
-
-  if(!is.null(variance.model$fixed$link))
-    variance.jags.old <- paste("\t\t ",variance.model$fixed$link,"(sdy[i]) <- inprod(variance.fixed[i,",dim.fixed,"],",variance.model$fixed$name,"[",dim.fixed,"])",sep="")
-  else
-    variance.jags.old <- paste("\t\t sdy[i] <- inprod(variance.fixed[i,",dim.fixed,"],",variance.model$fixed$name,"[",dim.fixed,"])",sep="")
-
   ## 3b) Random effects
   if(!is.null(variance.model$random))
     variance.jags <- buildLinearPredictor(variance.jags,
@@ -74,6 +85,24 @@ generateJAGScode <- function(jags.model.args,
                                           data = jags.model.args$data,
                                           model = variance.model$random,
                                           random = TRUE)
+  if(!is.null(joint.model)){
+    ## 2c) Joint random effects
+    if(!is.null(joint.model$fixed))
+      variance.jags <- buildLinearPredictor(variance.jags,
+                                            component = "joint",
+                                            data = jags.model.args$data,
+                                            model = joint.model$fixed)
+    
+    ## 2d) Joint fixed effects
+    if(!is.null(joint.model$random))
+      variance.jags <- buildLinearPredictor(variance.jags,
+                                            component = "joint",
+                                            data = jags.model.args$data,
+                                            model = joint.model$random,
+                                            random = TRUE)
+  }
+
+  ## Write model components to JAGS code
   cat(variance.jags,"\n\n",file=jags.model.args$file,append=TRUE,sep="")
 
   cat("\t }\n\n",file=jags.model.args$file,append=TRUE)
@@ -96,10 +125,23 @@ generateJAGScode <- function(jags.model.args,
   cat("\t ## Variance Model: Fixed\n",file=jags.model.args$file,append=TRUE)
   generatePriorsFixed(variance.model,jags.model.args$file)
 
+  cat("\n",file=jags.model.args$file,append=TRUE)
+
   if(!is.null(variance.model$random)){
     cat("\t ## Variance Model: Random\n",file=jags.model.args$file,append=TRUE)
 
     generatePriorsRandom(variance.model,jags.model.args)
+
+    cat("\n",file=jags.model.args$file,append=TRUE)
+  }
+
+  cat("\t ## Joint Model: Fixed\n",file=jags.model.args$file,append=TRUE)
+  generatePriorsFixed(joint.model,jags.model.args$file)
+
+  if(!is.null(joint.model$random)){
+    cat("\t ## Joint Model: Random\n",file=jags.model.args$file,append=TRUE)
+
+    generatePriorsRandom(joint.model,jags.model.args)
 
     cat("\n",file=jags.model.args$file,append=TRUE)
   }
@@ -114,13 +156,24 @@ buildLinearPredictor <- function(lp = NULL,
                                  model,
                                  data,
                                  random = FALSE){
-  ## Define lhs
-  if(component == "mean")
-    lhs <- "muy[i]"
-  else if(component == "variance")
-    lhs <- "sdy[i]"
-  else
-    stop("Unknown model component,", component,", in buildLinearpredictor.")
+
+  ## If lp is empty then add lhs to linear predictor 
+  if(is.null(lp)){
+    if(component == "mean")
+      lhs <- "muy[i]"
+    else if(component == "variance")
+      lhs <- "sdy[i]"
+    else
+      stop("Unknown model component,", component,", in buildLinearpredictor.")
+
+    if(!is.null(model$link))
+      lp <- paste0("\t\t ",model$link,"(",lhs,") <- ")
+    else 
+      lp <- paste0("\t\t ", lhs," <- ")
+  }
+  else{
+    lp <- paste0(lp,"+ ")
+  }
   
   ## Extract values from model componenent
   if(random)
@@ -129,17 +182,6 @@ buildLinearPredictor <- function(lp = NULL,
     p <- data[paste0(model$name,".n")]
   
   dim <- paste0("1:",p)
-
-  ## If lp is empty then add lhs to linear predictor 
-  if(is.null(lp)){
-    if(!is.null(model$link))
-      lp <- paste0("\t\t ",model$link,"(",lhs,") <- ")
-    else
-      lp <- paste0("\t\t ", lhs," <- ")
-  }
-  else{
-    lp <- paste0(lp,"+ ")
-  }
 
   ## Add predictors to lp
   matrixName <- paste0(component,".",ifelse(random,"random","fixed"))

@@ -6,7 +6,8 @@
 ##' @param df Data frame containing the response and predictor values for each individual. (data.frame)
 ##' @param mean.model Model list specifying the structure of the mean. (list)
 ##' @param variance.model Model list specifying the structure of the variance. (list)
-##' @param jags.model.args  List containing named arguments of \code{jags.model}. (list)
+##' @param joint.model Model list specifying structure with parameter shared between linear predictors of the mean and variance. (list)
+##' @param jags.model.args List containing named arguments of \code{jags.model}. (list)
 ##' @param coda.samples.args List containing named arguments of \code{coda.samples}. (list)
 ##' @param response Name of variable in the data frame representing the response. (character)
 ##' @param rounding Specifies that response has been rounded if TRUE. (logical)
@@ -14,13 +15,14 @@
 ##' @param upper Name of variable in the data frame representing the upper bound on the response if rounded. (character)
 ##' @param parameters Names of parameters to monitor. If NULL then default values are selected. (character)
 ##' @param svd Compute Singular Variable Decomposition of model matrices to improve convergence. (logical)
-##' @param debug If TRUE then enter debug model. (logical)
 ##' @param residuals If TRUE then compute residuals in output. (logical)
 ##' @param gencode If TRUE then generate code potentially overwriting existing model file. By default generate code if the file does not exist and prompt user if it does. (logical)
+##' @param run.model If TRUE then run sampler. Otherwise, stop once code and data have been created. (logical)
 ##' @param engine Specifies the sampling software. Packages currently supported include JAGS (the default) and nimble. (character)
 ##' @param drop.levels If TRUE then drop unused levels from all factors in df. (logical)
 ##' @param drop.missing If TRUE then remove records with missing response variable. (logical)
 ##' @param overwrite If TRUE then overwrite existing JAGS files (non-interactive sessions only). (logical)
+##' @param debug If TRUE then enter debug model. (logical)
 ##' @param saveJAGSinput Directory to which jags.model input is saved prior to calling \code{jags.model()}. This is useful for debugging. No files saved if NULL. (character)
 ##'
 ##' @return An object of class \code{dalmatian} contaiining copies of the original data frame, the mean model, the
@@ -73,6 +75,7 @@
 dalmatian <- function(df,
                       mean.model,
                       variance.model,
+                      joint.model = NULL,
                       jags.model.args,
                       coda.samples.args,
                       response = NULL,
@@ -83,6 +86,7 @@ dalmatian <- function(df,
                       svd = TRUE,
                       residuals = FALSE,
                       gencode = NULL,
+                      run.model = TRUE,
                       engine = "JAGS",
                       drop.levels = TRUE,
                       drop.missing = TRUE,
@@ -113,7 +117,7 @@ dalmatian <- function(df,
       "The coda.samples.args list must include a variable n.iter. Please see help(coda.samples) for details.\n\n"
     )
 
-  if(engine == "JAGS"){
+  if(engine == "JAGS" || engine == "jags"){
     if (!requireNamespace("rjags", quietly = TRUE)) {
       stop("The \"rjags\" packages is required to run models in JAGS. You may either install it with install.packages(\"rjags\") or run your model with \"nimble\" instead using the argument engine=\"nimble\".",
       call. = FALSE)
@@ -138,6 +142,7 @@ dalmatian <- function(df,
       df,
       mean.model,
       variance.model,
+      joint.model,
       response = response,
       lower = lower,
       upper = upper,
@@ -228,6 +233,7 @@ dalmatian <- function(df,
       jags.model.args,
       mean.model,
       variance.model,
+      joint.model,
       rounding = rounding,
       residuals = residuals
     )
@@ -270,101 +276,118 @@ dalmatian <- function(df,
   }
 
   ## Run model
-  if(engine == "JAGS"){
-    cat("Step 4: Running model in JAGS\n")
+  if(!run.model){
+    output <- list(
+      df=df,
+      mean.model = mean.model,
+      variance.model = variance.model,
+      jags.model.args = jags.model.args,
+      coda.samples.args = coda.samples.args,
+      rounding = rounding,
+      parameters = parameters,
+      svd = svd,
+      residuals = residuals,
+      drop.levels = drop.levels,
+      drop.missing = drop.missing)
 
-    ## Initialize model
-    cat("    Initializing model\n")
-    model <- do.call(rjags::jags.model, jags.model.args)
-    
-    ## List parameters to monitor
-    if (is.null(parameters))
-      parameters <- c(
-        mean.model$fixed$name,
-        mean.model$random$name,
-        variance.model$fixed$name,
-        variance.model$random$name
-      )
-    
-    if (residuals && !(residuals %in% parameters))
-      parameters <- c(parameters, "resid")
-    
-    if (!is.null(mean.model$random))
-      parameters <- c(parameters,
-                      paste0("sd.", mean.model$random$name))
-    
-    if (!is.null(variance.model$random))
-      parameters <- c(parameters,
-                      paste0("sd.", variance.model$random$name))
-    
-    ## Generate samples
-    cat("   Generating samples\n")
-    coda.samples.args$model <- model
-    coda.samples.args$variable.names <- parameters
-    
-    coda <- do.call(rjags::coda.samples, coda.samples.args)
-    cat("Done\n")
+    return(output)
   }
 
-  if(engine == "nimble"){
-    cat("Step 4: Running model in nimble\n")
+  if(engine == "JAGS" || engine == "jags"){
+      cat("Step 4: Running model in JAGS\n")
+      
+      ## Initialize model
+      cat("    Initializing model\n")
+      model <- do.call(rjags::jags.model, jags.model.args)
+      
+      ## List parameters to monitor
+      if (is.null(parameters))
+        parameters <- c(
+          mean.model$fixed$name,
+          mean.model$random$name,
+          variance.model$fixed$name,
+          variance.model$random$name
+        )
+      
+      if (residuals && !(residuals %in% parameters))
+        parameters <- c(parameters, "resid")
+      
+      if (!is.null(mean.model$random))
+        parameters <- c(parameters,
+                        paste0("sd.", mean.model$random$name))
+      
+      if (!is.null(variance.model$random))
+        parameters <- c(parameters,
+                        paste0("sd.", variance.model$random$name))
+      
+      ## Generate samples
+      cat("   Generating samples\n")
+      coda.samples.args$model <- model
+      coda.samples.args$variable.names <- parameters
+      
+      coda <- do.call(rjags::coda.samples, coda.samples.args)
+      cat("Done\n")
+    }
     
-    ## Initialize model
-    cat("    Initializing model\n")
-
-    model <- readBUGSmodel(model = jags.model.args$file,
-                           data = jags.model.args$data,
-                           inits = jags.model.args$inits[[1]])
-                           
-    
-    ## List parameters to monitor
-    if (is.null(parameters))
-      parameters <- c(
-        mean.model$fixed$name,
-        mean.model$random$name,
-        variance.model$fixed$name,
-        variance.model$random$name
-      )
-    
-    if (residuals && !(residuals %in% parameters))
-      parameters <- c(parameters, "resid")
-    
-    if (!is.null(mean.model$random))
-      parameters <- c(parameters,
-                      paste0("sd.", mean.model$random$name))
-    
-    if (!is.null(variance.model$random))
-      parameters <- c(parameters,
-                      paste0("sd.", variance.model$random$name))
-    
-    ## Generate samples
-    cat("   Generating samples\n")
-
-    coda <- nimbleMCMC(model = model,
-                       inits = jags.model.args$inits,
-                       monitors = parameters,
-                       niter = coda.samples.args$n.iter,
-                       thin = coda.samples.args$thin,
-                       nchains = jags.model.args$n.chains,
-                       nburnin = jags.model.args$n.adapt,
-                       samplesAsCodaMCMC = TRUE)
-                       
-    cat("Done\n")
-  }
+    if(engine == "nimble"){
+      cat("Step 4: Running model in nimble\n")
+      
+      ## Initialize model
+      cat("    Initializing model\n")
+      
+      model <- nimble::readBUGSmodel(model = jags.model.args$file,
+                             data = jags.model.args$data,
+                             inits = jags.model.args$inits[[1]])
+      
+      
+      ## List parameters to monitor
+      if (is.null(parameters))
+        parameters <- c(
+          mean.model$fixed$name,
+          mean.model$random$name,
+          variance.model$fixed$name,
+          variance.model$random$name
+        )
+      
+      if (residuals && !(residuals %in% parameters))
+        parameters <- c(parameters, "resid")
+      
+      if (!is.null(mean.model$random))
+        parameters <- c(parameters,
+                        paste0("sd.", mean.model$random$name))
+      
+      if (!is.null(variance.model$random))
+        parameters <- c(parameters,
+                        paste0("sd.", variance.model$random$name))
+      
+      ## Generate samples
+      cat("   Generating samples\n")
+      
+      coda <- nimble::nimbleMCMC(model = model,
+                                 inits = jags.model.args$inits,
+                                 monitors = parameters,
+                                 niter = coda.samples.args$n.iter,
+                                 thin = coda.samples.args$thin,
+                                 nchains = jags.model.args$n.chains,
+                                 nburnin = jags.model.args$n.adapt,
+                                 samplesAsCodaMCMC = TRUE)
+      
+      cat("Done\n")
+    }
   
-  ## Final tidying
-  cat("Step 5: Tidying Output...")
-
-  ## Identify indices of mean and variance parameters in coda output
-  mean.index.fixed <- grep(paste0("^", mean.model$fixed$name),
-                           coda::varnames(coda))
-
-  variance.index.fixed <-
-    grep(paste0("^", variance.model$fixed$name),
-         coda::varnames(coda))
-
-  if (!is.null(mean.model$random)) {
-    mean.index.sd <-
+    ## Final tidying
+    cat("Step 5: Tidying Output...")
+    
+    ## Identify indices of mean and variance parameters in coda output
+    mean.index.fixed <- grep(paste0("^", mean.model$fixed$name),
+                             coda::varnames(coda))
+    
+    variance.index.fixed <-
+      grep(paste0("^", variance.model$fixed$name),
+           coda::varnames(coda))
+    
+    if (!is.null(mean.model$random)) {
+      mean.index.sd <-
       grep(paste0("^sd\\.", mean.model$random$name), coda::varnames(coda))
 
     mean.index.random <-
