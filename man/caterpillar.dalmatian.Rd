@@ -4,9 +4,16 @@
 \alias{caterpillar.dalmatian}
 \title{Caterpillar (dalmatian)}
 \usage{
-\method{caterpillar}{dalmatian}(object, family = NULL,
-  nstart = start(object$coda), nend = end(object$coda),
-  nthin = thin(object$coda), show = TRUE, return_plots = TRUE, ...)
+\method{caterpillar}{dalmatian}(
+  object,
+  family = NULL,
+  nstart = start(object$coda),
+  nend = end(object$coda),
+  nthin = thin(object$coda),
+  show = TRUE,
+  return_plots = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{Object of class \code{dalmatian} created by \code{dalmatian()}.}

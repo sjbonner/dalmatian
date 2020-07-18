@@ -4,7 +4,9 @@
 \name{weights.df}
 \alias{weights.df}
 \title{Simulated data for illustrating the use of weights}
-\format{An object of class \code{data.frame} with 100 rows and 3 columns.}
+\format{
+An object of class \code{data.frame} with 100 rows and 3 columns.
+}
 \usage{
 weights.df
 }

@@ -4,7 +4,9 @@
 \name{pfdata}
 \alias{pfdata}
 \title{Pied flycatcher feeding data}
-\format{A data frame containing 5795 rows and 17 variables}
+\format{
+A data frame containing 5795 rows and 17 variables
+}
 \usage{
 pfdata
 }

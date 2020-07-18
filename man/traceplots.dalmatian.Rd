@@ -4,9 +4,16 @@
 \alias{traceplots.dalmatian}
 \title{Traceplots (dalmatian)}
 \usage{
-\method{traceplots}{dalmatian}(object, family = NULL,
-  nstart = start(object$coda), nend = end(object$coda),
-  nthin = thin(object$coda), show = TRUE, return_plots = TRUE, ...)
+\method{traceplots}{dalmatian}(
+  object,
+  family = NULL,
+  nstart = start(object$coda),
+  nend = end(object$coda),
+  nthin = thin(object$coda),
+  show = TRUE,
+  return_plots = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{Object of class \code{dalmatian} created by \code{dalmatian()}.}

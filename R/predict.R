@@ -4,8 +4,10 @@
 ##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 ##' @param newdata data frame containing predictor values to predict response variables. Defaults to data in \code{object} if not supplied. (data.frame)
 ##' @param method Method to construct the fitted model. Either posterior mean (\code{"mean"}) or posterior mode (\code{"mode"}) (character)
+##' @param population If TRUE then generate predictions at the population level rather than the individual level. (logical)
 ##' @param se if TRUE return the posterior standard devition (logical)
 ##' @param ci returning credible intervals for predictions if TRUE (logical)
+##' @param type 
 ##' @param level vector of levels of credible intervals for predictions (numeric)
 ##' @param ... Ignored
 ##' @return predictions (list)
@@ -25,6 +27,7 @@
 predict.dalmatian <- function(object,
                               newdata=object$df,
                               method = "mean",
+                              population = FALSE,
                               se = TRUE,
                               ci = TRUE,
                               type = c("link","response"),
@@ -57,7 +60,8 @@ predict.dalmatian <- function(object,
 	all.label <- unique(all.label)
 
 	### CHECK IF "newdata" INCLUDES ALL REQUIRED VARIABLES ###
-	check.names <- all.label %in% names(newdata)
+  check.names <- all.label %in% names(newdata)
+  
 	if (all(check.names == TRUE) == FALSE) {
         print(paste0("Missing variables: ", all.label[which(check.names == FALSE)]))
 		stop("newdata does not include all required variables. Check variable names in newdata.")
@@ -93,24 +97,28 @@ predict.dalmatian <- function(object,
     stop("type must either be link (prediction on the scale of the linear predictor) or response (prediction on the scale of the response.")
   }
   
-	### CHECK for random effects
-	for (ranName in unique(c(mean.random.label,var.random.label))) {
-          ## Check if all levels in newdata exist in original data
-          test <- all(levels(newdata[,ranName]) %in%
+### CHECK for random effects
+  if(!population){
+    for (ranName in unique(c(mean.random.label,var.random.label))) {
+      ## Check if all levels in newdata exist in original data
+      check.re <- all(levels(newdata[,ranName]) %in%
                       levels(object$df[,ranName]))
-
-          if(test){
-            ## Relabel levels of newdata to match original data
-            newdata[,ranName] <- factor(newdata[,ranName],
-                                        levels=levels(object$df[,ranName]))
-          }
-          else{
-	    stop(paste("The random effect",ranName,"contains levels",
-                        "not present in the original data. This is ",
-                        "not yet supported."))
-          }
-	}
-	
+      
+      if(check.re){
+        ## Relabel levels of newdata to match original data
+        newdata[,ranName] <- factor(newdata[,ranName],
+                                    levels=levels(object$df[,ranName]))
+      }
+      else{
+        stop(paste("The random effect",ranName,"contains levels",
+                   "not present in the original data. This is ",
+                   "not yet supported."))
+      }
+    }
+  }
+	##:ess-bp-start::browser@nil:##
+browser(expr=is.null(.ESSBP.[["@9@"]]));##:ess-bp-end:##
+  
 	####################################
 	## PART 2: CREATE DESIGN MATIRCES ##
 	####################################
@@ -159,7 +167,7 @@ predict.dalmatian <- function(object,
   pars <- paste(object$variance.model$fixed$name,
                 colnames(var.fixed.designMat), sep = ".")
   var.fixed.coef <- all.chains[,pars]
-
+  
   ## ## DISPERSION PARAMETER for RANDOM effects in MEAN model
   ## if (!is.null(mean.random.designMat)) {
   ##   mean.disper <- all.chains[,cur.index]
