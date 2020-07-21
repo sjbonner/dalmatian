@@ -14,7 +14,8 @@ runNimble <- function(jags.model.args, coda.samples.args){
   coda <- nimble::nimbleMCMC(model = model,
                              inits = jags.model.args$inits,
                              monitors = parameters,
-                             niter = coda.samples.args$n.iter,
+                             niter = jags.model.args$n.adapt +
+                               coda.samples.args$n.iter,
                              thin = coda.samples.args$thin,
                              nchains = jags.model.args$n.chains,
                              nburnin = jags.model.args$n.adapt,
@@ -58,7 +59,8 @@ parRunNimble_helper <- function(k, jags.model.args, coda.samples.args){
   coda <- nimble::nimbleMCMC(model = model,
                              inits = jags.model.args$inits[[k]],
                              monitors = coda.samples.args$variable.names,
-                             niter = coda.samples.args$n.iter,
+                             niter = jags.model.args$n.adapt +
+                               coda.samples.args$n.iter,
                              thin = coda.samples.args$thin,
                              nchains = 1,
                              nburnin = jags.model.args$n.adapt,
