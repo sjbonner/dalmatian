@@ -18,6 +18,7 @@
 ##' @param residuals If TRUE then compute residuals in output. (logical)
 ##' @param gencode If TRUE then generate code potentially overwriting existing model file. By default generate code if the file does not exist and prompt user if it does. (logical)
 ##' @param engine Specifies the sampling software. Packages currently supported include JAGS (the default) and nimble. (character)
+##' @param n.cores Number of cores to use. If equal to 1 then chains will not be run in parallel. If greater than 1 then chains will be run in parallel using the designated number of cores. 
 ##' @param drop.levels If TRUE then drop unused levels from all factors in df. (logical)
 ##' @param drop.missing If TRUE then remove records with missing response variable. (logical)
 ##' @param overwrite If TRUE then overwrite existing JAGS files (non-interactive sessions only). (logical)
@@ -84,6 +85,7 @@ dalmatian <- function(df,
                       residuals = FALSE,
                       gencode = NULL,
                       engine = "JAGS",
+                      n.cores = 1L,
                       drop.levels = TRUE,
                       drop.missing = TRUE,
                       overwrite = FALSE,
@@ -129,6 +131,15 @@ dalmatian <- function(df,
     stop(engine,"is not a recognized engine for MCMC sampling.",
          call. = FALSE)
   }
+
+  if(n.cores < 1 | !all.equal(n.cores %% 1, 0)){
+    stop("Number of cores (n.cores) must be a positive integer.\n")
+  }
+
+  if(n.cores >0 & engine == "nimble"){
+    stop("Parallelizaton of the chains is not yet supported when using nimble as the sampling engine.\n")
+  }
+    
   
   ## Generate JAGS input data
   cat("Step 1: Generating JAGS data...")
@@ -273,9 +284,35 @@ dalmatian <- function(df,
   if(engine == "JAGS"){
     cat("Step 4: Running model in JAGS\n")
 
+    ## If running chains in parallel then create cluster
+    if(n.cores > 1){
+       if (!requireNamespace("parallel", quietly = TRUE)) {
+         stop("The \"parallel\" packages is required to run chains in parallel. Please install the packge and try again.",
+              call. = FALSE)
+       }
+
+       if (!requireNamespace("dclone", quietly = TRUE)) {
+         stop("The \"dclone\" packages is required to run chains in parallel. Please install the package and try again.",
+              call. = FALSE)
+       }
+
+       cl <- parallel::makeCluster(n.cores)
+
+       jags.model.args$cl <-
+         coda.samples.args$cl <- cl
+       
+       jags.model.args$name <- "dalmatian"
+    }
+      
     ## Initialize model
     cat("    Initializing model\n")
-    model <- do.call(rjags::jags.model, jags.model.args)
+    
+    if(n.cores > 1){
+      do.call(dclone::parJagsModel, jags.model.args)
+    }
+    else{
+      model <- do.call(rjags::jags.model, jags.model.args)
+    }
     
     ## List parameters to monitor
     if (is.null(parameters))
@@ -299,10 +336,21 @@ dalmatian <- function(df,
     
     ## Generate samples
     cat("   Generating samples\n")
-    coda.samples.args$model <- model
     coda.samples.args$variable.names <- parameters
     
-    coda <- do.call(rjags::coda.samples, coda.samples.args)
+    if(n.cores > 1){
+      coda.samples.args$cl <- cl
+      coda.samples.args$model <- "dalmatian"
+      coda <- do.call(dclone::parCodaSamples, coda.samples.args)
+
+      ## Close cluster
+      parallel::stopCluster(cl)
+    }
+    else{
+      coda.samples.args$model <- model
+      coda <- do.call(rjags::coda.samples, coda.samples.args)
+    }
+
     cat("Done\n")
   }
 
