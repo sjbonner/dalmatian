@@ -4,6 +4,7 @@
 ##' @title Run DGLM in \code{JAGS} via \code{rjags}
 ##'
 ##' @param df Data frame containing the response and predictor values for each individual. (data.frame)
+##' @param family Name of family of response distribution. Currently supported families include normal (\code{gaussian}) and negative binomial (\code{nbinom}). (character)
 ##' @param mean.model Model list specifying the structure of the mean. (list)
 ##' @param variance.model Model list specifying the structure of the variance. (list)
 ##' @param jags.model.args  List containing named arguments of \code{jags.model}. (list)
@@ -17,6 +18,7 @@
 ##' @param debug If TRUE then enter debug model. (logical)
 ##' @param residuals If TRUE then compute residuals in output. (logical)
 ##' @param gencode If TRUE then generate code potentially overwriting existing model file. By default generate code if the file does not exist and prompt user if it does. (logical)
+##' @param run.model If TRUE then run sampler. Otherwise, stop once code and data have been created. (logical)
 ##' @param engine Specifies the sampling software. Packages currently supported include JAGS (the default) and nimble. (character)
 ##' @param n.cores Number of cores to use. If equal to 1 then chains will not be run in parallel. If greater than 1 then chains will be run in parallel using the designated number of cores. 
 ##' @param drop.levels If TRUE then drop unused levels from all factors in df. (logical)
@@ -72,6 +74,7 @@
 ##'                          debug=FALSE)
 ##' }                          
 dalmatian <- function(df,
+                      family = "gaussian",
                       mean.model,
                       variance.model,
                       jags.model.args,
@@ -84,6 +87,7 @@ dalmatian <- function(df,
                       svd = TRUE,
                       residuals = FALSE,
                       gencode = NULL,
+                      run.model = TRUE,
                       engine = "JAGS",
                       n.cores = 1L,
                       drop.levels = TRUE,
@@ -96,7 +100,10 @@ dalmatian <- function(df,
   if (debug)
     browser()
 
-  ## Check that input is sufficient
+  ## Check that input is consistent and sufficient
+  if (! family %in% c("gaussian","nbinom"))
+    stop("Currently supported families of distributions for the response include either Gaussian (family=\"gaussian\") or negative binomial (family=\"nbinom\").\n\n")
+  
   if (rounding && (is.null(lower) || is.null(upper)))
     stop(
       "If rounding=TRUE then you must specify the names of both the lower and upper bounds of the response.\n\n"
@@ -239,6 +246,7 @@ dalmatian <- function(df,
 
   if (gencode)
     generateJAGScode(
+      family,
       jags.model.args,
       mean.model,
       variance.model,
@@ -284,6 +292,24 @@ dalmatian <- function(df,
   }
 
   ## Run model
+  if(!run.model){
+    output <- list(
+      df=df,
+      family = family,
+      mean.model = mean.model,
+      variance.model = variance.model,
+      jags.model.args = jags.model.args,
+      coda.samples.args = coda.samples.args,
+      rounding = rounding,
+      parameters = parameters,
+      svd = svd,
+      residuals = residuals,
+      drop.levels = drop.levels,
+      drop.missing = drop.missing)
+
+    return(output)
+  }
+
   cat("Step 4: Running model\n")
 
   ## List parameters to monitor
