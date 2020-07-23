@@ -84,7 +84,7 @@ dalmatian <- function(df,
                       lower = NULL,
                       upper = NULL,
                       parameters = NULL,
-                      svd = TRUE,
+                      svd = FALSE,
                       residuals = FALSE,
                       gencode = NULL,
                       run.model = TRUE,
@@ -194,8 +194,8 @@ dalmatian <- function(df,
       paste0("sd.",
              variance.model$random$name,
              ".",
-             attr(terms(mean.model$random$formula), "term.labels"))
-
+             attr(terms(variance.model$random$formula), "term.labels"))
+    
     variance.names.random <-
       paste0(
         variance.model$random$name,
@@ -257,32 +257,39 @@ dalmatian <- function(df,
   cat("Done\n")
   
   ## Generate JAGS initial values
-  cat("Step 3: Generating initial values...")
+  cat("Step 3: Generating initial values...\n")
 
-  if (is.null(jags.model.args$inits)) {
-    if (is.null(jags.model.args$n.chains)){
-      cat("\n    Running three parallel chains by default...")
+  ## Only implemented for normal model at the moment
+  if(family == "gaussian"){
+    if (is.null(jags.model.args$inits)) {
+      if (is.null(jags.model.args$n.chains)){
+        cat("\n    Running three parallel chains by default...")
+      }
+      else {
+        cat("\n    Automatic generation of initial values currently works only with three chains. Setting n.chains=3...")
+      }
+      jags.model.args$n.chains <- 3
+      
+      jags.model.args$inits <-
+        generateJAGSinits(family,
+                          mean.model,
+                          variance.model,
+                          jags.model.args$data)
+      
+      cat("Done\n")
     }
-    else {
-      cat("\n    Automatic generation of initial values currently works only with three chains. Setting n.chains=3...")
+    else{
+      if (is.null(jags.model.args$n.chains))
+        jags.model.args$n.chains <-
+          length(jags.model.args$inits)
+      
+      cat("Skipped\n")
     }
-    jags.model.args$n.chains <- 3
-
-    jags.model.args$inits <-
-      generateJAGSinits(mean.model,
-                        variance.model,
-                        jags.model.args$data)
-
-    cat("Done\n")
   }
   else{
-    if (is.null(jags.model.args$n.chains))
-      jags.model.args$n.chains <-
-        length(jags.model.args$inits)
-
-    cat("Skipped\n")
+    jags.model.args$inits <- NULL
   }
-
+  
   ## Save JAGS files
   if(!is.null(saveJAGSinput)){
     if(!dir.exists(saveJAGSinput))

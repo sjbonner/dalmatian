@@ -1,4 +1,4 @@
-generateJAGScode <- function(family = "gaussian",
+generateJAGScode <- function(family,
                              jags.model.args,
                              mean.model,
                              variance.model,
@@ -23,14 +23,18 @@ generateJAGScode <- function(family = "gaussian",
     else
       cat("\t\t y[i] ~ dnorm(muy[i],weights[i]/pow(phi[i],2))\n\n",file=jags.model.args$file,append=TRUE)
 
-    cat("\t\t sdy[i] <- phi[i]")
+    cat("\t\t sdy[i] <- phi[i]\n\n",file=jags.model.args$file,append=TRUE)
   }
 
   else if(family == "nbinom"){
-    cat("\t\t y[i] ~ dnegbin(r[i],p[i])")
-    cat("\t\t r[i] <- 1/phi[i]")
-    cat("\t\t p[i] <- 1/(1 + phi[i] * muy[i])")
-    cat("\t\t sdy[i] <- sqrt(mu[i] / p[i])")
+    cat("\t\t y[i] ~ dnegbin(p[i],r[i])\n",
+        file=jags.model.args$file,append=TRUE)
+    cat("\t\t r[i] <- 1/phi[i]\n",
+        file=jags.model.args$file,append=TRUE)
+    cat("\t\t p[i] <- 1/(1 + phi[i] * muy[i])\n",
+        file=jags.model.args$file,append=TRUE)
+    cat("\t\t sdy[i] <- sqrt(muy[i] / p[i])\n\n",
+        file=jags.model.args$file,append=TRUE)
   }
 
   if(rounding){
@@ -70,7 +74,7 @@ generateJAGScode <- function(family = "gaussian",
    dim.fixed <- paste0("1:",jags.model.args$data[paste0(variance.model$fixed$name,".n")])
 
   if(!is.null(variance.model$fixed$link))
-    variance.jags <- paste("\t\t ",variance.model$fixed$link,"(sdy[i]) <- inprod(variance.fixed[i,",dim.fixed,"],",variance.model$fixed$name,"[",dim.fixed,"])",sep="")
+    variance.jags <- paste("\t\t ",variance.model$fixed$link,"(phi[i]) <- inprod(variance.fixed[i,",dim.fixed,"],",variance.model$fixed$name,"[",dim.fixed,"])",sep="")
   else
     variance.jags <- paste("\t\t phi[i] <- inprod(variance.fixed[i,",dim.fixed,"],",variance.model$fixed$name,"[",dim.fixed,"])",sep="")
 

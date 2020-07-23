@@ -1,7 +1,10 @@
 ##' @importFrom stats coef formula gaussian rnorm runif sd
 ##' @importFrom dglm dglm
 ##'
-generateJAGSinits <- function(mean.model,variance.model,jags.data){
+generateJAGSinits <- function(family,
+                              mean.model,
+                              variance.model,
+                              jags.data){
 
     inits <- lapply(1:3,function(i){
 
@@ -12,6 +15,10 @@ generateJAGSinits <- function(mean.model,variance.model,jags.data){
       y <- runif(jags.data$n,jags.data$lower,jags.data$upper)
     else
       y <- jags.data$y
+
+      ## Remove zeros with negative binomial response and log link
+      if(family == "nbinom" & mean.model$fixed$link == "log" & any(y == 0))
+        y <- y + .1
     
     ## Mean formula
     if(is.null(mean.model$fixed) && is.null(mean.model$random)){
@@ -77,7 +84,10 @@ generateJAGSinits <- function(mean.model,variance.model,jags.data){
       
     # Fit double GLM (without random effects)
     dlink <- variance.model$fixed$link # I don't understand, but this is necessary.
+##:ess-bp-start::browser@nil:##
+browser(expr=is.null(.ESSBP.[["@2@"]]));##:ess-bp-end:##
 
+      
     dglmfit <- dglm::dglm(formula=mean.formula,
                  dformula=variance.formula,
                  family=gaussian(link=mean.model$fixed$link),
