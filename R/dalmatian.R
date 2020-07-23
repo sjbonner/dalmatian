@@ -117,14 +117,14 @@ dalmatian <- function(df,
 
   if(engine == "JAGS"){
     if (!requireNamespace("rjags", quietly = TRUE)) {
-      stop("The \"rjags\" packages is required to run models in JAGS. You may either install it with install.packages(\"rjags\") or run your model with \"nimble\" instead using the argument engine=\"nimble\".",
+      stop("The \"rjags\" package is required to run models in JAGS. You may either install it with install.packages(\"rjags\") or run your model with \"nimble\" instead using the argument engine=\"nimble\".",
       call. = FALSE)
     }
   }
   else if(engine == "nimble"){
     if (!requireNamespace("nimble", quietly = TRUE)) {
-      stop("The \"nimble\" packages is required to run models in nimble. You may either install it with install.packages(\"nimble\") or run your model with \"JAGS\" instead using the argument engine=\"JAGS\".",
-      call. = FALSE)
+      stop("The \"nimble\" package is required to run models in nimble. You may either install it with install.packages(\"nimble\") or run your model with \"JAGS\" instead using the argument engine=\"JAGS\".",
+           call. = FALSE)
     }
   }
   else{
@@ -136,11 +136,14 @@ dalmatian <- function(df,
     stop("Number of cores (n.cores) must be a positive integer.\n")
   }
 
-  if(n.cores >0 & engine == "nimble"){
-    stop("Parallelizaton of the chains is not yet supported when using nimble as the sampling engine.\n")
-  }
-    
-  
+  if(n.cores > 1){
+    ## Load parallel
+    if (!requireNamespace("parallel", quietly = TRUE)) {
+      stop("The \"parallel\" packages is required to run chains in parallel. Please install the packge and try again.",
+           call. = FALSE)
+    }
+  } 
+
   ## Generate JAGS input data
   cat("Step 1: Generating JAGS data...")
 
@@ -281,125 +284,46 @@ dalmatian <- function(df,
   }
 
   ## Run model
+  cat("Step 4: Running model\n")
+
+  ## List parameters to monitor
+  if (is.null(parameters))
+    parameters <- c(
+      mean.model$fixed$name,
+      mean.model$random$name,
+      variance.model$fixed$name,
+      variance.model$random$name
+    )
+  
+  if (residuals && !(residuals %in% parameters))
+    parameters <- c(parameters, "resid")
+  
+  if (!is.null(mean.model$random))
+    parameters <- c(parameters,
+                    paste0("sd.", mean.model$random$name))
+  
+  if (!is.null(variance.model$random))
+    parameters <- c(parameters,
+                    paste0("sd.", variance.model$random$name))
+
+  coda.samples.args$variable.names <- parameters
+
   if(engine == "JAGS"){
-    cat("Step 4: Running model in JAGS\n")
-
-    ## If running chains in parallel then create cluster
-    if(n.cores > 1){
-       if (!requireNamespace("parallel", quietly = TRUE)) {
-         stop("The \"parallel\" packages is required to run chains in parallel. Please install the packge and try again.",
-              call. = FALSE)
-       }
-
-       if (!requireNamespace("dclone", quietly = TRUE)) {
-         stop("The \"dclone\" packages is required to run chains in parallel. Please install the package and try again.",
-              call. = FALSE)
-       }
-
-       cl <- parallel::makeCluster(n.cores)
-
-       jags.model.args$cl <-
-         coda.samples.args$cl <- cl
-       
-       jags.model.args$name <- "dalmatian"
-    }
-      
-    ## Initialize model
-    cat("    Initializing model\n")
-    
-    if(n.cores > 1){
-      do.call(dclone::parJagsModel, jags.model.args)
-    }
-    else{
-      model <- do.call(rjags::jags.model, jags.model.args)
-    }
-    
-    ## List parameters to monitor
-    if (is.null(parameters))
-      parameters <- c(
-        mean.model$fixed$name,
-        mean.model$random$name,
-        variance.model$fixed$name,
-        variance.model$random$name
-      )
-    
-    if (residuals && !(residuals %in% parameters))
-      parameters <- c(parameters, "resid")
-    
-    if (!is.null(mean.model$random))
-      parameters <- c(parameters,
-                      paste0("sd.", mean.model$random$name))
-    
-    if (!is.null(variance.model$random))
-      parameters <- c(parameters,
-                      paste0("sd.", variance.model$random$name))
-    
-    ## Generate samples
-    cat("   Generating samples\n")
-    coda.samples.args$variable.names <- parameters
-    
-    if(n.cores > 1){
-      coda.samples.args$cl <- cl
-      coda.samples.args$model <- "dalmatian"
-      coda <- do.call(dclone::parCodaSamples, coda.samples.args)
-
-      ## Close cluster
-      parallel::stopCluster(cl)
-    }
-    else{
-      coda.samples.args$model <- model
-      coda <- do.call(rjags::coda.samples, coda.samples.args)
-    }
-
-    cat("Done\n")
+    if(n.cores > 1)
+      coda <- parRunJAGS(jags.model.args, coda.samples.args, n.cores)
+    else
+      coda <- runJAGS(jags.model.args, coda.samples.args)
   }
 
   if(engine == "nimble"){
-    cat("Step 4: Running model in nimble\n")
-    
-    ## Initialize model
-    cat("    Initializing model\n")
-
-    model <- readBUGSmodel(model = jags.model.args$file,
-                           data = jags.model.args$data,
-                           inits = jags.model.args$inits[[1]])
-                           
-    
-    ## List parameters to monitor
-    if (is.null(parameters))
-      parameters <- c(
-        mean.model$fixed$name,
-        mean.model$random$name,
-        variance.model$fixed$name,
-        variance.model$random$name
-      )
-    
-    if (residuals && !(residuals %in% parameters))
-      parameters <- c(parameters, "resid")
-    
-    if (!is.null(mean.model$random))
-      parameters <- c(parameters,
-                      paste0("sd.", mean.model$random$name))
-    
-    if (!is.null(variance.model$random))
-      parameters <- c(parameters,
-                      paste0("sd.", variance.model$random$name))
-    
-    ## Generate samples
-    cat("   Generating samples\n")
-
-    coda <- nimbleMCMC(model = model,
-                       inits = jags.model.args$inits,
-                       monitors = parameters,
-                       niter = coda.samples.args$n.iter,
-                       thin = coda.samples.args$thin,
-                       nchains = jags.model.args$n.chains,
-                       nburnin = jags.model.args$n.adapt,
-                       samplesAsCodaMCMC = TRUE)
-                       
-    cat("Done\n")
+    if(n.cores > 1)
+      coda <- parRunNimble(jags.model.args, coda.samples.args, n.cores)
+    else
+      coda <- runNimble(jags.model.args, coda.samples.args)
   }
-  
+
+  cat("Done\n")
+
   ## Final tidying
   cat("Step 5: Tidying Output...")
 

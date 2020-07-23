@@ -23,6 +23,8 @@ Suggests:
     nimble,
     knitr,
     ggplot2,
-    dplyr
+    dplyr,
+    parallel,
+    dclone
 RoxygenNote: 7.1.0
 Encoding: UTF-8
