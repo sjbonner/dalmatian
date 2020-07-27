@@ -10,6 +10,7 @@
 ##' @param jags.model.args  List containing named arguments of \code{jags.model}. (list)
 ##' @param coda.samples.args List containing named arguments of \code{coda.samples}. (list)
 ##' @param response Name of variable in the data frame representing the response. (character)
+##' @param ntrial Name of variable in the data frame representing the number of independent trials for each observation of the beta binomial model.
 ##' @param rounding Specifies that response has been rounded if TRUE. (logical)
 ##' @param lower Name of variable in the data frame representing the lower bound on the response if rounded. (character)
 ##' @param upper Name of variable in the data frame representing the upper bound on the response if rounded. (character)
@@ -80,6 +81,7 @@ dalmatian <- function(df,
                       jags.model.args,
                       coda.samples.args,
                       response = NULL,
+                      ntrials = NULL,
                       rounding = FALSE,
                       lower = NULL,
                       upper = NULL,
@@ -101,16 +103,19 @@ dalmatian <- function(df,
     browser()
 
   ## Check that input is consistent and sufficient
-  if (! family %in% c("gaussian","nbinom"))
-    stop("Currently supported families of distributions for the response include either Gaussian (family=\"gaussian\") or negative binomial (family=\"nbinom\").\n\n")
+  if (! family %in% c("gaussian","nbinom","betabin"))
+    stop("Currently supported families of distributions for the response include either Gaussian (family=\"gaussian\"), negative binomial (family=\"nbinom\"), or b.\n\n")
   
-  if (rounding && (is.null(lower) || is.null(upper)))
+  if (rounding & (is.null(lower) || is.null(upper)))
     stop(
       "If rounding=TRUE then you must specify the names of both the lower and upper bounds of the response.\n\n"
     )
 
-  if (!rounding && is.null(response))
+  if (!rounding & is.null(response))
     stop("Please specify the name of the response variable.\n\n")
+
+  if (rounding & family %in% c("negbinom","betabin"))
+    stop("Rounding of responses is currently not supported for discrete response distributions. Please contact the maintainer to ask about this feature,.\n\n")
 
   if (is.null(jags.model.args$file))
     stop(
@@ -139,6 +144,10 @@ dalmatian <- function(df,
          call. = FALSE)
   }
 
+  if(engine == "nimble" & family == "betabin")
+    stop("The \"nimble\" package does not currently support the beta-binomial distribution. Please run your model with \"JAGS\" instead
+by using the argument engine = \"JAGS\".")
+
   if(n.cores < 1 | !all.equal(n.cores %% 1, 0)){
     stop("Number of cores (n.cores) must be a positive integer.\n")
   }
@@ -146,7 +155,7 @@ dalmatian <- function(df,
   if(n.cores > 1){
     ## Load parallel
     if (!requireNamespace("parallel", quietly = TRUE)) {
-      stop("The \"parallel\" packages is required to run chains in parallel. Please install the packge and try again.",
+      stop("The \"parallel\" packages is required to run chains in parallel. Please install the package and try again.",
            call. = FALSE)
     }
   } 
@@ -157,9 +166,11 @@ dalmatian <- function(df,
   jags.model.args$data <-
     generateJAGSdata(
       df,
+      family,
       mean.model,
       variance.model,
       response = response,
+      ntrials = ntrials,
       lower = lower,
       upper = upper,
       drop.levels = drop.levels,
@@ -343,9 +354,9 @@ dalmatian <- function(df,
 
   if(engine == "JAGS"){
     if(n.cores > 1)
-      coda <- parRunJAGS(jags.model.args, coda.samples.args, n.cores)
+      coda <- parRunJAGS(family, jags.model.args, coda.samples.args, n.cores)
     else
-      coda <- runJAGS(jags.model.args, coda.samples.args)
+      coda <- runJAGS(family, jags.model.args, coda.samples.args)
   }
 
   if(engine == "nimble"){

@@ -28,24 +28,39 @@ generateJAGScode <- function(family,
 
   else if(family == "nbinom"){
     cat("\t\t y[i] ~ dnegbin(p[i],r[i])\n",
-        file=jags.model.args$file,append=TRUE)
-    cat("\t\t r[i] <- 1/phi[i]\n",
-        file=jags.model.args$file,append=TRUE)
-    cat("\t\t p[i] <- 1/(1 + phi[i] * muy[i])\n",
-        file=jags.model.args$file,append=TRUE)
-    cat("\t\t sdy[i] <- sqrt(muy[i] / p[i])\n\n",
+        "\t\t r[i] <- 1/phi[i]\n",
+        "\t\t p[i] <- 1/(1 + phi[i] * muy[i])\n",
+        "\t\t sdy[i] <- sqrt(muy[i] / p[i])\n",
+        "\n",
         file=jags.model.args$file,append=TRUE)
   }
 
+  else if(family == "betabin"){
+    cat("\t\t y[i] ~ dbetabin(alphay[i], betay[i], m[i])\n",
+        "\t\t alphay[i] <- muy[i] * (1 - phi[i]) / phi[i]\n",
+        "\t\t betay[i] <- (1 - muy[i]) * (1 - phi[i]) / phi[i]\n",
+        "\t\t sdy[i] <- sqrt(m[i] * muy[i] * (1-muy[i]) * (1 + (m[i] - 1) * phi[i]))\n",
+        "\n",
+        file=jags.model.args$file,append=TRUE)
+  }
+  
   if(rounding){
-    cat("\t\t ## Rounding\n",file=jags.model.args$file,append=TRUE)
-    cat("\t\t round1[i] <- (lower[i] < y[i])\n",file=jags.model.args$file,append=TRUE)
-    cat("\t\t round2[i] <- (y[i] < upper[i])\n",file=jags.model.args$file,append=TRUE)
-    cat("\t\t dummy[i] ~ dbern(round1[i] * round2[i])\n\n",file=jags.model.args$file,append=TRUE)
+    cat("\t\t ## Rounding\n",
+        "\t\t round1[i] <- (lower[i] < y[i])\n",
+        "\t\t round2[i] <- (y[i] < upper[i])\n", 
+        "\t\t dummy[i] ~ dbern(round1[i] * round2[i])\n\n"
+       ,file=jags.model.args$file,append=TRUE)
   }
 
-  if(residuals)
-    cat("\t\t resid[i] <- (y[i] - muy[i])/sdy[i]\n\n",file=jags.model.args$file,append=TRUE)
+  if(residuals){
+    if(family == "betabin")
+      cat("\t\t resid[i] <- (y[i] - m[i] * muy[i])/sdy[i]\n\n",
+          file=jags.model.args$file,append=TRUE)
+    
+    else 
+      cat("\t\t resid[i] <- (y[i] - muy[i])/sdy[i]\n\n",
+          file=jags.model.args$file,append=TRUE)
+  }
 
   ## 2) Mean model
   cat("\t\t ## Mean Model\n",file=jags.model.args$file,append=TRUE)

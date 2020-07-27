@@ -1,9 +1,11 @@
 ##' @importFrom stats model.matrix
 generateJAGSdata <-
   function(df,
+           family,
            mean.model,
            variance.model,
            response = NULL,
+           ntrials = NULL,
            lower = NULL,
            upper = NULL,
            drop.levels = TRUE,
@@ -109,6 +111,14 @@ generateJAGSdata <-
         stop(
           "You must either specify the exact response value or both lower and upper bounds for rounding.\n\n"
         )
+    }
+
+    ## Add number of trials for betabinomial
+    if(family == "betabin"){
+      if(is.null(ntrials))
+        stop("You must specify the number of independent trials for each observation of the beta-binomial model.\n\n")
+      
+      jags.data$m <- dplyr::pull(df,ntrials)
     }
 
     ## Return data list

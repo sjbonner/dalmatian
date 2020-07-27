@@ -1,4 +1,8 @@
-runJAGS <- function(jags.model.args, coda.samples.args){
+runJAGS <- function(family,jags.model.args, coda.samples.args){
+
+  ## Run model specificy code
+  if(family == "betabin")
+    rjags::load.module("mix")
   
   ## Initialize model
   cat("    Initializing model\n")
@@ -12,7 +16,7 @@ runJAGS <- function(jags.model.args, coda.samples.args){
   return(coda)
 }
 
-parRunJAGS <- function(jags.model.args, coda.samples.args, n.cores){
+parRunJAGS <- function(family,jags.model.args, coda.samples.args, n.cores){
 
   ## Load dclone
   if (!requireNamespace("dclone", quietly = TRUE)) {
@@ -27,6 +31,10 @@ parRunJAGS <- function(jags.model.args, coda.samples.args, n.cores){
     coda.samples.args$cl <- cl
     
   jags.model.args$name <- "dalmatian"
+
+  ## Run model specific code
+  if(family == "betabin")
+    parallel::clusterCall(cl,rjags::load.module,"mix")
   
   ## Initialize model
   cat("    Initializing model\n")
