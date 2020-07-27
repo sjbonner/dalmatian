@@ -6,7 +6,7 @@
 ##' @param df Data frame containing the response and predictor values for each individual. (data.frame)
 ##' @param family Name of family of response distribution. Currently supported families include normal (\code{gaussian}) and negative binomial (\code{nbinom}). (character)
 ##' @param mean.model Model list specifying the structure of the mean. (list)
-##' @param variance.model Model list specifying the structure of the variance. (list)
+##' @param dispersion.model Model list specifying the structure of the dispersion. (list)
 ##' @param jags.model.args  List containing named arguments of \code{jags.model}. (list)
 ##' @param coda.samples.args List containing named arguments of \code{coda.samples}. (list)
 ##' @param response Name of variable in the data frame representing the response. (character)
@@ -28,7 +28,7 @@
 ##' @param saveJAGSinput Directory to which jags.model input is saved prior to calling \code{jags.model()}. This is useful for debugging. No files saved if NULL. (character)
 ##'
 ##' @return An object of class \code{dalmatian} contaiining copies of the original data frame, the mean model, the
-##' variance model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler. 
+##' dispersion model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler. 
 ##' @author Simon Bonner
 ##' @importFrom stats terms
 ##' @export
@@ -47,7 +47,7 @@
 ##'                       formula=~ log(IVI) + broodsize + sex,
 ##'                       priors=list(c("dnorm",0,.001))))
 ##'
-##' ## Variance model
+##' ## Dispersion model
 ##' myvar=list(fixed=list(name="psi",
 ##'                       link="log",
 ##'                       formula=~broodsize + sex,
@@ -66,7 +66,7 @@
 ##' ## Run the model using dalmatian
 ##' pfresults <- dalmatian(df=pfdata,
 ##'                          mean.model=mymean,
-##'                          variance.model=myvar,
+##'                          dispersion.model=myvar,
 ##'                          jags.model.args=jm.args,
 ##'                          coda.samples.args=cs.args,
 ##'                          rounding=TRUE,
@@ -77,7 +77,7 @@
 dalmatian <- function(df,
                       family = "gaussian",
                       mean.model,
-                      variance.model,
+                      dispersion.model,
                       jags.model.args,
                       coda.samples.args,
                       response = NULL,
@@ -168,7 +168,7 @@ by using the argument engine = \"JAGS\".")
       df,
       family,
       mean.model,
-      variance.model,
+      dispersion.model,
       response = response,
       ntrials = ntrials,
       lower = lower,
@@ -184,9 +184,9 @@ by using the argument engine = \"JAGS\".")
                              ".",
                              colnames(jags.model.args$data$mean.fixed))
 
-  variance.names.fixed <- paste0(variance.model$fixed$name,
+  dispersion.names.fixed <- paste0(dispersion.model$fixed$name,
                                  ".",
-                                 colnames(jags.model.args$data$variance.fixed))
+                                 colnames(jags.model.args$data$dispersion.fixed))
 
   if (!is.null(mean.model$random)) {
     mean.names.sd <-
@@ -200,18 +200,18 @@ by using the argument engine = \"JAGS\".")
                                 colnames(jags.model.args$data$mean.random))
   }
 
-  if (!is.null(variance.model$random)) {
-    variance.names.sd <-
+  if (!is.null(dispersion.model$random)) {
+    dispersion.names.sd <-
       paste0("sd.",
-             variance.model$random$name,
+             dispersion.model$random$name,
              ".",
-             attr(terms(variance.model$random$formula), "term.labels"))
+             attr(terms(dispersion.model$random$formula), "term.labels"))
     
-    variance.names.random <-
+    dispersion.names.random <-
       paste0(
-        variance.model$random$name,
+        dispersion.model$random$name,
         ".",
-        colnames(jags.model.args$data$variance.random)
+        colnames(jags.model.args$data$dispersion.random)
       )
   }
   ## Perform SVD if requested
@@ -220,12 +220,12 @@ by using the argument engine = \"JAGS\".")
 
     ## Compute SVD
     mean.fixed.svd <- svd(jags.model.args$data$mean.fixed)
-    variance.fixed.svd <-
-      svd(jags.model.args$data$variance.fixed)
+    dispersion.fixed.svd <-
+      svd(jags.model.args$data$dispersion.fixed)
 
     ## Replace design matrices with orthogal matrices
     jags.model.args$data$mean.fixed <- mean.fixed.svd$u
-    jags.model.args$data$variance.fixed <- variance.fixed.svd$u
+    jags.model.args$data$dispersion.fixed <- dispersion.fixed.svd$u
 
     cat("Done\n")
   }
@@ -260,7 +260,7 @@ by using the argument engine = \"JAGS\".")
       family,
       jags.model.args,
       mean.model,
-      variance.model,
+      dispersion.model,
       rounding = rounding,
       residuals = residuals
     )
@@ -284,7 +284,7 @@ by using the argument engine = \"JAGS\".")
       jags.model.args$inits <-
         generateJAGSinits(family,
                           mean.model,
-                          variance.model,
+                          dispersion.model,
                           jags.model.args$data)
       
       cat("Done\n")
@@ -315,7 +315,7 @@ by using the argument engine = \"JAGS\".")
       df=df,
       family = family,
       mean.model = mean.model,
-      variance.model = variance.model,
+      dispersion.model = dispersion.model,
       jags.model.args = jags.model.args,
       coda.samples.args = coda.samples.args,
       rounding = rounding,
@@ -335,8 +335,8 @@ by using the argument engine = \"JAGS\".")
     parameters <- c(
       mean.model$fixed$name,
       mean.model$random$name,
-      variance.model$fixed$name,
-      variance.model$random$name
+      dispersion.model$fixed$name,
+      dispersion.model$random$name
     )
   
   if (residuals && !(residuals %in% parameters))
@@ -346,9 +346,9 @@ by using the argument engine = \"JAGS\".")
     parameters <- c(parameters,
                     paste0("sd.", mean.model$random$name))
   
-  if (!is.null(variance.model$random))
+  if (!is.null(dispersion.model$random))
     parameters <- c(parameters,
-                    paste0("sd.", variance.model$random$name))
+                    paste0("sd.", dispersion.model$random$name))
 
   coda.samples.args$variable.names <- parameters
 
@@ -371,12 +371,12 @@ by using the argument engine = \"JAGS\".")
   ## Final tidying
   cat("Step 5: Tidying Output...")
 
-  ## Identify indices of mean and variance parameters in coda output
+  ## Identify indices of mean and dispersion parameters in coda output
   mean.index.fixed <- grep(paste0("^", mean.model$fixed$name),
                            coda::varnames(coda))
 
-  variance.index.fixed <-
-    grep(paste0("^", variance.model$fixed$name),
+  dispersion.index.fixed <-
+    grep(paste0("^", dispersion.model$fixed$name),
          coda::varnames(coda))
 
   if (!is.null(mean.model$random)) {
@@ -388,12 +388,12 @@ by using the argument engine = \"JAGS\".")
            coda::varnames(coda))
   }
 
-  if (!is.null(variance.model$random)) {
-    variance.index.sd <-
-      grep(paste0("^sd\\.", variance.model$random$name), coda::varnames(coda))
+  if (!is.null(dispersion.model$random)) {
+    dispersion.index.sd <-
+      grep(paste0("^sd\\.", dispersion.model$random$name), coda::varnames(coda))
 
-    variance.index.random <-
-      grep(paste0("^", variance.model$random$name),
+    dispersion.index.random <-
+      grep(paste0("^", dispersion.model$random$name),
            coda::varnames(coda))
   }
 
@@ -404,10 +404,10 @@ by using the argument engine = \"JAGS\".")
       coda[[i]][, mean.index.fixed] <-
         t(solve(mean.fixed.svd$d * t(mean.fixed.svd$v), t(coda[[i]][, mean.index.fixed])))
 
-      coda[[i]][, variance.index.fixed] <-
+      coda[[i]][, dispersion.index.fixed] <-
         t(solve(
-          variance.fixed.svd$d * t(variance.fixed.svd$v),
-          t(coda[[i]][, variance.index.fixed])
+          dispersion.fixed.svd$d * t(dispersion.fixed.svd$v),
+          t(coda[[i]][, dispersion.index.fixed])
         ))
     }
   }
@@ -415,8 +415,8 @@ by using the argument engine = \"JAGS\".")
   ## Replace column names in coda with names from formula
   for (i in 1:length(coda)) {
     colnames(coda[[i]])[mean.index.fixed] <- mean.names.fixed
-    colnames(coda[[i]])[variance.index.fixed] <-
-      variance.names.fixed
+    colnames(coda[[i]])[dispersion.index.fixed] <-
+      dispersion.names.fixed
 
     if (!is.null(mean.model$random)) {
       colnames(coda[[i]])[mean.index.sd] <- mean.names.sd
@@ -425,11 +425,11 @@ by using the argument engine = \"JAGS\".")
         mean.names.random
     }
 
-    if (!is.null(variance.model$random)) {
-      colnames(coda[[i]])[variance.index.sd] <- variance.names.sd
+    if (!is.null(dispersion.model$random)) {
+      colnames(coda[[i]])[dispersion.index.sd] <- dispersion.names.sd
 
-      colnames(coda[[i]])[variance.index.random] <-
-        variance.names.random
+      colnames(coda[[i]])[dispersion.index.random] <-
+        dispersion.names.random
     }
   }
 
@@ -439,7 +439,7 @@ by using the argument engine = \"JAGS\".")
   output <- list(
     df=df,
     mean.model = mean.model,
-    variance.model = variance.model,
+    dispersion.model = dispersion.model,
     jags.model.args = jags.model.args,
     coda.samples.args = coda.samples.args,
     rounding = rounding,
@@ -501,16 +501,16 @@ print.dalmatian <- function(object,summary=TRUE,convergence=TRUE){
         cat("      Parameter name: ",object$mean.model$random$name,"\n\n")
     }
 
-    ## 2) Variance
-    cat("  Variance:\n")
+    ## 2) Dispersion
+    cat("  Dispersion:\n")
     cat("    Fixed:\n")
-    cat("      Formula: ",as.character(object$variance.model$fixed$formula),"\n")
-    cat("      Parameter name: ",object$variance.model$fixed$name,"\n\n")
+    cat("      Formula: ",as.character(object$dispersion.model$fixed$formula),"\n")
+    cat("      Parameter name: ",object$dispersion.model$fixed$name,"\n\n")
     
-    if(!is.null(object$variance.model$random)){
+    if(!is.null(object$dispersion.model$random)){
         cat("    Random:\n")
-        cat("      Formula: ",as.character(object$variance.model$random$formula),"\n")
-        cat("      Parameter name: ",object$variance.model$random$name,"\n\n")
+        cat("      Formula: ",as.character(object$dispersion.model$random$formula),"\n")
+        cat("      Parameter name: ",object$dispersion.model$random$name,"\n\n")
     }
 
 

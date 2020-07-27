@@ -6,7 +6,7 @@ myCodaSummary <-
              nstart = start(coda),
              nend = end(coda),
              nthin = coda::thin(coda)) {
-        ## Generate summary for fixed effects components with names of the form base.xxx
+        ## Generate summary for fixed effects components with names of the form base.
 
         ## Identify parameters matching the given form
         pars <-
@@ -91,7 +91,7 @@ summary.dalmatian <-
                 ),
                 varFixed = myCodaSummary(
                     object$coda,
-                    object$variance.model$fixed$name,
+                    object$dispersion.model$fixed$name,
                     nstart,
                     nend,
                     nthin
@@ -110,10 +110,10 @@ summary.dalmatian <-
                                               nend,
                                               nthin)
 
-        if (!is.null(object$variance.model$random))
+        if (!is.null(object$dispersion.model$random))
             output$varRandom = myCodaSummary(
                 object$coda,
-                paste0("sd\\.", object$variance.model$random$name),
+                paste0("sd\\.", object$dispersion.model$random$name),
                 nstart,
                 nend,
                 nthin
@@ -163,12 +163,12 @@ print.dalmatian.summary <- function(x, digits = 2, ...) {
     }
 
     cat("\n")
-    cat("Variance Model: Fixed Effects \n")
+    cat("Dispersion Model: Fixed Effects \n")
     print(round(x$varFixed, digits))
 
     if (!is.null(x$varRandom)) {
         cat("\n")
-        cat("Variance Model: Random Effects \n")
+        cat("Dispersion Model: Random Effects \n")
         print(round(x$varRandom, digits))
     }
 }
@@ -227,10 +227,10 @@ ranef.dalmatian <-
             output$mean <-
                 myCodaSummary(object$coda, paste0("^", object$mean.model$random$name))
 
-        if (!is.null(object$variance.model$random))
-            output$variance <-
+        if (!is.null(object$dispersion.model$random))
+            output$dispersion <-
                 myCodaSummary(object$coda,
-                              paste0("^", object$variance.model$random$name))
+                              paste0("^", object$dispersion.model$random$name))
 
         return(output)
     }
@@ -261,7 +261,7 @@ convergence <- function(object, ...) {
 #' Compute convergence diagnostics for a dalmatian object.
 #'
 #' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
-#' @param pars List of parameters to assess. If NULL (default) then diagnostics are computed for the fixed effects and random effects standard deviations in both the mean and variance models.
+#' @param pars List of parameters to assess. If NULL (default) then diagnostics are computed for the fixed effects and random effects standard deviations in both the mean and dispersion models.
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
@@ -296,7 +296,7 @@ convergence.dalmatian <-
                     value = TRUE
                 ),
                 grep(
-                    paste0("^", object$variance.model$fixed$name, "\\."),
+                    paste0("^", object$dispersion.model$fixed$name, "\\."),
                     coda::varnames(object$coda),
                     value = TRUE
                 ))
@@ -309,7 +309,7 @@ convergence.dalmatian <-
                                 value = TRUE
                             ))
 
-            if (!is.null(object$variance.model$random))
+            if (!is.null(object$dispersion.model$random))
                 pars <-
                     c(pars, grep(
                                 paste0("sd\\.", object$variace.model$random$name),
@@ -436,18 +436,18 @@ traceplots.dalmatian <-
                 print(output$meanFixed)
             }
 
-            ## Variance: fixed effects
+            ## Dispersion: fixed effects
             ggs2 <-
                 ggmcmc::ggs(coda,
-                            paste0("^", object$variance.model$fixed$name, "\\."))
-            output$varianceFixed <- ggmcmc::ggs_traceplot(ggs2)
+                            paste0("^", object$dispersion.model$fixed$name, "\\."))
+            output$dispersionFixed <- ggmcmc::ggs_traceplot(ggs2)
 
             if (show){
                 if(is_interactive){
                     readline(prompt="Press any key for the next plot:")
                 }
                 
-                print(output$varianceFixed)
+                print(output$dispersionFixed)
             }
 
             ## Mean: random effects
@@ -466,18 +466,18 @@ traceplots.dalmatian <-
                 }
             }
 
-            if (!is.null(object$variance.model$random)) {
+            if (!is.null(object$dispersion.model$random)) {
                 ggs4 <-
                     ggmcmc::ggs(coda,
-                                paste0("^sd\\.", object$variance.model$random$name))
-                output$varianceRandom <- ggmcmc::ggs_traceplot(ggs4)
+                                paste0("^sd\\.", object$dispersion.model$random$name))
+                output$dispersionRandom <- ggmcmc::ggs_traceplot(ggs4)
 
                 if (show){
                     if(is_interactive){
                         readline(prompt="Press any key for the next plot:")
                     }
                     
-                    print(output$varianceRandom)
+                    print(output$dispersionRandom)
                 }
             }
         }
@@ -577,18 +577,18 @@ caterpillar.dalmatian <-
                 print(output$meanFixed)
             }
 
-            ## Variance: fixed effects
+            ## Dispersion: fixed effects
             ggs2 <-
                 ggmcmc::ggs(coda,
-                            paste0("^", object$variance.model$fixed$name, "\\."))
-            output$varianceFixed <- ggmcmc::ggs_caterpillar(ggs2)
+                            paste0("^", object$dispersion.model$fixed$name, "\\."))
+            output$dispersionFixed <- ggmcmc::ggs_caterpillar(ggs2)
 
             if (show){
                 if(is_interactive){
                     readline(prompt="Press any key for the next plot:")
                 }
                 
-                print(output$varianceFixed)
+                print(output$dispersionFixed)
             }
 
             ## Mean: random effects
@@ -607,18 +607,18 @@ caterpillar.dalmatian <-
                 }
             }
 
-            if (!is.null(object$variance.model$random)) {
+            if (!is.null(object$dispersion.model$random)) {
                 ggs4 <-
                     ggmcmc::ggs(coda,
-                                paste0("^sd\\.", object$variance.model$random$name))
-                output$varianceRandom <- ggmcmc::ggs_caterpillar(ggs4)
+                                paste0("^sd\\.", object$dispersion.model$random$name))
+                output$dispersionRandom <- ggmcmc::ggs_caterpillar(ggs4)
 
                 if (show){
                     if(is_interactive){
                         readline(prompt="Press any key for the next plot:")
                     }
                     
-                    print(output$varianceRandom)
+                    print(output$dispersionRandom)
                 }
             }
         }
@@ -649,7 +649,7 @@ caterpillar.dalmatian <-
 ##' @title Terms function for \code{dalmatian} objects
 ##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 ##' @param ... Further object passed directly to \code{terms}. Recycled for each model component.
-##' @return List of with two lists named mean and variance each containing \code{terms} objects
+##' @return List of with two lists named mean and dispersion each containing \code{terms} objects
 ##' corresponding to the fixed and random components of that model component (if present).
 ##' @export
 ##' @author Simon Bonner
@@ -665,7 +665,7 @@ terms.dalmatian <- function(object,...){
   ## Extract terms objects for each component of the fitted model
 
   terms.dalmatian.component <- function(model,...){
-    ## Local function to extract terms form mean or variance component individually
+    ## Local function to extract terms form mean or dispersion component individually
 
     ## a) Fixed effects
     if (!is.null(model$fixed))
@@ -686,19 +686,19 @@ terms.dalmatian <- function(object,...){
   
   ## Return output
   list(mean = terms.dalmatian.component(object$mean.model,...),
-       variance = terms.dalmatian.component(object$variance.model,...))
+       dispersion = terms.dalmatian.component(object$dispersion.model,...))
 }
 
 ##' coef (dalmatian)
 ##'
-##' Extracts coefficients for the mean and variance components of a
+##' Extracts coefficients for the mean and dispersion components of a
 ##' dalmatian model.
 ##' 
 ##' @title Coefficients function for \code{dalmatian} objects
 ##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 ##' @param summary Posterior summaries computed from the supplied \code{dalmatian} object (optional).
 ##' @param ranef Random effects summary computed from the supplied \code{dalmatian} object (optional).
-##' @return List of two lists named mean and variance each containing the posterior means of the coefficients
+##' @return List of two lists named mean and dispersion each containing the posterior means of the coefficients
 ##' corresponding to the fixed and random terms of that model component (if present).
 ##' @author Simon Bonner
 coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
@@ -707,7 +707,7 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
     summary <- summary(object)
 
   ## Compute posterior summaries of random effects (if not provided and model contains random effects)
-  if((!is.null(object$mean.model$random) | !is.null(object$variance.model$random)) & is.null(ranef))
+  if((!is.null(object$mean.model$random) | !is.null(object$dispersion.model$random)) & is.null(ranef))
     ranef <- ranef(object)
 
   ## Mean model
@@ -749,7 +749,7 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
     coef_mean
   }
 
-  ## Variance model
+  ## Dispersion model
   
   ## Extract posterior means for fixed effects
   var_fixef <- summary$varFixed[,"Mean"]
@@ -790,5 +790,5 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
 
   ## Return output
   list(mean = coef_mean,
-       variance = coef_var)
+       dispersion = coef_var)
 }

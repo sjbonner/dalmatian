@@ -13,7 +13,7 @@ vignette: >
 runModels <- FALSE # If true rerun models. OTW, reload previous output.
 ```
 
-As a first example of the functions in this package we will fit a model to the pied flycatcher data. We will start by fitting a model with fixed effects on the mean and variance components. Specifically, we will model the load returned on each trip by the adult flycatchers a independent normal random variables with mean given by a linear combination of the logarithm of the inter-visit interval (IVI), the broodsize manipulation (broodsize), and the adult's sex, and standard deviation given by a linear combination of broodsize and sex, on the log scale. We will then incorporate individual random effects into this model. 
+As a first example of the functions in this package we will fit a model to the pied flycatcher data. We will start by fitting a model with fixed effects on the mean and dispersion components. Specifically, we will model the load returned on each trip by the adult flycatchers a independent normal random variables with mean given by a linear combination of the logarithm of the inter-visit interval (IVI), the broodsize manipulation (broodsize), and the adult's sex, and standard deviation given by a linear combination of broodsize and sex, on the log scale. We will then incorporate individual random effects into this model. 
 
 # Library
 
@@ -45,7 +45,7 @@ $$\log(\sigma)=\psi_0 + \psi_1 \mathrm{broodsize}_i + \psi_2\mathrm{sex}_i$$.
 
 ## Model
 
-The first step is to define the models for the mean and variance components. These models are simply lists with (up to) two named components, `fixed` and `random`, which provide the details on the fixed and random effects. Both lists must contain a variable `name` specifying the basename for the coefficients and a variable `formula` specifying the effects. The `fixed` list should also contain an object called `priors` which specifies the priors for coefficients in the fixed effects portion of the model. Random effects are currently assumed to be normal with mean zero and unknown variances which are assigned the half $t$-distribution with ? degrees of freedom and scale ?. The optional parameter `link` can also be used to specify a link function for either component.
+The first step is to define the models for the mean and dispersion components. These models are simply lists with (up to) two named components, `fixed` and `random`, which provide the details on the fixed and random effects. Both lists must contain a variable `name` specifying the basename for the coefficients and a variable `formula` specifying the effects. The `fixed` list should also contain an object called `priors` which specifies the priors for coefficients in the fixed effects portion of the model. Random effects are currently assumed to be normal with mean zero and unknown variances which are assigned the half $t$-distribution with ? degrees of freedom and scale ?. The optional parameter `link` can also be used to specify a link function for either component.
 
 The components of the model for the pied flycatcher data specified above would be generated with:
 
@@ -55,7 +55,7 @@ mymean=list(fixed=list(name="alpha",
        formula=~ log(IVI) + broodsize + sex,
        priors=list(c("dnorm",0,.001))))
 
-## Variance model
+## Dispersion model
 myvar=list(fixed=list(name="psi",
       link="log",
       formula=~broodsize + sex,
@@ -85,7 +85,7 @@ cs.args <- list(n.iter=5000,thin=20)
 if(runModels){
   pfresults <- dalmatian(df=pfdata,
                          mean.model=mymean,
-                         variance.model=myvar,
+                         dispersion.model=myvar,
                          jags.model.args=jm.args,
                          coda.samples.args=cs.args,
                          rounding=TRUE,
@@ -137,8 +137,8 @@ pftraceplots <- traceplots(pfresults,show=FALSE,nthin=100)
 ## Fixed effects for mean
 pftraceplots$meanFixed
 
-## Fixed effects for variance
-pftraceplots$varianceFixed
+## Fixed effects for dispersion
+pftraceplots$dispersionFixed
 
 ```
 
@@ -155,13 +155,13 @@ pfcaterpillar <- caterpillar(pfresults,show = FALSE)
 ## Fixed effects for mean
 pfcaterpillar$meanFixed
 
-## Fixed effects for variance
-pfcaterpillar$varianceFixed
+## Fixed effects for dispersion
+pfcaterpillar$dispersionFixed
 ```
 
 # Model 2: Random Effects
 
-We will now consider adding individual (bird) random effects to both the fixed and random components of our model. This can be done by simply adding to the model components created above and then rerunnig the model. The new model will have mean and variance
+We will now consider adding individual (bird) random effects to both the fixed and random components of our model. This can be done by simply adding to the model components created above and then rerunnig the model. The new model will have mean and standard deviation
 $$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)_{ij} + \beta_2 broodsize_i + \beta_3 sex_i + \epsilon_{i}}$$
 and
 $$\log(\sigma)=\psi_0 + \psi_1 \mathrm{broodsize}_i + \psi_2\mathrm{sex}_i + \xi_j$$
@@ -175,13 +175,13 @@ Instead of creating new model objects we can simply add to the old objects by cr
 # Random component of mean
 mymean$random=list(name="epsilon",formula=~-1 + indidx)
 
-# Random component of variance
+# Random component of dispersion
 myvar$random=list(name="xi",formula=~-1 + indidx)
 ```
 
 ## Running the Model with dalmatian
 
-The new model can now be run using `dalmatian` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and variance components by taking the values from the final iterations of each of the chains run for the fixed effects model. I have also found that it is best to set initial values for the response variable, `y`, if the response is rounded. Otherwise, JAGS often fails to generate initial values that fall between the rounding limits. For convenience, we set the random effects variances equal to 1 in all three chains. Note that the chains have been run for a relatively small number of iterations and heavily subsampled to satisfy the size requirements for packages on \texttt{CRAN}. Neither of these is recommended in practice.
+The new model can now be run using `dalmatian` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and dispersion components by taking the values from the final iterations of each of the chains run for the fixed effects model. I have also found that it is best to set initial values for the response variable, `y`, if the response is rounded. Otherwise, JAGS often fails to generate initial values that fall between the rounding limits. For convenience, we set the random effects variances equal to 1 in all three chains. Note that the chains have been run for a relatively small number of iterations and heavily subsampled to satisfy the size requirements for packages on \texttt{CRAN}. Neither of these is recommended in practice.
 
 ```{r}
 
@@ -191,9 +191,9 @@ inits <- lapply(1:3,function(i){
                       myvar,
                       y = runif(nrow(pfdata),pfdata$lower,pfdata$upper),
                       fixed.mean = tail(pfresults$coda[[i]],1)[1:4],
-                      fixed.variance = tail(pfresults$coda[[i]],1)[5:7],
+                      fixed.dispersion = tail(pfresults$coda[[i]],1)[5:7],
                       sd.mean = 1,
-                      sd.variance=1)
+                      sd.dispersion=1)
   })
 
 ## Define list of arguments for jags.model()
@@ -208,7 +208,7 @@ cs.args <- list(n.iter=5000,thin=10)
 if(runModels){
   pfresults2 <- dalmatian(df=pfdata,
                           mean.model=mymean,
-                          variance.model=myvar,
+                          dispersion.model=myvar,
                           jags.model.args=jm.args,
                           coda.samples.args=cs.args,
                           rounding=TRUE,
@@ -251,14 +251,14 @@ pftraceplots2 <- traceplots(pfresults2,show = FALSE,nthin=100)
 ## Fixed effects for mean
 pftraceplots2$meanFixed
 
-## Fixed effects for variance
-pftraceplots2$varianceFixed
+## Fixed effects for dispersion
+pftraceplots2$dispersionFixed
 
 ## Random effects variances for mean
 pftraceplots2$meanRandom
 
-## Random effects variances for variances
-pftraceplots2$varianceRandom
+## Random effects variances for dispersion
+pftraceplots2$dispersionRandom
 
 ```
 
@@ -276,12 +276,12 @@ pfcaterpillar2 <- caterpillar(pfresults2,show = FALSE)
 ## Fixed effects for mean
 pfcaterpillar2$meanFixed
 
-## Fixed effects for variance
-pfcaterpillar2$varianceFixed
+## Fixed effects for dispersion
+pfcaterpillar2$dispersionFixed
 ```
 
 ## Predictions
-By using 'prediction' function, predictions for the mean and variance models can be calculated. The 'prediction' function should take a data frame including all variables required and their names defined for the usage of 'dalmatian' function. For the Pied Flycatcher data, previously 'log(IVI)' was used to define the mean and variance models. Hence, it should be included in the data frame as following:
+By using 'prediction' function, predictions for the mean and dispersion models can be calculated. The 'prediction' function should take a data frame including all variables required and their names defined for the usage of 'dalmatian' function. For the Pied Flycatcher data, previously 'log(IVI)' was used to define the mean and dispersion models. Hence, it should be included in the data frame as following:
 
 ```{r}
 ## Add 'log(IVI)' variable in pfdata

@@ -38,19 +38,19 @@ predict.dalmatian <- function(object,
 	## PART 1: WRONG CASES ##
 	#########################
   
-	# labels for FIXED effects in mean model and variance model
+	# labels for FIXED effects in mean model and dispersion model
 	mean.fixed.label <- all.vars(object$mean.model$fixed$formula)
-	var.fixed.label <- all.vars(object$variance.model$fixed$formula)
+	var.fixed.label <- all.vars(object$dispersion.model$fixed$formula)
 
-	# labels for RANDOM effects in mean model and variance model
+	# labels for RANDOM effects in mean model and dispersion model
 	if (!is.null(object$mean.model$random)) { # mean model
 		mean.random.label <- all.vars(object$mean.model$random$formula)
 	} else {
 		mean.random.label <- NULL
 	}
 
-	if (!is.null(object$variance.model$random)) { # variance model
-		var.random.label <- all.vars(object$variance.model$random$formula)
+	if (!is.null(object$dispersion.model$random)) { # dispersion model
+		var.random.label <- all.vars(object$dispersion.model$random$formula)
 	} else {
 		var.random.label <- NULL
 	}
@@ -123,11 +123,11 @@ browser(expr=is.null(.ESSBP.[["@9@"]]));##:ess-bp-end:##
 	## PART 2: CREATE DESIGN MATIRCES ##
 	####################################
 
-	# for fixed effects in mean and variance models
+	# for fixed effects in mean and dispersion models
 	mean.fixed.designMat <- model.matrix(object$mean.model$fixed$formula, newdata)
-	var.fixed.designMat <- model.matrix(object$variance.model$fixed$formula, newdata)
+	var.fixed.designMat <- model.matrix(object$dispersion.model$fixed$formula, newdata)
   
-	# for random effects in mean and variance models
+	# for random effects in mean and dispersion models
 	if (!is.null(object$mean.model$random)) { # mean model
 	  options(na.action='na.pass')
 		mean.random.designMat <- model.matrix(object$mean.model$random$formula, newdata)
@@ -136,9 +136,9 @@ browser(expr=is.null(.ESSBP.[["@9@"]]));##:ess-bp-end:##
 		mean.random.designMat <- NULL
 	}
 
-	if (!is.null(object$variance.model$random)) { # variance model
+	if (!is.null(object$dispersion.model$random)) { # dispersion model
 	  options(na.action='na.pass')
-		var.random.designMat <- model.matrix(object$variance.model$random$formula, newdata)
+		var.random.designMat <- model.matrix(object$dispersion.model$random$formula, newdata)
 		var.random.designMat[is.na(var.random.designMat)] <- 0
 	} else {
 		var.random.designMat <- NULL
@@ -163,8 +163,8 @@ browser(expr=is.null(.ESSBP.[["@9@"]]));##:ess-bp-end:##
     mean.random.coef <- all.chains[,pars]
   }
 
-  ## coefficients for FIXED effects in VARIANCE model
-  pars <- paste(object$variance.model$fixed$name,
+  ## coefficients for FIXED effects in DISPERSION model
+  pars <- paste(object$dispersion.model$fixed$name,
                 colnames(var.fixed.designMat), sep = ".")
   var.fixed.coef <- all.chains[,pars]
   
@@ -173,14 +173,14 @@ browser(expr=is.null(.ESSBP.[["@9@"]]));##:ess-bp-end:##
   ##   mean.disper <- all.chains[,cur.index]
   ## }
 
-	# DISPERSION PARAMETER and coefficients for RANDOM effects in VARIANCE model
+	# DISPERSION PARAMETER and coefficients for RANDOM effects in DISPERSION model
 	if (!is.null(var.random.designMat)) {
-          pars <- paste(object$variance.model$random$name,
+          pars <- paste(object$dispersion.model$random$name,
                   colnames(var.random.designMat), sep = ".")
           var.random.coef <- all.chains[,pars]
 	}
 	########################################################################################
-	## PART 4.2: PREDICTIONS FOR MEAN AND VARIANCE MODEL WITH MEAN (OR MODE) OF ESTIMATES ##
+	## PART 4.2: PREDICTIONS FOR MEAN AND DISPERSION MODEL WITH MEAN (OR MODE) OF ESTIMATES ##
 	########################################################################################
 
 	### mean model predictions
@@ -193,7 +193,7 @@ browser(expr=is.null(.ESSBP.[["@9@"]]));##:ess-bp-end:##
 	  
 	} 
 	
-	### variance model predictions
+	### dispersion model predictions
   var.pred <- var.fixed.designMat %*% t(var.fixed.coef)
 	
 	if (!is.null(var.random.designMat)) {
@@ -214,7 +214,7 @@ browser(expr=is.null(.ESSBP.[["@9@"]]));##:ess-bp-end:##
 		## 	est.mean.disper <- density(mean.disper)$x[which.max(density(mean.disper)$y)]
 		## }
 
-		# variance model
+		# dispersion model
 		est.var.pred <- apply(var.pred, 1, function(vec) density(vec)$x[which.max(density(vec)$y)])
 
 		## if (!is.null(var.random.designMat)) {
@@ -232,7 +232,7 @@ browser(expr=is.null(.ESSBP.[["@9@"]]));##:ess-bp-end:##
 		## 	est.mean.disper <- mean(mean.disper)
 		## }
 
-		# variance model
+		# dispersion model
 		est.var.pred <- apply(var.pred, 1, function(vec) mean(vec))
 
 		## if (!is.null(var.random.designMat)) {
@@ -251,7 +251,7 @@ browser(expr=is.null(.ESSBP.[["@9@"]]));##:ess-bp-end:##
     ## Mean model
     se.mean.pred <- apply(mean.pred,1,sd)
 
-    ## Variance model
+    ## Dispersion model
     se.var.pred <- apply(var.pred,1,sd)
   }
 
@@ -270,7 +270,7 @@ browser(expr=is.null(.ESSBP.[["@9@"]]));##:ess-bp-end:##
 		## 	ci.mean.disper <- quantile(mean.disper, c( (1-level)/2, 1-(1 - level)/2 ))
 		## }
 
-		# variance model
+		# dispersion model
 		ci.var.pred <- apply(var.pred, 1, function(vec) quantile(vec, c( (1-level)/2, 1-(1 - level)/2 )))
 
 		## if (!is.null(var.random.designMat)) {
@@ -283,7 +283,7 @@ browser(expr=is.null(.ESSBP.[["@9@"]]));##:ess-bp-end:##
 	########################################
 
 	mean.pred <- data.frame(Predicted = est.mean.pred) # for mean model
-	var.pred <- data.frame(Predicted = est.var.pred) # for variance model
+	var.pred <- data.frame(Predicted = est.var.pred) # for dispersion model
 
   if (se){
     mean.pred$se <- se.mean.pred
@@ -308,8 +308,8 @@ browser(expr=is.null(.ESSBP.[["@9@"]]));##:ess-bp-end:##
 	                     "sqrt"=mean.pred^2)
 	}
 	
-	if(!is.null(object$variance.model$fixed$link)){
-	  var.pred = switch(object$variance.model$fixed$link,
+	if(!is.null(object$dispersion.model$fixed$link)){
+	  var.pred = switch(object$dispersion.model$fixed$link,
 	                     "log"=exp(var.pred),
 	                     "logit"=(1+exp(-var.pred))^-1,
 	                     "sqrt"=var.pred^2)
@@ -317,6 +317,6 @@ browser(expr=is.null(.ESSBP.[["@9@"]]));##:ess-bp-end:##
   }
 	## Return output list
   list(mean=cbind(newdata,mean.pred),
-       variance=cbind(newdata,var.pred))
+       dispersion=cbind(newdata,var.pred))
 }
 

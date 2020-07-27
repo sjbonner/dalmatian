@@ -3,7 +3,7 @@
 ##'
 generateJAGSinits <- function(family,
                               mean.model,
-                              variance.model,
+                              dispersion.model,
                               jags.data){
 
     inits <- lapply(1:3,function(i){
@@ -34,18 +34,18 @@ generateJAGSinits <- function(family,
       mean.formula <- formula("y ~ jags.data$mean.fixed + jags.data$mean.random - 1")
     }
     
-    # Variance formula
-    if(is.null(variance.model$fixed) && is.null(variance.model$random)){
-      stop("You have specified no fixed or random effects for the variance component of the model.\n\n")
+    # Dispersion formula
+    if(is.null(dispersion.model$fixed) && is.null(dispersion.model$random)){
+      stop("You have specified no fixed or random effects for the dispersion component of the model.\n\n")
     }
-    else if(i==1 || is.null(variance.model$random)){ # Only fixed effects
-      variance.formula <- formula("epsilonsq ~ jags.data$variance.fixed - 1")
+    else if(i==1 || is.null(dispersion.model$random)){ # Only fixed effects
+      dispersion.formula <- formula("epsilonsq ~ jags.data$dispersion.fixed - 1")
     }
-    else if(i==2 || is.null(variance.model$fixed)){ # Only random effects
-      variance.formula <- formula("epsilonsq ~ jags.data$variance.random - 1")
+    else if(i==2 || is.null(dispersion.model$fixed)){ # Only random effects
+      dispersion.formula <- formula("epsilonsq ~ jags.data$dispersion.random - 1")
     }
     else{ # Mixed effects
-      variance.formula <- formula("epsilonsq ~ jags.data$variance.fixed + jags.data$variance.random - 1")
+      dispersion.formula <- formula("epsilonsq ~ jags.data$dispersion.fixed + jags.data$dispersion.random - 1")
     }
     
     ##### My simple implementation of a double glm fit non-iteratively #####
@@ -61,35 +61,35 @@ generateJAGSinits <- function(family,
     # fixed.mean <- mean.coeff[grep("fixed",names(mean.coeff))]
     # random.mean <- mean.coeff[grep("random",names(mean.coeff))]
     # 
-    # ## Variance model
+    # ## Dispersion model
     # 
     # # Extract squared residuals from mean model
     # epsilonsq <- residuals(meanlm)^2
     # 
     # # Fit gamma GLM to squared residuals
-    # variancelm <- glm(variance.formula,family=Gamma(link=variance.model$fixed$link))
+    # dispersionlm <- glm(dispersion.formula,family=Gamma(link=dispersion.model$fixed$link))
     # 
     # # Extract coefficients
-    # variance.coeff <- coef(variancelm)
-    # fixed.variance <- variance.coeff[grep("fixed",names(variance.coeff))]
-    # random.variance <- variance.coeff[grep("random",names(variance.coeff))]
+    # dispersion.coeff <- coef(dispersionlm)
+    # fixed.dispersion <- dispersion.coeff[grep("fixed",names(dispersion.coeff))]
+    # random.dispersion <- dispersion.coeff[grep("random",names(dispersion.coeff))]
     # 
     
     # Set link functions to identity if not specified
     if(is.null(mean.model$fixed$link))
       mean.model$fixed$link <- "identity"
     
-    if(is.null(variance.model$fixed$link))
-      variance.model$fixed$link <- "identity"
+    if(is.null(dispersion.model$fixed$link))
+      dispersion.model$fixed$link <- "identity"
       
     # Fit double GLM (without random effects)
-    dlink <- variance.model$fixed$link # I don't understand, but this is necessary.
+    dlink <- dispersion.model$fixed$link # I don't understand, but this is necessary.
 ##:ess-bp-start::browser@nil:##
 browser(expr=is.null(.ESSBP.[["@2@"]]));##:ess-bp-end:##
 
       
     dglmfit <- dglm::dglm(formula=mean.formula,
-                 dformula=variance.formula,
+                 dformula=dispersion.formula,
                  family=gaussian(link=mean.model$fixed$link),
                  dlink=dlink)
     
@@ -135,68 +135,68 @@ browser(expr=is.null(.ESSBP.[["@2@"]]));##:ess-bp-end:##
       sd.mean <- NULL
     }
     
-    # Extract coefficients of variance model
-    variance.coeff <- coef(dglmfit$dispersion)
+    # Extract coefficients of dispersion model
+    dispersion.coeff <- coef(dglmfit$dispersion)
     
-    tmp <- grep("fixed",names(variance.coeff))
+    tmp <- grep("fixed",names(dispersion.coeff))
     if(length(tmp)>0)
-      fixed.variance <- variance.coeff[tmp]
+      fixed.dispersion <- dispersion.coeff[tmp]
     else
-      fixed.variance <- NULL
+      fixed.dispersion <- NULL
     
-    tmp <- grep("random",names(variance.coeff))
+    tmp <- grep("random",names(dispersion.coeff))
     if(length(tmp)>0)
-      random.variance <- variance.coeff[tmp]
+      random.dispersion <- dispersion.coeff[tmp]
     else
-      random.variance <- NULL
+      random.dispersion <- NULL
     
-    ## Compute random effects sd for variance
-    if(!is.null(variance.model$random)){
+    ## Compute random effects sd for dispersion
+    if(!is.null(dispersion.model$random)){
       if(i %in% c(2,3)){
         ## Compute random effects standard deviations
-        ncomp <- jags.data[[paste0(variance.model$random$name,".ncomponents")]]
-        levels <- jags.data[[paste0(variance.model$random$name,".levels")]]
+        ncomp <- jags.data[[paste0(dispersion.model$random$name,".ncomponents")]]
+        levels <- jags.data[[paste0(dispersion.model$random$name,".levels")]]
         
-        sd.variance <- sapply(1:ncomp, function(j) sd(variance.coeff[which(levels==j)],na.rm=TRUE))
+        sd.dispersion <- sapply(1:ncomp, function(j) sd(dispersion.coeff[which(levels==j)],na.rm=TRUE))
         
         ## Randomly fill in any missing random effects
-        miss <- which(is.na(random.variance))
+        miss <- which(is.na(random.dispersion))
         
         if(length(miss) > 0){
-          random.variance[miss] <- rnorm(length(miss),0,sd.variance[levels[miss]])
+          random.dispersion[miss] <- rnorm(length(miss),0,sd.dispersion[levels[miss]])
         }
       }
       else{
         ## Set random effects standard deviation to be very small
-        ncomp <- jags.data[[paste0(variance.model$random$name,".ncomponents")]]
+        ncomp <- jags.data[[paste0(dispersion.model$random$name,".ncomponents")]]
         
-        sd.variance <- rep(.001,ncomp)
+        sd.dispersion <- rep(.001,ncomp)
       }
     }
     else{
-      sd.variance <- NULL
+      sd.dispersion <- NULL
     }
     
     ## Construct initial values list
     if(is.null(jags.data$y))
       setJAGSInits(mean.model,
-                   variance.model,
+                   dispersion.model,
                    y=y,
                    fixed.mean=fixed.mean,
-                   fixed.variance = fixed.variance,
+                   fixed.dispersion = fixed.dispersion,
                    random.mean=random.mean,
                    sd.mean=sd.mean,
-                   random.variance=random.variance,
-                   sd.variance = sd.variance)
+                   random.dispersion=random.dispersion,
+                   sd.dispersion = sd.dispersion)
     else
       setJAGSInits(mean.model,
-                   variance.model,
+                   dispersion.model,
                    fixed.mean=fixed.mean,
-                   fixed.variance = fixed.variance,
+                   fixed.dispersion = fixed.dispersion,
                    random.mean=random.mean,
                    sd.mean=sd.mean,
-                   random.variance=random.variance,
-                   sd.variance = sd.variance)
+                   random.dispersion=random.dispersion,
+                   sd.dispersion = sd.dispersion)
   })
   
   ## Return initial values list
@@ -209,14 +209,14 @@ browser(expr=is.null(.ESSBP.[["@2@"]]));##:ess-bp-end:##
 ##' not specified will by initialized by \code{JAGS}.
 ##' @title Set initial values for \code{dalmatian}
 ##' @param mean.model Model list specifying the structure of the mean. (list)
-##' @param variance.model Model list specifyint the structure of the variance. (list)
+##' @param dispersion.model Model list specifyint the structure of the dispersion. (list)
 ##' @param fixed.mean Initial values for the fixed effects of the mean. (numeric)
-##' @param fixed.variance Initial values for the fixed effects of the variance. (numeric)
+##' @param fixed.dispersion Initial values for the fixed effects of the dispersion. (numeric)
 ##' @param y Inital values for the true response. This should only be specified if the \code{rounding = TRUE} in the main call to dalmatian.
 ##' @param random.mean Initial values for the random effects of the mean. (numeric)
 ##' @param sd.mean Initial values for the standard deviation of the random effects of the mean. (numeric)
-##' @param random.variance Initial values for the random effects of the variance. (numeric
-##' @param sd.variance Initial values for the standard deviation of the random effects of the variance. (numeric)
+##' @param random.dispersion Initial values for the random effects of the dispersion. (numeric
+##' @param sd.dispersion Initial values for the standard deviation of the random effects of the dispersion. (numeric)
 ##' @return inits (list)
 ##' @author Simon Bonner
 ##' @export
@@ -235,21 +235,21 @@ browser(expr=is.null(.ESSBP.[["@2@"]]));##:ess-bp-end:##
 ##' ## Set initial values for a new run of the same model
 ##' inits <- lapply(1:3,function(i){
 ##'   setJAGSInits(pfresults$mean.model,
-##'                pfresults$variance.model,
+##'                pfresults$dispersion.model,
 ##'                y = runif(nrow(pfdata),pfdata$lower,pfdata$upper),
 ##'                fixed.mean = tail(pfresults$coda[[i]],1)[1:4],
-##'                fixed.variance = tail(pfresults$coda[[i]],1)[5:7],
+##'                fixed.dispersion = tail(pfresults$coda[[i]],1)[5:7],
 ##'                sd.mean = 1)
 ##' })
 setJAGSInits <- function(mean.model,
-                         variance.model,
+                         dispersion.model,
                          fixed.mean=NULL,
-                         fixed.variance=NULL,
+                         fixed.dispersion=NULL,
                          y=NULL,
                          random.mean=NULL,
                          sd.mean=NULL,
-                         random.variance=NULL,
-                         sd.variance=NULL){
+                         random.dispersion=NULL,
+                         sd.dispersion=NULL){
 
     ## Initialize list of initial values
     inits <- list()
@@ -269,12 +269,12 @@ setJAGSInits <- function(mean.model,
         inits[[paste0(mean.model$random$name,".tmp")]] <- random.mean
     }
 
-    ## 3) Random effects variances
+    ## 3) Random effects dispersions
     if(!is.null(sd.mean)){
         ## Generate redundant variables for Gelman's parametrization of half-t
         ncomp <- length(sd.mean)
 
-        ## Compute variance parameter
+        ## Compute dispersion parameter
         tau <- 1/sd.mean^2
 
         ## Set initial values
@@ -282,28 +282,28 @@ setJAGSInits <- function(mean.model,
         inits[[paste0("tau.",mean.model$random$name)]] <- tau
     }
 
-    ## Set initial values for variance component of model
+    ## Set initial values for dispersion component of model
     ## 1) Fixed effects
-    if(!is.null(fixed.variance)){
-        inits[[variance.model$fixed$name]] <- fixed.variance
+    if(!is.null(fixed.dispersion)){
+        inits[[dispersion.model$fixed$name]] <- fixed.dispersion
     }
 
     ## 2) Random effects
-    if(!is.null(random.variance)){
-        inits[[paste0(variance.model$random$name,".tmp")]] <- random.variance
+    if(!is.null(random.dispersion)){
+        inits[[paste0(dispersion.model$random$name,".tmp")]] <- random.dispersion
     }
 
-    ## 3) Random effects variance
-    if(!is.null(sd.variance)){
+    ## 3) Random effects dispersion
+    if(!is.null(sd.dispersion)){
         ## Generate redundant variables for Gelman's parametrization of half-t
-        ncomp <- length(sd.variance)
+        ncomp <- length(sd.dispersion)
 
-        ## Compute variance parameter
-        tau <- 1/sd.variance^2
+        ## Compute dispersion parameter
+        tau <- 1/sd.dispersion^2
 
         ## Set initial values
-        inits[[paste0("redun.",variance.model$random$name)]] <- rep(1,ncomp)
-        inits[[paste0("tau.",variance.model$random$name)]] <- tau
+        inits[[paste0("redun.",dispersion.model$random$name)]] <- rep(1,ncomp)
+        inits[[paste0("tau.",dispersion.model$random$name)]] <- tau
     }
 
     return(inits)

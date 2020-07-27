@@ -42,10 +42,10 @@ pfdata$upper=log(pfdata$load+.05)
 
 The model we consider will be the similar to the random effects model in "pied-flycatchers-1". We will modify this model by including a random, individual slope for the effect of $log(IVI)$ as well as the random intercept in the mean model. The new model for the mean will be:
 $$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)_{ij}} + \beta_2 \mathrm{broodsize}_i + \beta_3 \mathrm{sex}_i + \epsilon_{1i} + \epsilon_{2i} \mathrm{log(IVI)_{ij}}$$
-For convenience, we will also simplify the model of the variance by assuming that the variance is constant across all observations. This can be done by setting:
+For convenience, we will also simplify the model of the dispersion by assuming that the variance is constant across all observations. This can be done by setting:
 $$\log(\sigma)=\psi_0$$.
 
-The objects defining the new mean and variance components are specified as:
+The objects defining the new mean and dispersion components are specified as:
 
 ```{r}
 # Random component of mean
@@ -55,7 +55,7 @@ mymean=list(fixed=list(name="alpha",
     random=list(name="epsilon",formula=~-1 + indidx + indidx:log(IVI)))
 
 
-# Random component of variance
+# Random component of dispersion
 myvar=list(fixed=list(name="psi",
                link="log",
                formula=~1,
@@ -65,7 +65,7 @@ myvar=list(fixed=list(name="psi",
 
 ## Running the Model with dalmatian
 
-The new model can now be run using `dalmatian` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and variance components by taking the values from the final iterations of each of the chains run for the fixed effects model. For convenience, we set the random effects variances equal to 1 in all three chains. Note that the chains have been run for a relatively small number of iterations and heavily subsampled to satisfy the size requirements for packages on \texttt{CRAN}. Neither of these is recommended in practice.
+The new model can now be run using `dalmatian` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and dispersion components by taking the values from the final iterations of each of the chains run for the fixed effects model. For convenience, we set the random effects variances equal to 1 in all three chains. Note that the chains have been run for a relatively small number of iterations and heavily subsampled to satisfy the size requirements for packages on \texttt{CRAN}. Neither of these is recommended in practice.
 
 
 ```{r}
@@ -83,7 +83,7 @@ cs.args <- list(n.iter=1000)
 if(runModels){
   pfresults3 <- dalmatian(df=pfdata,
                           mean.model=mymean,
-                          variance.model=myvar,
+                          dispersion.model=myvar,
                           jags.model.args=jm.args,
                           coda.samples.args=cs.args,
                           rounding=TRUE,
@@ -126,14 +126,14 @@ pftraceplots2 <- traceplots(pfresults3,show = FALSE)
 ## Fixed effects for mean
 pftraceplots2$meanFixed
 
-## Fixed effects for variance
-pftraceplots2$varianceFixed
+## Fixed effects for dispersion
+pftraceplots2$dispersionFixed
 
 ## Random effects variances for mean
 pftraceplots2$meanRandom
 
-## Random effects variances for variances
-pftraceplots2$varianceRandom
+## Random effects variances for dispersion
+pftraceplots2$dispersionRandom
 
 ```
 
@@ -151,8 +151,8 @@ pfcaterpillar2 <- caterpillar(pfresults3,show = FALSE)
 ## Fixed effects for mean
 pfcaterpillar2$meanFixed
 
-## Fixed effects for variance
-pfcaterpillar2$varianceFixed
+## Fixed effects for dispersion
+pfcaterpillar2$dispersionFixed
 ```
 
 The convergence diagnostics and traceplots suggest that the chains should be run for longer. In particular, the effective sample size for the variance of the random slopes is very small, but we will proceed with inference for illustration. In the numerical summaries we see that the estimated variance of the random slopes is very small, .02 with 95% credible interval (.00,.04). This suggests that there is very little inter-individual variation in the effect of `log(IVI)`.
@@ -176,5 +176,5 @@ ggplot(data=as.data.frame(ranef2$mean[nind+(1:nind),]),aes(x=1:nind,y=Mean)) +
   geom_errorbar(aes(ymin=`Lower 95%`,ymax=`Upper 95%`)) +
   geom_abline(intercept=0,slope=0)
 ```
-Note that the 95% crebile intervals for all of the values include 0. This is further evidence that the effect of `log(IVI)` does not vary significantly between the individuals.  
+Note that the 95% crebile intervals for all of the values include 0. This is further evidence that the effect of `log(IVI)` does not vary significantly between the individuals.
 
