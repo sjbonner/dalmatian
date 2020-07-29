@@ -17,7 +17,19 @@ This package illustrates the implementation of the beta-binomial model for analy
 
 # Beta-binomial model
 
+The base beta-binomial model assumes that each observation, $y_i$, represents the number of successes from $n_i$ Bernoulli trials for which the probability of success, $p_i$, is drawn from a beta distribution. The mean and dispersion parameters for the beta distribution, $\mu_i$ and $\phi_i$, are then modelled as linear combinations of fixed and random effects. 
 
+To define the model mathematically, we must consider a non-standard parametrization of the beta distribution in terms of the mean and dispersion such that $p \sim \mbox{Beta}(\mu,\phi)$ implies that the expected values and variance of $p$ are $\mu$ and $\phi \mu(1-\mu)$. We then assume that each observation follows a binomial distribution, $Y_i \sim \mbox{Binomial}(n_i,p_i)$, where $p_i \sim \mbox{Beta}(\mu_i,\phi_i)$ such that 
+$$
+g(\mu_i)=\eta_i=\bm x_{\mu,i}^\top \bm \alpha + \bm z_{\mu,i}^\top \bm \epsilon
+$$
+and 
+$$
+h(\phi_i)=\lambda_i= \bm x_{\sigma,i}^\top \bm \psi + \bm z_{\sigma,i}^\top \bm \xi
+$$
+with $\bm \alpha$ and $\bm \epsilon$ representing vectors of fixed and random effects for the mean and $\bm \psi$ and $\bm \xi$ fixed and random effects for the dispersion. Note that both $\mu_i$ and $\phi_i$ must be between 0 and 1, and so it makes sense to assume that both $g(\cdot)$ and $h(\cdot)$ follow logistic links, or some other link function that maintains this constraint. 
+
+Given this model the marginal mean and variance of $Y_i$ are $n_i\mu_i$ and $n_i\mu_i(1-\mu_i)[1 + (n_i-1)\phi_i]$. In comparison to the standard binomial model (achieved by setting $\phi_i \to 0$ so that $p_i=\mu_i$) the variance is inflated by a factor of $1 + (n_i-1)\phi_i$. 
 
 # Library
 
