@@ -55,7 +55,7 @@ cs.args = list(n.iter=1000)
 results1 <- dalmatian(
   df = weights.df,
   mean.model = mymean,
-  variance.model = myvar,
+  dispersion.model = myvar,
   jags.model.args = jm.args,
   coda.samples.args = cs.args,
   response = "y",
@@ -84,13 +84,13 @@ myvar$weights = "n"
 jm.args = list(file="weights_2_jags.R",n.adapt=1000)
 
 results2 = dalmatian(df=weights.df,
-                        mean.model=mymean,
-                        variance.model=myvar,
-                        jags.model.args=jm.args,
-                        coda.samples.args=cs.args,
-                        response="y",
+                     mean.model=mymean,
+                     dispersion.model=myvar,
+                     jags.model.args=jm.args,
+                     coda.samples.args=cs.args,
+                     response="y",
                      overwrite = TRUE,
-                        debug=FALSE)
+                     debug=FALSE)
 
 ## Numerical summary statistics
 summary(results2)

@@ -94,7 +94,7 @@ if(runModels){
                          residuals = TRUE,
                          debug=FALSE)
   
-  save(pfresults,"pfresults.RData")
+  save(pfresults,file = "pfresults.RData")
 }
 if(!runModels){
   load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
@@ -129,10 +129,10 @@ pfconvergence$effectiveSize
 ```
 Details of these measures can be found in the help files of the `coda` package. Not surprisingly, these all suggest that the chains need to be run for longer. 
 
-Convergence and mixing of the chains can also be examined visually through traceplots. The wrapper function `traceplots` generates traces using the functions from the `ggmcmc` package and separates the variables by the model components. One of the advantages of using `ggmcmc` which is based on `ggplot2` is that the plots can be saved and easily reproduced. Here I have thinned the chains further prior to plotting to reduce the size of the vignette. Note that thinning is conducted relative to the original chain, not the already thinned chain. I.e., thinning by 100 selects the output from every 100th iteration of the original chain.
+Convergence and mixing of the chains can also be examined visually through traceplots. The wrapper function `traceplots` generates traces using the functions from the `ggmcmc` package and separates the variables by the model components. One of the advantages of using `ggmcmc` which is based on `ggplot2` is that the plots can be saved and easily reproduced. Here I have thinned the chains further prior to plotting to reduce the size of the vignette. Note that thinning is conducted relative to the original chain, not the already thinned chain. I.e., thinning by 20 selects the output from every 20th iteration of the original chain (every 2nd iteration from the retained samples).
 ```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
-pftraceplots <- traceplots(pfresults,show=FALSE,nthin=100)
+pftraceplots <- traceplots(pfresults,show=FALSE,nthin=20)
 
 ## Fixed effects for mean
 pftraceplots$meanFixed
@@ -217,7 +217,7 @@ if(runModels){
                           residuals=TRUE,
                           debug=FALSE)
   
-  save(pfresults2,"pfresults2.RData")
+  save(pfresults2,file = "pfresults2.RData")
 }
 if(!runModels){
   load(system.file("Pied_Flycatchers_1","pfresults2.RData",package="dalmatian"))
@@ -246,7 +246,7 @@ pfconvergence2$effectiveSize
 2. Traceplots
 ```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
-pftraceplots2 <- traceplots(pfresults2,show = FALSE,nthin=100)
+pftraceplots2 <- traceplots(pfresults2,show = FALSE,nthin=20)
 
 ## Fixed effects for mean
 pftraceplots2$meanFixed
