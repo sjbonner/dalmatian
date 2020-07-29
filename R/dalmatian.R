@@ -310,21 +310,21 @@ by using the argument engine = \"JAGS\".")
   }
 
   ## Run model
-  if(!run.model){
-    output <- list(
-      df=df,
-      family = family,
-      mean.model = mean.model,
-      dispersion.model = dispersion.model,
-      jags.model.args = jags.model.args,
-      coda.samples.args = coda.samples.args,
-      rounding = rounding,
-      parameters = parameters,
-      svd = svd,
-      residuals = residuals,
-      drop.levels = drop.levels,
-      drop.missing = drop.missing)
+  output <- list(
+    df=df,
+    family = family,
+    mean.model = mean.model,
+    dispersion.model = dispersion.model,
+    jags.model.args = jags.model.args,
+    coda.samples.args = coda.samples.args,
+    rounding = rounding,
+    parameters = parameters,
+    svd = svd,
+    residuals = residuals,
+    drop.levels = drop.levels,
+    drop.missing = drop.missing)
 
+  if(!run.model){
     return(output)
   }
 
@@ -436,20 +436,7 @@ by using the argument engine = \"JAGS\".")
   cat("Done\n")
 
   ## Create output object
-  output <- list(
-    df=df,
-    mean.model = mean.model,
-    dispersion.model = dispersion.model,
-    jags.model.args = jags.model.args,
-    coda.samples.args = coda.samples.args,
-    rounding = rounding,
-    parameters = parameters,
-    svd = svd,
-    residuals = residuals,
-    drop.levels = drop.levels,
-    drop.missing = drop.missing,
-    coda = coda
-  )
+  output$coda <- coda
 
   if(rounding){
     output$lower <- lower
