@@ -6,19 +6,19 @@ generateJAGSinits <- function(family,
                               dispersion.model,
                               jags.data){
 
-    inits <- lapply(1:3,function(i){
+  inits <- lapply(1:3,function(i){
 
-        cat("     Initializing chain",i,"...\n")
-        
+    cat("     Initializing chain",i,"...\n")
+    
     ## Initial response when rounding
     if(is.null(jags.data$y))
       y <- runif(jags.data$n,jags.data$lower,jags.data$upper)
     else
       y <- jags.data$y
-
-      ## Remove zeros with negative binomial response and log link
-      if(family == "nbinom" & mean.model$fixed$link == "log" & any(y == 0))
-        y <- y + .1
+    
+    ## Remove zeros with negative binomial response and log link
+    if(family == "nbinom" && mean.model$fixed$link == "log" && any(y == 0))
+      y <- y + .1
     
     ## Mean formula
     if(is.null(mean.model$fixed) && is.null(mean.model$random)){
@@ -84,9 +84,7 @@ generateJAGSinits <- function(family,
       
     # Fit double GLM (without random effects)
     dlink <- dispersion.model$fixed$link # I don't understand, but this is necessary.
-##:ess-bp-start::browser@nil:##
-browser(expr=is.null(.ESSBP.[["@2@"]]));##:ess-bp-end:##
-
+    
       
     dglmfit <- dglm::dglm(formula=mean.formula,
                  dformula=dispersion.formula,
