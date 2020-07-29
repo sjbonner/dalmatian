@@ -116,8 +116,6 @@ predict.dalmatian <- function(object,
       }
     }
   }
-	##:ess-bp-start::browser@nil:##
-browser(expr=is.null(.ESSBP.[["@9@"]]));##:ess-bp-end:##
   
 	####################################
 	## PART 2: CREATE DESIGN MATIRCES ##
