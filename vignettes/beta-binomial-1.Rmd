@@ -1,5 +1,5 @@
 ---
-title: "Implementation of Beta-Biomial Model"
+title: "Implementation of Beta-Binomial Model"
 author: "Simon Bonner"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -55,7 +55,6 @@ $$x_{i1} \sim \mbox{Normal}(0,1)$$
 $$x_{i2} \sim \mbox{Normal}(0,1)$$
 $$\epsilon_{i} \sim \mbox{Normal}(0,1)$$
 $$\xi_{i} \sim \mbox{Normal}(0,1).$$
-
 
 # Defining the Model
 
