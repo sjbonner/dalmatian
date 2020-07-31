@@ -6,19 +6,23 @@
 \usage{
 dalmatian(
   df,
+  family = "gaussian",
   mean.model,
-  variance.model,
+  dispersion.model,
   jags.model.args,
   coda.samples.args,
   response = NULL,
+  ntrials = NULL,
   rounding = FALSE,
   lower = NULL,
   upper = NULL,
   parameters = NULL,
-  svd = TRUE,
+  svd = FALSE,
   residuals = FALSE,
   gencode = NULL,
+  run.model = TRUE,
   engine = "JAGS",
+  n.cores = 1L,
   drop.levels = TRUE,
   drop.missing = TRUE,
   overwrite = FALSE,
@@ -29,9 +33,11 @@ dalmatian(
 \arguments{
 \item{df}{Data frame containing the response and predictor values for each individual. (data.frame)}
 
+\item{family}{Name of family of response distribution. Currently supported families include normal (\code{gaussian}) and negative binomial (\code{nbinom}). (character)}
+
 \item{mean.model}{Model list specifying the structure of the mean. (list)}
 
-\item{variance.model}{Model list specifying the structure of the variance. (list)}
+\item{dispersion.model}{Model list specifying the structure of the dispersion. (list)}
 
 \item{jags.model.args}{List containing named arguments of \code{jags.model}. (list)}
 
@@ -53,7 +59,11 @@ dalmatian(
 
 \item{gencode}{If TRUE then generate code potentially overwriting existing model file. By default generate code if the file does not exist and prompt user if it does. (logical)}
 
+\item{run.model}{If TRUE then run sampler. Otherwise, stop once code and data have been created. (logical)}
+
 \item{engine}{Specifies the sampling software. Packages currently supported include JAGS (the default) and nimble. (character)}
+
+\item{n.cores}{Number of cores to use. If equal to 1 then chains will not be run in parallel. If greater than 1 then chains will be run in parallel using the designated number of cores.}
 
 \item{drop.levels}{If TRUE then drop unused levels from all factors in df. (logical)}
 
@@ -64,10 +74,12 @@ dalmatian(
 \item{debug}{If TRUE then enter debug model. (logical)}
 
 \item{saveJAGSinput}{Directory to which jags.model input is saved prior to calling \code{jags.model()}. This is useful for debugging. No files saved if NULL. (character)}
+
+\item{ntrial}{Name of variable in the data frame representing the number of independent trials for each observation of the beta binomial model.}
 }
 \value{
 An object of class \code{dalmatian} contaiining copies of the original data frame, the mean model, the
-variance model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler.
+dispersion model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler.
 }
 \description{
 The primary function which automates the running of \code{JAGS}.
@@ -89,7 +101,7 @@ mymean=list(fixed=list(name="alpha",
                       formula=~ log(IVI) + broodsize + sex,
                       priors=list(c("dnorm",0,.001))))
 
-## Variance model
+## Dispersion model
 myvar=list(fixed=list(name="psi",
                       link="log",
                       formula=~broodsize + sex,
@@ -108,7 +120,7 @@ cs.args <- list(n.iter=5000)
 ## Run the model using dalmatian
 pfresults <- dalmatian(df=pfdata,
                          mean.model=mymean,
-                         variance.model=myvar,
+                         dispersion.model=myvar,
                          jags.model.args=jm.args,
                          coda.samples.args=cs.args,
                          rounding=TRUE,
