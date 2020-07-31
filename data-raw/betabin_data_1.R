@@ -12,22 +12,22 @@ m <- 30  # Number of independent trials per observation
 alpha0 <- 0
 alpha1 <- 1
 
-tau.epsilon <- 1 # Random effects variance
+tau.epsilon <- 1 # Random effects standard deviation
 
-## Variance model
-psi0 <- 0 # Intercept of variance on log scale
+## Dispersion model
+psi0 <- 0 # Intercept of dispersion on log scale
 psi1 <- 2 # Fixed effect on dispersion
 
-tau.xi <- 1 # Random effects variance
+tau.xi <- 1 # Random effects standard deviation
 
 ## Simulate data
 set.seed(7777)
 
 betabin_data_1 <- tibble(ID = as.factor(1:N),
                  x1 = rnorm(N), ## Simulate covariate for mean
-                 x2 = rnorm(N), ## Simulate covariate for variance
-                 z1 = rnorm(N,0,sqrt(tau.epsilon)), ## Simulate random effect for mean
-                 z2 = rnorm(N,0,sqrt(tau.xi))) %>% ## Simulate random effect for variance
+                 x2 = rnorm(N), ## Simulate covariate for dipsersion
+                 z1 = rnorm(N,0,tau.epsilon), ## Simulate random effect for mean
+                 z2 = rnorm(N,0,tau.xi)) %>% ## Simulate random effect for dispersion
   crossing(tibble(Rep = 1:n,
                   m = m)) %>%
   mutate(eta.mu = alpha0 + alpha1 * x1 + z1,
@@ -39,5 +39,9 @@ betabin_data_1 <- tibble(ID = as.factor(1:N),
          p = rbeta(N * n, alpha, beta),
          y = rbinom(N * n, m, p))
 
+## Remove unobserved values
+betabin_data_1 <- betabin_data_1 %>%
+  select(ID, Rep, x1, x2, m, y)
+         
 ## Save data to package
 usethis::use_data(betabin_data_1, overwrite = TRUE)
