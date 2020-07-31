@@ -25,3 +25,5 @@ vignettes/*.pdf
 # Git ignore
 .gitignore
 dalmatian/.gitignore
+doc
+Meta
