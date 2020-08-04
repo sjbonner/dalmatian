@@ -764,11 +764,11 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
   ## Otherwise, combine fixed and random effects
   else{
     ## Extract and format posterior means for random effects
-    var_ranef <- as_tibble(ranef$var,rownames = "Effect") %>%
-      select(Effect, Mean) %>%
-      separate(Effect, c("ID","Effect"),sep=":",fill="right") %>%
-      replace_na(list(Effect = "(Intercept)")) %>%
-      spread(key = Effect, value = Mean)
+    var_ranef <- dplyr::as_tibble(ranef$var,rownames = "Effect") %>%
+      dplyr::select(Effect, Mean) %>%
+      dplyr::separate(Effect, c("ID","Effect"),sep=":",fill="right") %>%
+      dplyr::replace_na(list(Effect = "(Intercept)")) %>%
+      dplyr::spread(key = Effect, value = Mean)
     
     ## Combine fixed and random effects
     allef <- unique(c(names(var_fixef),names(var_ranef)[-1]))
