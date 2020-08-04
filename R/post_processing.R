@@ -726,10 +726,10 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
   else{
     ## Extract and format posterior means for random effects
     mean_ranef <- dplyr::as_tibble(ranef$mean,rownames = "Effect") %>%
-      dplyr::select(Effect, Mean) %>%
-      dplyr::separate(Effect, c("ID","Effect"),sep=":",fill="right") %>%
-      dplyr::replace_na(list(Effect = "(Intercept)")) %>%
-      dplyr::spread(key = Effect, value = Mean)
+      dplyr::select(.data$Effect, .data$Mean) %>%
+      dplyr::separate(.data$Effect, c("ID","Effect"),sep=":",fill="right") %>%
+      dplyr::replace_na(list(.data$Effect = "(Intercept)")) %>%
+      dplyr::spread(key = .data$Effect, value = .data$Mean)
     
     ## Combine fixed and random effects
     allef <- unique(c(names(mean_fixef),names(mean_ranef)[-1]))
@@ -765,10 +765,10 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
   else{
     ## Extract and format posterior means for random effects
     var_ranef <- dplyr::as_tibble(ranef$var,rownames = "Effect") %>%
-      dplyr::select(Effect, Mean) %>%
-      dplyr::separate(Effect, c("ID","Effect"),sep=":",fill="right") %>%
-      dplyr::replace_na(list(Effect = "(Intercept)")) %>%
-      dplyr::spread(key = Effect, value = Mean)
+      dplyr::select(.data$Effect, Mean) %>%
+      dplyr::separate(.data$Effect, c("ID","Effect"),sep=":",fill="right") %>%
+      dplyr::replace_na(list(.data$Effect = "(Intercept)")) %>%
+      dplyr::spread(key = .data$Effect, value = .data$Mean)
     
     ## Combine fixed and random effects
     allef <- unique(c(names(var_fixef),names(var_ranef)[-1]))
