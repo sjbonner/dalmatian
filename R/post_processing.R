@@ -386,7 +386,7 @@ traceplots <- function(object, ...) {
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
-#' @param plot If TRUE then plots will be shown. Otherwise, a list of \code{ggplot} objects will be returned if $\code{return == TRUE}.
+#' @param show If TRUE then plots are displayed on the computer screen and the session is paused between each plot. 
 #' @param return_plots If TRUE then return list of \code{ggplot} objects.
 #' @param ... Ignored
 #'

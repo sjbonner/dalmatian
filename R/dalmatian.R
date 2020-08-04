@@ -10,7 +10,7 @@
 ##' @param jags.model.args  List containing named arguments of \code{jags.model}. (list)
 ##' @param coda.samples.args List containing named arguments of \code{coda.samples}. (list)
 ##' @param response Name of variable in the data frame representing the response. (character)
-##' @param ntrial Name of variable in the data frame representing the number of independent trials for each observation of the beta binomial model.
+##' @param ntrials Name of variable in the data frame representing the number of independent trials for each observation of the beta binomial model.
 ##' @param rounding Specifies that response has been rounded if TRUE. (logical)
 ##' @param lower Name of variable in the data frame representing the lower bound on the response if rounded. (character)
 ##' @param upper Name of variable in the data frame representing the upper bound on the response if rounded. (character)
