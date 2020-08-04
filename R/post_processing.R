@@ -488,7 +488,7 @@ traceplots.dalmatian <-
 
             if (show){
                 if(interactive()){
-                    readLine(prompt="Press any key for the next plot:")
+                    readline(prompt="Press any key for the next plot:")
                 }
                 
                 print(output)
