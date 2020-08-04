@@ -25,7 +25,7 @@
 #' @format A data frame containing 500 observations and 6 columns:
 #' \describe{
 #'   \item{ID}{The individual ID.}
-#'   \item{Rep} The replicate number.
+#'   \item{Rep}{The replicate number}.
 #'   \item{x1}{The value of the covariate for the mean.}
 #'   \item{x2}{The value of the covariate for the dispersion.}
 #'   \item{m}{The number of Bernoulli trials for each observation.}
