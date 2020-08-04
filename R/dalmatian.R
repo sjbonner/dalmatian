@@ -459,7 +459,7 @@ by using the argument engine = \"JAGS\".")
 ##' Further control is available by calling these functions directly.
 ##'
 ##' @title Printed Summary of a \code{dalmatian} Object
-##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
+##' @param x Object of class \code{dalmatian} created by \code{dalmatian()}.
 ##' @param summary If TRUE (default) compute posterior summary statistics via \code{summary.dalmatian()}.
 ##' @param convergence If TRUE (default) compute MCMC convergence diagnostics via \code{convergence()}.
 ##' @return List of two elements containing posterior summary statstics and convergence diagnostics (if requested). 
@@ -472,38 +472,38 @@ by using the argument engine = \"JAGS\".")
 ##' print(pfresults)
 ##' print(pfresults2)
 ##' }
-print.dalmatian <- function(object,summary=TRUE,convergence=TRUE){
+print.dalmatian <- function(x,summary=TRUE,convergence=TRUE){
     ## Print information about model
     cat("Model Components\n\n")
 
     ## 1) Mean
     cat("  Mean:\n")
     cat("    Fixed:\n")
-    cat("      Formula: ",as.character(object$mean.model$fixed$formula),"\n")
-    cat("      Parameter name: ",object$mean.model$fixed$name,"\n\n")
+    cat("      Formula: ",as.character(x$mean.model$fixed$formula),"\n")
+    cat("      Parameter name: ",x$mean.model$fixed$name,"\n\n")
     
-    if(!is.null(object$mean.model$random)){
+    if(!is.null(x$mean.model$random)){
         cat("    Random:\n")
-        cat("      Formula: ",as.character(object$mean.model$random$formula),"\n")
-        cat("      Parameter name: ",object$mean.model$random$name,"\n\n")
+        cat("      Formula: ",as.character(x$mean.model$random$formula),"\n")
+        cat("      Parameter name: ",x$mean.model$random$name,"\n\n")
     }
 
     ## 2) Dispersion
     cat("  Dispersion:\n")
     cat("    Fixed:\n")
-    cat("      Formula: ",as.character(object$dispersion.model$fixed$formula),"\n")
-    cat("      Parameter name: ",object$dispersion.model$fixed$name,"\n\n")
+    cat("      Formula: ",as.character(x$dispersion.model$fixed$formula),"\n")
+    cat("      Parameter name: ",x$dispersion.model$fixed$name,"\n\n")
     
-    if(!is.null(object$dispersion.model$random)){
+    if(!is.null(x$dispersion.model$random)){
         cat("    Random:\n")
-        cat("      Formula: ",as.character(object$dispersion.model$random$formula),"\n")
-        cat("      Parameter name: ",object$dispersion.model$random$name,"\n\n")
+        cat("      Formula: ",as.character(x$dispersion.model$random$formula),"\n")
+        cat("      Parameter name: ",x$dispersion.model$random$name,"\n\n")
     }
 
 
     ## Compute summary and print
     if(summary){
-        summ <- summary(object)
+        summ <- summary(x)
 
         cat("\n\n")
         
@@ -515,7 +515,7 @@ print.dalmatian <- function(object,summary=TRUE,convergence=TRUE){
 
     ## Compute convergence diagnostics and print
     if(convergence){
-        diag <- convergence(object)
+        diag <- convergence(x)
 
         cat("\n\nConvergence Diagnostics\n\n")
 
@@ -543,7 +543,7 @@ print.dalmatian <- function(object,summary=TRUE,convergence=TRUE){
 ##' these functions directly.
 ##' 
 ##' @title Plot Function for \code{dalmatian} objects
-##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
+##' @param x Object of class \code{dalmatian} created by \code{dalmatian()}.
 ##' @param trace If TRUE (default) then generate traceplots.
 ##' @param caterpillar If TRUE (default) then generate caterpillar plots
 ##' @param show If TRUE (default) then display plots as they are generated.
@@ -560,16 +560,16 @@ print.dalmatian <- function(object,summary=TRUE,convergence=TRUE){
 ##' ## Plot results for pied-flycatcher model with random effects
 ##' plot(pfresults2)
 ##' }
-plot.dalmatian <- function(object,trace=TRUE,caterpillar=TRUE,show=TRUE,return_plots=FALSE){
+plot.dalmatian <- function(x,trace=TRUE,caterpillar=TRUE,show=TRUE,return_plots=FALSE){
     ## Create traceplots
     if(trace)
-        traces <- traceplots(object,show=show,return_plots=return_plots)
+        traces <- traceplots(x,show=show,return_plots=return_plots)
     else
         traces <- NULL
 
     ## Create caterpillar plots
     if(caterpillar)
-        cater <- caterpillar(object,show=show,return_plots=return_plots)
+        cater <- caterpillar(x,show=show,return_plots=return_plots)
     else
         traces <- NULL
 

@@ -647,7 +647,7 @@ caterpillar.dalmatian <-
 ##' input object.
 ##' 
 ##' @title Terms function for \code{dalmatian} objects
-##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
+##' @param x Object of class \code{dalmatian} created by \code{dalmatian()}.
 ##' @param ... Further object passed directly to \code{terms}. Recycled for each model component.
 ##' @return List of with two lists named mean and dispersion each containing \code{terms} objects
 ##' corresponding to the fixed and random components of that model component (if present).
@@ -661,7 +661,7 @@ caterpillar.dalmatian <-
 ##' ## Extract the terms objects corresponding to the pied-flycatcher model with random effects
 ##' terms(pfresults2)
 ##' }
-terms.dalmatian <- function(object,...){
+terms.dalmatian <- function(x,...){
   ## Extract terms objects for each component of the fitted model
 
   terms.dalmatian.component <- function(model,...){
@@ -685,8 +685,8 @@ terms.dalmatian <- function(object,...){
   }
   
   ## Return output
-  list(mean = terms.dalmatian.component(object$mean.model,...),
-       dispersion = terms.dalmatian.component(object$dispersion.model,...))
+  list(mean = terms.dalmatian.component(x$mean.model,...),
+       dispersion = terms.dalmatian.component(x$dispersion.model,...))
 }
 
 ##' coef (dalmatian)
