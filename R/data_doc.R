@@ -45,4 +45,4 @@
 #'   \item{x2}{The value of the covariate for the dispersion.}
 #'   \item{y}{The count.}
 #' }
-"betabin_data_1"
+"nbinom_data_1"
