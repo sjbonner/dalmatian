@@ -524,13 +524,15 @@ caterpillar <- function(object, ...) {
 #' Construct caterpillar plots for key (or selected) parameters in a dalmatian object.
 #'
 #' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
+#' @param family String defining selected family of variables (see help for \code{ggs()}).
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
-#' @param family String defining selected family of variables (see help for \code{ggs()}).
-#' @param plot If TRUE then generate plots. Otherwise, a list of \code{ggplot} objects will be returned.
+#' @param show If TRUE then plots are displayed on the computer screen and the session is paused between each plot. 
+#' @param return_plots If TRUE then a named list of ggplot objects containing the plots will be returned as output. 
 #' @param ... Ignored
 #'
+#' @param plot 
 #' @return A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
 #' @export
 #' @examples 
