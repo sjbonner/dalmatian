@@ -55,7 +55,7 @@ residuals.dalmatian <- function(object,...){
   ## Otherwise, response is observed exactly
   else{
     ## Compute the fitted values for the mean
-    output <- fitted(object)$mean
+    output <- predict(object)$mean
 
     ## Compute residuals
     y <- object$df[, object$response]
