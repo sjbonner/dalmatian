@@ -700,6 +700,7 @@ terms.dalmatian <- function(x,...){
 ##' @param ranef Random effects summary computed from the supplied \code{dalmatian} object (optional).
 ##' @return List of two lists named mean and dispersion each containing the posterior means of the coefficients
 ##' corresponding to the fixed and random terms of that model component (if present).
+##' @importFrom dplyr %>%
 ##' @author Simon Bonner
 coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
   ## Compute posterior summaries if not provided'
@@ -722,28 +723,28 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
   ## Otherwise, combine fixed and random effects
   else{
     ## Extract and format posterior means for random effects
-    mean_ranef <- as_tibble(ranef$mean,rownames = "Effect") %>%
-      select(Effect, Mean) %>%
-      separate(Effect, c("ID","Effect"),sep=":",fill="right") %>%
-      replace_na(list(Effect = "(Intercept)")) %>%
-      spread(key = Effect, value = Mean)
+    mean_ranef <- dplyr::as_tibble(ranef$mean,rownames = "Effect") %>%
+      dplyr::select(Effect, Mean) %>%
+      dplyr::separate(Effect, c("ID","Effect"),sep=":",fill="right") %>%
+      dplyr::replace_na(list(Effect = "(Intercept)")) %>%
+      dplyr::spread(key = Effect, value = Mean)
     
     ## Combine fixed and random effects
     allef <- unique(c(names(mean_fixef),names(mean_ranef)[-1]))
     
     tmp <- lapply(allef,function(ef){
       if(!ef %in% names(mean_fixef))
-        pull(mean_ranef,ef)
+        dplyr::pull(mean_ranef,ef)
       else if(!ef %in% names(mean_ranef))
         rep(mean_fixef[ef],nrow(mean_ranef))
       else
-        mean_fixef[ef] + pull(mean_ranef,ef)
+        mean_fixef[ef] + dplyr::pull(mean_ranef,ef)
     }) 
 
     coef_mean <- do.call("cbind",tmp)
 
     ## Add appropriate dimension names
-    dimnames(coef_mean) <- list(pull(mean_ranef,"ID"),allef)
+    dimnames(coef_mean) <- list(dplyr::pull(mean_ranef,"ID"),allef)
 
     ## Return output
     coef_mean
@@ -772,17 +773,17 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
     
     tmp <- lapply(allef,function(ef){
       if(!ef %in% names(var_fixef))
-        pull(var_ranef,ef)
+        dplyr::pull(var_ranef,ef)
       else if(!ef %in% names(var_ranef))
         rep(var_fixef[ef],nrow(var_ranef))
       else
-        var_fixef[ef] + pull(var_ranef,ef)
+        var_fixef[ef] + dplyr::pull(var_ranef,ef)
     }) 
 
     coef_var <- do.call("cbind",tmp)
 
     ## Add appropriate dimension names
-    dimnames(coef_var) <- list(pull(var_ranef,"ID"),allef)
+    dimnames(coef_var) <- list(dplyr::pull(var_ranef,"ID"),allef)
 
     ## Return output
     coef_var
