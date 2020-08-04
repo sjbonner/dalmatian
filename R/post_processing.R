@@ -487,7 +487,7 @@ traceplots.dalmatian <-
             output <- ggmcmc::ggs_traceplot(ggs1)
 
             if (show){
-                if(isInteractive){
+                if(interactive()){
                     readLine(prompt="Press any key for the next plot:")
                 }
                 
