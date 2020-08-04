@@ -10,7 +10,7 @@ Description: Automates fitting of double GLM in 'JAGS'. Includes automatic
     and 'nimble' packaged, and summarizing the resulting output.
 Depends:
     R (>= 3.5.0)
-License: GPL-2
+License: GPL-2 + file LICENSE
 LazyData: true
 VignetteBuilder: knitr
 Imports:
@@ -26,5 +26,5 @@ Suggests:
     dplyr,
     parallel,
     dclone
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Encoding: UTF-8
