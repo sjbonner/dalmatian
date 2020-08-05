@@ -49,9 +49,9 @@ The raw data for this example is provided in the package and can be accessed wit
 data(nbinom_data_1)
 ```
 This data contains observations from a hypothetical study in which 50 individuals each observed over 30 occasions for which the observed response is a count. Let $y_{ij}$ denote observed count on the $j$th occasion for individual $i$. The counts for each individual are assumed to be drawn from separate, independent, negative binomial distributions with mean
-$$\mbox{logit}(\mu_{i})=\alpha_0 + \alpha_1 x_{i1} + \epsilon_{i}$$
+$$\mbox{log}(\mu_{i})=\alpha_0 + \alpha_1 x_{i1} + \epsilon_{i}$$
 where $x_{i1}$ and $z_{i1}$ represent individual fixed and random effects on the mean and dispersion parameter defined by
-$$\mbox{logit}(\phi_{i})=\psi_0 + \psi_1 x_{i2} + \xi_{i}$$
+$$\mbox{log}(\phi_{i})=\psi_0 + \psi_1 x_{i2} + \xi_{i}$$
 where $x_{i2}$ and $\xi_{i}$ represent individual fixed and random effects on the dispersion. For the simulation we set $\alpha_0=\log(10)$, $\alpha_1=\log(2)$, $\psi_0=0$, and $\psi_1=2$. We then generate the fixed and random effects as
 $$x_{i1} \sim \mbox{Normal}(0,1)$$
 $$x_{i2} \sim \mbox{Normal}(0,1)$$
@@ -66,14 +66,14 @@ To illustrate the negative binomial we fit the data generating model to the simu
 ## Define mean and variance objects
 mymean <- list(fixed = list(name = "alpha",
                             formula = ~x1,
-                            link = "logit",
+                            link = "log",
                             priors = list(c("dnorm",0,.001))),
                random = list(name = "epsilon",
                              formula = ~ID - 1))
 
 mydisp <- list(fixed = list(name = "psi",
                             formula = ~x2,
-                            link = "logit",
+                            link = "log",
                             priors = list(c("dnorm",0,.001))),
                random = list(name = "xi",
                              formula = ~ID - 1))
@@ -128,28 +128,28 @@ Once the samples have been generated the post-processing functions can be used t
 ## Convergence Diagnostics
 ```{r}
 ## Compute convergence diagnostics
-bbconvergence <- convergence(nbresults)
+nbconvergence <- convergence(nbresults)
 
 ## Gelman-Rubin diagnostics
-bbconvergence$gelman
+nbconvergence$gelman
 
 ## Raftery diagnostics
-bbconvergence$raftery
+nbconvergence$raftery
 
 ## Effective sample size
-bbconvergence$effectiveSize
+nbconvergence$effectiveSize
 ```
 
 ## Traceplots
 ```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
-bbtraceplots <- traceplots(nbresults,show=FALSE)
+nbtraceplots <- traceplots(nbresults,show=FALSE)
 
 ## Fixed effects for mean
-bbtraceplots$meanFixed
+nbtraceplots$meanFixed
 
 ## Fixed effects for dispersion
-bbtraceplots$dispersionFixed
+nbtraceplots$dispersionFixed
 ```
 
 ## Numerical Summaries
@@ -161,11 +161,11 @@ summary(nbresults)
 ## Graphical Summaries
 ```{r,fig.width=6,fig.align="center"}
 ## Generate caterpillar
-bbcaterpillar <- caterpillar(nbresults,show = FALSE)
+nbcaterpillar <- caterpillar(nbresults,show = FALSE)
 
 ## Fixed effects for mean
-bbcaterpillar$meanFixed
+nbcaterpillar$meanFixed
 
 ## Fixed effects for dispersion
-bbcaterpillar$dispersionFixed
+nbcaterpillar$dispersionFixed
 ```
