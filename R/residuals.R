@@ -26,7 +26,7 @@
 ##' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
 ##' 
 ##' ## Compute residuals
-##' res.pfresults <- residual(object = pfresults)
+##' res.pfresults <- residuals(object = pfresults)
 ##' 
 ##' @author Simon Bonner
 residuals.dalmatian <- function(object,...){
