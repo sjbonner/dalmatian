@@ -105,7 +105,7 @@ if(runModels){
                          coda.samples.args=cs.args,
                          response = "y",
                          ntrials = "m",
-                         residuals = TRUE,
+                         residuals = FALSE,
                          run.model = TRUE,
                          engine = "JAGS",
                          n.cores = 3,

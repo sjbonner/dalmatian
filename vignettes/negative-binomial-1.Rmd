@@ -106,7 +106,7 @@ if(runModels){
                          jags.model.args=jm.args,
                          coda.samples.args=cs.args,
                          response = "y",
-                         residuals = TRUE,
+                         residuals = FALSE,
                          run.model = TRUE,
                          engine = "JAGS",
                          n.cores = 3,
