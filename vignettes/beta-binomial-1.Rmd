@@ -112,7 +112,7 @@ if(runModels){
                          overwrite = TRUE,
                          saveJAGSinput = workingDir)
 					 
-  save(results, file = "bbresults.RData")
+  save(bbresults, file = "bbresults.RData")
 }
 if(!runModels){
   load(system.file("Beta_Binomial_1","bbresults.RData",package="dalmatian"))
