@@ -702,7 +702,6 @@ terms.dalmatian <- function(x,...){
 ##' @param ranef Random effects summary computed from the supplied \code{dalmatian} object (optional).
 ##' @return List of two lists named mean and dispersion each containing the posterior means of the coefficients
 ##' corresponding to the fixed and random terms of that model component (if present).
-##' @importFrom dplyr %>%
 ##' @author Simon Bonner
 coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
   ## Compute posterior summaries if not provided'
@@ -727,9 +726,9 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
     ## Extract and format posterior means for random effects
     mean_ranef <- dplyr::as_tibble(ranef$mean,rownames = "Effect") %>%
       dplyr::select(.data$Effect, .data$Mean) %>%
-      dplyr::separate(.data$Effect, c("ID","Effect"),sep=":",fill="right") %>%
-      dplyr::replace_na(list(.data$Effect = "(Intercept)")) %>%
-      dplyr::spread(key = .data$Effect, value = .data$Mean)
+      tidyr::separate(.data$Effect, c("ID","Effect"),sep=":",fill="right") %>%
+      tidyr::replace_na(list(Effect = "(Intercept)")) %>%
+      tidyr::spread(key = .data$Effect, value = .data$Mean)
     
     ## Combine fixed and random effects
     allef <- unique(c(names(mean_fixef),names(mean_ranef)[-1]))
@@ -766,9 +765,9 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
     ## Extract and format posterior means for random effects
     var_ranef <- dplyr::as_tibble(ranef$var,rownames = "Effect") %>%
       dplyr::select(.data$Effect, Mean) %>%
-      dplyr::separate(.data$Effect, c("ID","Effect"),sep=":",fill="right") %>%
-      dplyr::replace_na(list(.data$Effect = "(Intercept)")) %>%
-      dplyr::spread(key = .data$Effect, value = .data$Mean)
+      tidyr::separate(.data$Effect, c("ID","Effect"),sep=":",fill="right") %>%
+      tidyr::replace_na(list(Effect = "(Intercept)")) %>%
+      tidyr::spread(key = .data$Effect, value = .data$Mean)
     
     ## Combine fixed and random effects
     allef <- unique(c(names(var_fixef),names(var_ranef)[-1]))
