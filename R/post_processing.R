@@ -532,7 +532,6 @@ caterpillar <- function(object, ...) {
 #' @param return_plots If TRUE then a named list of ggplot objects containing the plots will be returned as output. 
 #' @param ... Ignored
 #'
-#' @param plot 
 #' @return A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
 #' @export
 #' @examples 
