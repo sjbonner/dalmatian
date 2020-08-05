@@ -100,7 +100,7 @@ if(runModels){
   bbresults <- dalmatian(df=betabin_data_1,
                          family = "betabin",
                          mean.model=mymean,
-                         dispersion.model=myvar,
+                         dispersion.model=mydisp,
                          jags.model.args=jm.args,
                          coda.samples.args=cs.args,
                          response = "y",
@@ -118,7 +118,6 @@ if(!runModels){
   load(system.file("Beta_Binomial_1","bbresults.RData",package="dalmatian"))
 }
 ```
-
 
 # Results
 

@@ -56,7 +56,7 @@ mymean=list(fixed=list(name="alpha",
 
 
 # Random component of dispersion
-myvar=list(fixed=list(name="psi",
+mydisp=list(fixed=list(name="psi",
                link="log",
                formula=~1,
                priors=list(c("dnorm",0,.001))))
@@ -83,7 +83,7 @@ cs.args <- list(n.iter=1000)
 if(runModels){
   pfresults3 <- dalmatian(df=pfdata,
                           mean.model=mymean,
-                          dispersion.model=myvar,
+                          dispersion.model=mydisp,
                           jags.model.args=jm.args,
                           coda.samples.args=cs.args,
                           rounding=TRUE,

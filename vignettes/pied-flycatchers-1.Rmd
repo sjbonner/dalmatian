@@ -56,7 +56,7 @@ mymean=list(fixed=list(name="alpha",
        priors=list(c("dnorm",0,.001))))
 
 ## Dispersion model
-myvar=list(fixed=list(name="psi",
+mydisp=list(fixed=list(name="psi",
       link="log",
       formula=~broodsize + sex,
       priors=list(c("dnorm",0,.001))))
@@ -85,7 +85,7 @@ cs.args <- list(n.iter=5000,thin=20)
 if(runModels){
   pfresults <- dalmatian(df=pfdata,
                          mean.model=mymean,
-                         dispersion.model=myvar,
+                         dispersion.model=mydisp,
                          jags.model.args=jm.args,
                          coda.samples.args=cs.args,
                          rounding=TRUE,
@@ -176,7 +176,7 @@ Instead of creating new model objects we can simply add to the old objects by cr
 mymean$random=list(name="epsilon",formula=~-1 + indidx)
 
 # Random component of dispersion
-myvar$random=list(name="xi",formula=~-1 + indidx)
+mydisp$random=list(name="xi",formula=~-1 + indidx)
 ```
 
 ## Running the Model with dalmatian
@@ -188,7 +188,7 @@ The new model can now be run using `dalmatian` in exactly the same way as above.
 ## Define initial values
 inits <- lapply(1:3,function(i){
                 setJAGSInits(mymean,
-                      myvar,
+                      mydisp,
                       y = runif(nrow(pfdata),pfdata$lower,pfdata$upper),
                       fixed.mean = tail(pfresults$coda[[i]],1)[1:4],
                       fixed.dispersion = tail(pfresults$coda[[i]],1)[5:7],
@@ -208,7 +208,7 @@ cs.args <- list(n.iter=5000,thin=10)
 if(runModels){
   pfresults2 <- dalmatian(df=pfdata,
                           mean.model=mymean,
-                          dispersion.model=myvar,
+                          dispersion.model=mydisp,
                           jags.model.args=jm.args,
                           coda.samples.args=cs.args,
                           rounding=TRUE,
