@@ -18,7 +18,7 @@
 ##' @param level vector of levels of credible intervals for predictions (numeric)
 ##' @param ... Ignored
 ##' @return predictions (list)
-##' @importFrom stats density model.matrix quantile
+##' @importFrom stats density model.matrix quantile predict
 ##' @export
 ##' @examples 
 ##' 
