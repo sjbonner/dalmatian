@@ -34,7 +34,7 @@ residuals.dalmatian <- function(object,...){
   ## Extract residuals from MCMC sample (if computed)
   
   ## If residuals computed as part of MCMC simulation
-  if(object$residuals){
+  if(!is.null(object$residuals)){
     ## Extract sampled values of residuals
     cols <- grep("^resid\\[", colnames(object$coda[[1]]),value = TRUE)
 
