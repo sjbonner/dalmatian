@@ -462,6 +462,7 @@ by using the argument engine = \"JAGS\".")
 ##' @param x Object of class \code{dalmatian} created by \code{dalmatian()}.
 ##' @param summary If TRUE (default) compute posterior summary statistics via \code{summary.dalmatian()}.
 ##' @param convergence If TRUE (default) compute MCMC convergence diagnostics via \code{convergence()}.
+##' @param ... Ignored
 ##' @return List of two elements containing posterior summary statstics and convergence diagnostics (if requested). 
 ##' @author Simon Bonner
 ##' @export
@@ -472,7 +473,7 @@ by using the argument engine = \"JAGS\".")
 ##' print(pfresults)
 ##' print(pfresults2)
 ##' }
-print.dalmatian <- function(x,summary=TRUE,convergence=TRUE){
+print.dalmatian <- function(x,summary=TRUE,convergence=TRUE,...){
     ## Print information about model
     cat("Model Components\n\n")
 
@@ -548,6 +549,7 @@ print.dalmatian <- function(x,summary=TRUE,convergence=TRUE){
 ##' @param caterpillar If TRUE (default) then generate caterpillar plots
 ##' @param show If TRUE (default) then display plots as they are generated.
 ##' @param return_plots If TRUE (not default) return a list of \code{ggplot} objects representing the plots. 
+##' @param ... Ignored
 ##' @return List of \code{ggplot} objects if \code{return_plots} is true. 
 ##' @export
 ##' @author Simon Bonner
@@ -560,7 +562,7 @@ print.dalmatian <- function(x,summary=TRUE,convergence=TRUE){
 ##' ## Plot results for pied-flycatcher model with random effects
 ##' plot(pfresults2)
 ##' }
-plot.dalmatian <- function(x,trace=TRUE,caterpillar=TRUE,show=TRUE,return_plots=FALSE){
+plot.dalmatian <- function(x,trace=TRUE,caterpillar=TRUE,show=TRUE,return_plots=FALSE,...){
     ## Create traceplots
     if(trace)
         traces <- traceplots(x,show=show,return_plots=return_plots)
