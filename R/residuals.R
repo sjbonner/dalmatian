@@ -9,6 +9,7 @@
 ##' @return Data frame containing original data augmented with posterior
 ##' mean and lower and upper bounds of the 95% credible interval of the
 ##' residual for each observation.
+##' @importFrom stats residuals
 ##' @export
 ##' @examples 
 ##' 
