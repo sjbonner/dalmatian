@@ -8,25 +8,14 @@
 A data frame containing 500 observations and 6 columns:
 \describe{
   \item{ID}{The individual ID.}
-  \item{Rep} The replicate number.
+  \item{Rep}{The replicate number}.
   \item{x1}{The value of the covariate for the mean.}
   \item{x2}{The value of the covariate for the dispersion.}
   \item{m}{The number of Bernoulli trials for each observation.}
   \item{y}{The number of successes.}
 }
-
-A data frame containing 1500 observations and 5 columns:
-\describe{
-  \item{ID}{The individual ID.}
-  \item{Rep} The replicate number.
-  \item{x1}{The value of the covariate for the mean.}
-  \item{x2}{The value of the covariate for the dispersion.}
-  \item{y}{The count.}
-}
 }
 \usage{
-betabin_data_1
-
 betabin_data_1
 }
 \description{

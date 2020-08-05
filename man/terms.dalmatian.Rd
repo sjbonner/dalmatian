@@ -4,10 +4,10 @@
 \alias{terms.dalmatian}
 \title{Terms function for \code{dalmatian} objects}
 \usage{
-\method{terms}{dalmatian}(object, ...)
+\method{terms}{dalmatian}(x, ...)
 }
 \arguments{
-\item{object}{Object of class \code{dalmatian} created by \code{dalmatian()}.}
+\item{x}{Object of class \code{dalmatian} created by \code{dalmatian()}.}
 
 \item{...}{Further object passed directly to \code{terms}. Recycled for each model component.}
 }

@@ -5,15 +5,16 @@
 \title{Plot Function for \code{dalmatian} objects}
 \usage{
 \method{plot}{dalmatian}(
-  object,
+  x,
   trace = TRUE,
   caterpillar = TRUE,
   show = TRUE,
-  return_plots = FALSE
+  return_plots = FALSE,
+  ...
 )
 }
 \arguments{
-\item{object}{Object of class \code{dalmatian} created by \code{dalmatian()}.}
+\item{x}{Object of class \code{dalmatian} created by \code{dalmatian()}.}
 
 \item{trace}{If TRUE (default) then generate traceplots.}
 
@@ -22,6 +23,8 @@
 \item{show}{If TRUE (default) then display plots as they are generated.}
 
 \item{return_plots}{If TRUE (not default) return a list of \code{ggplot} objects representing the plots.}
+
+\item{...}{Ignored}
 }
 \value{
 List of \code{ggplot} objects if \code{return_plots} is true.

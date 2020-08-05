@@ -4,14 +4,16 @@
 \alias{print.dalmatian}
 \title{Printed Summary of a \code{dalmatian} Object}
 \usage{
-\method{print}{dalmatian}(object, summary = TRUE, convergence = TRUE)
+\method{print}{dalmatian}(x, summary = TRUE, convergence = TRUE, ...)
 }
 \arguments{
-\item{object}{Object of class \code{dalmatian} created by \code{dalmatian()}.}
+\item{x}{Object of class \code{dalmatian} created by \code{dalmatian()}.}
 
 \item{summary}{If TRUE (default) compute posterior summary statistics via \code{summary.dalmatian()}.}
 
 \item{convergence}{If TRUE (default) compute MCMC convergence diagnostics via \code{convergence()}.}
+
+\item{...}{Ignored}
 }
 \value{
 List of two elements containing posterior summary statstics and convergence diagnostics (if requested).
