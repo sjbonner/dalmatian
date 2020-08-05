@@ -16,14 +16,16 @@ VignetteBuilder: knitr
 Imports:
     coda,
     ggmcmc,
-    dglm
+    dglm,
+    tidyr,
+    dplyr,
+    rlang
 Suggests:
     gdata,
     rjags,
     nimble,
     knitr,
     ggplot2,
-    dplyr,
     parallel,
     dclone
 RoxygenNote: 7.1.1
