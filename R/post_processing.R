@@ -764,7 +764,7 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
   else{
     ## Extract and format posterior means for random effects
     var_ranef <- dplyr::as_tibble(ranef$var,rownames = "Effect") %>%
-      dplyr::select(.data$Effect, Mean) %>%
+      dplyr::select(.data$Effect, .data$Mean) %>%
       tidyr::separate(.data$Effect, c("ID","Effect"),sep=":",fill="right") %>%
       tidyr::replace_na(list(Effect = "(Intercept)")) %>%
       tidyr::spread(key = .data$Effect, value = .data$Mean)
