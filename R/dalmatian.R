@@ -138,6 +138,11 @@ dalmatian <- function(df,
       stop("The \"nimble\" package is required to run models in nimble. You may either install it with install.packages(\"nimble\") or run your model with \"JAGS\" instead using the argument engine=\"JAGS\".",
            call. = FALSE)
     }
+    else{
+      ## It is necessary to attach the namespace in order for nimble to
+      ## find its own functions.
+      attachNamespace("nimble")
+    }
   }
   else{
     stop(engine,"is not a recognized engine for MCMC sampling.",

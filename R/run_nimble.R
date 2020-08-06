@@ -44,7 +44,8 @@ parRunNimble <- function(jags.model.args, coda.samples.args, n.cores){
 
 parRunNimble_helper <- function(k, jags.model.args, coda.samples.args){
   ## Load nimble on node
-  library(nimble)
+  requireNamespace("nimble", quietly = TRUE)
+  attachNamespace("nimble")
   
   ## Initialize model
   cat("    Initializing model\n")
