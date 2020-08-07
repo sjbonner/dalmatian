@@ -44,11 +44,13 @@ pfresults <- dalmatian(df=pfdata,
                        rounding=TRUE,
                        lower="lower",
                        upper="upper",
-                       residuals = TRUE,
+                       n.cores = 3,
+                       residuals = FALSE,
+                       overwrite = TRUE,
                        debug=FALSE)
 
-save(pfresults,
-     file = path(proj_path(),"Pied_Flycatchers_1","pfresults.RData"))
+file <- file.path(proj_path(),"inst","Pied_Flycatchers_1","pfresults.RData")
+save(pfresults, file = file)
 
 ##### Model 2 #####
 
@@ -84,10 +86,13 @@ pfresults2 <- dalmatian(df=pfdata,
                         rounding=TRUE,
                         lower="lower",
                         upper="upper",
+                        n.cores = 3,
                         residuals=FALSE,
+                        overwrite = TRUE,
                         debug=FALSE)
 
-save(pfresults2,
-     file = path(proj_path(),"Pied_Flycatchers_1","pfresults2.RData"))
+file <- file.path(proj_path(),"inst","Pied_Flycatchers_1","pfresults2.RData")
+save(pfresults2, file = file)
+
 
 
