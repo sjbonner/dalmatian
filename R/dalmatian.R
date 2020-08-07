@@ -193,10 +193,14 @@ by using the argument engine = \"JAGS\".")
   mean.names.fixed <- paste0(mean.model$fixed$name,
                              ".",
                              colnames(jags.model.args$data$mean.fixed))
-
+  
   dispersion.names.fixed <- paste0(dispersion.model$fixed$name,
-                                 ".",
-                                 colnames(jags.model.args$data$dispersion.fixed))
+                                   ".",
+                                   colnames(jags.model.args$data$dispersion.fixed))
+
+  joint.names.fixed <- paste0(joint.model$fixed$name,
+                              ".",
+                              colnames(jags.model.args$data$joint.fixed))
 
   if (!is.null(mean.model$random)) {
     mean.names.sd <-
@@ -224,6 +228,22 @@ by using the argument engine = \"JAGS\".")
         colnames(jags.model.args$data$dispersion.random)
       )
   }
+  
+  if (!is.null(joint.model$random)) {
+      joint.names.sd <-
+      paste0("sd.",
+             joint.model$random$name,
+             ".",
+             attr(terms(joint.model$random$formula), "term.labels"))
+    
+    joint.names.random <-
+      paste0(
+        joint.model$random$name,
+        ".",
+        colnames(jags.model.args$data$joint.random)
+      )
+    }
+    
   ## Perform SVD if requested
   if (svd) {
     cat("    Computing singular value decompositions to improve mixing...")
@@ -446,7 +466,7 @@ by using the argument engine = \"JAGS\".")
         ))
     }
   }
-
+  
   ## Replace column names in coda with names from formula
   for (i in 1:length(coda)) {
     colnames(coda[[i]])[mean.index.fixed] <- mean.names.fixed
