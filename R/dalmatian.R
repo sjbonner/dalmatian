@@ -388,13 +388,15 @@ by using the argument engine = \"JAGS\".")
   ## Final tidying
   cat("Step 5: Tidying Output...")
 
-  ## Identify indices of mean and dispersion parameters in coda output
+  ## Identify indices of mean, dispersion, and joint parameters in coda output
   mean.index.fixed <- grep(paste0("^", mean.model$fixed$name),
                            coda::varnames(coda))
 
-  dispersion.index.fixed <-
-    grep(paste0("^", dispersion.model$fixed$name),
-         coda::varnames(coda))
+  dispersion.index.fixed <- grep(paste0("^", dispersion.model$fixed$name),
+                                 coda::varnames(coda))
+
+  joint.index.fixed <- grep(paste0("^", joint.model$fixed$name),
+                            coda::varnames(coda))
 
   if (!is.null(mean.model$random)) {
     mean.index.sd <-
@@ -414,6 +416,14 @@ by using the argument engine = \"JAGS\".")
            coda::varnames(coda))
   }
 
+  if (!is.null(joint.model$random)) {
+    joint.index.sd <-
+      grep(paste0("^sd\\.", joint.model$random$name), coda::varnames(coda))
+
+    joint.index.random <-
+      grep(paste0("^", joint.model$random$name),
+           coda::varnames(coda))
+  }
 
   ## 1) Transform chains to original scale
   if (svd) {
@@ -426,14 +436,20 @@ by using the argument engine = \"JAGS\".")
           dispersion.fixed.svd$d * t(dispersion.fixed.svd$v),
           t(coda[[i]][, dispersion.index.fixed])
         ))
+
+      coda[[i]][, joint.index.fixed] <-
+        t(solve(
+          joint.fixed.svd$d * t(joint.fixed.svd$v),
+          t(coda[[i]][, joint.index.fixed])
+        ))
     }
   }
 
   ## Replace column names in coda with names from formula
   for (i in 1:length(coda)) {
     colnames(coda[[i]])[mean.index.fixed] <- mean.names.fixed
-    colnames(coda[[i]])[dispersion.index.fixed] <-
-      dispersion.names.fixed
+    colnames(coda[[i]])[dispersion.index.fixed] <- dispersion.names.fixed
+    colnames(coda[[i]])[joint.index.fixed] <- joint.names.fixed
 
     if (!is.null(mean.model$random)) {
       colnames(coda[[i]])[mean.index.sd] <- mean.names.sd
@@ -448,10 +464,17 @@ by using the argument engine = \"JAGS\".")
       colnames(coda[[i]])[dispersion.index.random] <-
         dispersion.names.random
     }
+
+    if (!is.null(joint.model$random)) {
+      colnames(coda[[i]])[joint.index.sd] <- joint.names.sd
+
+      colnames(coda[[i]])[joint.index.random] <-
+        joint.names.random
+    }
   }
 
   cat("Done\n")
-
+  
   ## Create output object
   output$coda <- coda
 
@@ -518,6 +541,17 @@ print.dalmatian <- function(x,summary=TRUE,convergence=TRUE,...){
         cat("      Parameter name: ",x$dispersion.model$random$name,"\n\n")
     }
 
+  ## 3) Joint
+  cat("  Joint:\n")
+    cat("    Fixed:\n")
+    cat("      Formula: ",as.character(x$joint.model$fixed$formula),"\n")
+    cat("      Parameter name: ",x$joint.model$fixed$name,"\n\n")
+    
+    if(!is.null(x$joint.model$random)){
+        cat("    Random:\n")
+        cat("      Formula: ",as.character(x$joint.model$random$formula),"\n")
+        cat("      Parameter name: ",x$joint.model$random$name,"\n\n")
+    }
 
     ## Compute summary and print
     if(summary){
