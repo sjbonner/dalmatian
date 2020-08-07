@@ -796,7 +796,8 @@ terms.dalmatian <- function(x,...){
   
   ## Return output
   list(mean = terms.dalmatian.component(x$mean.model,...),
-       dispersion = terms.dalmatian.component(x$dispersion.model,...))
+       dispersion = terms.dalmatian.component(x$dispersion.model,...),
+       joint = terms.dalmatian.component(x$joint.model,...))
 }
 
 ##' coef (dalmatian)
