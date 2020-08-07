@@ -130,6 +130,8 @@ dalmatian <- function(df,
     )
 
   if(engine == "JAGS" || engine == "jags"){
+    engine <- "JAGS"
+    
     if (!requireNamespace("rjags", quietly = TRUE)) {
       stop("The \"rjags\" package is required to run models in JAGS. You may either install it with install.packages(\"rjags\") or run your model with \"nimble\" instead using the argument engine=\"nimble\".",
       call. = FALSE)
