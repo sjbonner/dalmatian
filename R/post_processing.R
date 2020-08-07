@@ -463,7 +463,21 @@ traceplots.dalmatian <-
                 print(output$dispersionFixed)
             }
 
-            ## Mean: random effects
+          ## Joint: fixed effects
+          ggs2 <-
+            ggmcmc::ggs(coda,
+                        paste0("^", object$joint.model$fixed$name, "\\."))
+          output$jointFixed <- ggmcmc::ggs_traceplot(ggs2)
+          
+          if (show){
+            if(is_interactive){
+              readline(prompt="Press any key for the next plot:")
+            }
+            
+            print(output$jointFixed)
+          }
+          
+          ## Mean: random effects
             if (!is.null(object$mean.model$random)) {
                 ggs3 <-
                     ggmcmc::ggs(coda,
@@ -479,6 +493,7 @@ traceplots.dalmatian <-
                 }
             }
 
+          ## Dispersion: random effects
             if (!is.null(object$dispersion.model$random)) {
                 ggs4 <-
                     ggmcmc::ggs(coda,
@@ -491,6 +506,22 @@ traceplots.dalmatian <-
                     }
                     
                     print(output$dispersionRandom)
+                }
+            }
+
+          ## Joint: random effects
+            if (!is.null(object$joint.model$random)) {
+                ggs4 <-
+                    ggmcmc::ggs(coda,
+                                paste0("^sd\\.", object$joint.model$random$name))
+                output$jointRandom <- ggmcmc::ggs_traceplot(ggs4)
+
+                if (show){
+                    if(is_interactive){
+                        readline(prompt="Press any key for the next plot:")
+                    }
+                    
+                    print(output$jointRandom)
                 }
             }
         }
