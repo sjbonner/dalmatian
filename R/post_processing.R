@@ -261,7 +261,7 @@ convergence <- function(object, ...) {
 #' Compute convergence diagnostics for a dalmatian object.
 #'
 #' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
-#' @param pars List of parameters to assess. If NULL (default) then diagnostics are computed for the fixed effects and random effects standard deviations in both the mean and dispersion models.
+#' @param pars List of parameters to assess. If NULL (default) then diagnostics are computed for the fixed effects and random effects standard deviations in the mean, dispersion, and joint components.
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
@@ -299,6 +299,11 @@ convergence.dalmatian <-
                     paste0("^", object$dispersion.model$fixed$name, "\\."),
                     coda::varnames(object$coda),
                     value = TRUE
+                ),
+                grep(
+                    paste0("^", object$joint.model$fixed$name, "\\."),
+                    coda::varnames(object$coda),
+                    value = TRUE
                 ))
 
             if (!is.null(object$mean.model$random))
@@ -313,6 +318,14 @@ convergence.dalmatian <-
                 pars <-
                     c(pars, grep(
                                 paste0("sd\\.", object$dispersion.model$random$name),
+                                coda::varnames(object$coda),
+                                value = TRUE
+                            ))
+
+            if (!is.null(object$joint.model$random))
+                pars <-
+                    c(pars, grep(
+                                paste0("sd\\.", object$joint.model$random$name),
                                 coda::varnames(object$coda),
                                 value = TRUE
                             ))
