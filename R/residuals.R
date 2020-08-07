@@ -18,7 +18,7 @@
 ##' @importFrom stats residuals
 ##' @export
 ##' @examples 
-##' \donttest{
+##' \dontrun{
 ##' ## Here we rerun the first example in
 ##' ## \code{vignettes(pied-flycatcher-1)} with \code{residuals = TRUE}
 ##' ## in order to sample the residuals and then use the \code{residuals()}
