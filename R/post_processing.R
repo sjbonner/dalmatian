@@ -89,7 +89,7 @@ summary.dalmatian <-
                     nend,
                     nthin
                 ),
-                varFixed = myCodaSummary(
+                dispFixed = myCodaSummary(
                     object$coda,
                     object$dispersion.model$fixed$name,
                     nstart,
@@ -111,7 +111,7 @@ summary.dalmatian <-
                                               nthin)
 
         if (!is.null(object$dispersion.model$random))
-            output$varRandom = myCodaSummary(
+            output$dispRandom = myCodaSummary(
                 object$coda,
                 paste0("sd\\.", object$dispersion.model$random$name),
                 nstart,
@@ -164,12 +164,12 @@ print.dalmatian.summary <- function(x, digits = 2, ...) {
 
     cat("\n")
     cat("Dispersion Model: Fixed Effects \n")
-    print(round(x$varFixed, digits))
+    print(round(x$dispFixed, digits))
 
-    if (!is.null(x$varRandom)) {
+    if (!is.null(x$dispRandom)) {
         cat("\n")
         cat("Dispersion Model: Random Effects \n")
-        print(round(x$varRandom, digits))
+        print(round(x$dispRandom, digits))
     }
 }
 
@@ -312,7 +312,7 @@ convergence.dalmatian <-
             if (!is.null(object$dispersion.model$random))
                 pars <-
                     c(pars, grep(
-                                paste0("sd\\.", object$variace.model$random$name),
+                                paste0("sd\\.", object$dispersion.model$random$name),
                                 coda::varnames(object$coda),
                                 value = TRUE
                             ))
@@ -753,43 +753,43 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
   ## Dispersion model
   
   ## Extract posterior means for fixed effects
-  var_fixef <- summary$varFixed[,"Mean"]
+  disp_fixef <- summary$dispFixed[,"Mean"]
 
   ## If model only contains fixed effects
-  if(is.null(object$var.model$random))
-    coef_var <- var_fixef
+  if(is.null(object$dispersion.model$random))
+    coef_disp <- disp_fixef
   
   ## Otherwise, combine fixed and random effects
   else{
     ## Extract and format posterior means for random effects
-    var_ranef <- dplyr::as_tibble(ranef$var,rownames = "Effect") %>%
+    disp_ranef <- dplyr::as_tibble(ranef$disp,rownames = "Effect") %>%
       dplyr::select(.data$Effect, .data$Mean) %>%
       tidyr::separate(.data$Effect, c("ID","Effect"),sep=":",fill="right") %>%
       tidyr::replace_na(list(Effect = "(Intercept)")) %>%
       tidyr::spread(key = .data$Effect, value = .data$Mean)
     
     ## Combine fixed and random effects
-    allef <- unique(c(names(var_fixef),names(var_ranef)[-1]))
+    allef <- unique(c(names(disp_fixef),names(disp_ranef)[-1]))
     
     tmp <- lapply(allef,function(ef){
-      if(!ef %in% names(var_fixef))
-        dplyr::pull(var_ranef,ef)
-      else if(!ef %in% names(var_ranef))
-        rep(var_fixef[ef],nrow(var_ranef))
+      if(!ef %in% names(disp_fixef))
+        dplyr::pull(disp_ranef,ef)
+      else if(!ef %in% names(disp_ranef))
+        rep(disp_fixef[ef],nrow(disp_ranef))
       else
-        var_fixef[ef] + dplyr::pull(var_ranef,ef)
+        disp_fixef[ef] + dplyr::pull(disp_ranef,ef)
     }) 
 
-    coef_var <- do.call("cbind",tmp)
+    coef_disp <- do.call("cbind",tmp)
 
     ## Add appropriate dimension names
-    dimnames(coef_var) <- list(dplyr::pull(var_ranef,"ID"),allef)
+    dimnames(coef_disp) <- list(dplyr::pull(disp_ranef,"ID"),allef)
 
     ## Return output
-    coef_var
+    coef_disp
   }
 
   ## Return output
   list(mean = coef_mean,
-       dispersion = coef_var)
+       dispersion = coef_disp)
 }
