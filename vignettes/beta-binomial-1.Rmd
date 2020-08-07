@@ -1,0 +1,169 @@
+---
+title: "Implementation of Beta-Binomial Model"
+author: "Simon Bonner"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Beta Binomial Example 1}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r,echo=FALSE}
+runModels <- FALSE # If true rerun models. OTW, reload previous output.
+```
+
+This package illustrates the implementation of the beta-binomial model for analyzing binomial data with overdispersion for which the level of overdisperion may vary dependent on fixed and/or random effects. As an example we consider the analysis of a simulated data set. We recommend that you work through the vignettes for the pied flycatcher data ("pied-flycatcher-1" and "pied-flycatcher-2") which contain further information on the structure of the package.
+
+# Beta-binomial model
+
+The base beta-binomial model assumes that each observation, $y_i$, represents the number of successes from $n_i$ Bernoulli trials for which the probability of success, $p_i$, is drawn from a beta distribution. The mean and dispersion parameters for the beta distribution, $\mu_i$ and $\phi_i$, are then modelled as linear combinations of fixed and random effects. 
+
+To define the model mathematically, we must consider a non-standard parametrization of the beta distribution in terms of the mean and dispersion such that $p \sim \mbox{Beta}(\mu,\phi)$ implies that the expected values and variance of $p$ are $\mu$ and $\phi \mu(1-\mu)$. We then assume that each observation follows a binomial distribution, $Y_i \sim \mbox{Binomial}(n_i,p_i)$, where $p_i \sim \mbox{Beta}(\mu_i,\phi_i)$ such that 
+$$
+g(\mu_i)=\eta_i=\mathbf x_{\mu,i}^\top \mathbf \alpha + \mathbf z_{\mu,i}^\top \mathbf \epsilon
+$$
+and 
+$$
+h(\phi_i)=\lambda_i= \mathbf x_{\sigma,i}^\top \mathbf \psi + \mathbf z_{\sigma,i}^\top \mathbf \xi
+$$
+with $\mathbf \alpha$ and $\mathbf \epsilon$ representing vectors of fixed and random effects for the mean and $\mathbf \psi$ and $\mathbf \xi$ fixed and random effects for the dispersion. Note that both $\mu_i$ and $\phi_i$ must be between 0 and 1, and so it makes sense to assume that both $g(\cdot)$ and $h(\cdot)$ follow logistic links, or some other link function that maintains this constraint. 
+
+Given this model the marginal mean and variance of $Y_i$ are $n_i\mu_i$ and $n_i\mu_i(1-\mu_i)[1 + (n_i-1)\phi_i]$. In comparison to the standard binomial model (achieved by setting $\phi_i \to 0$ so that $p_i=\mu_i$) the variance is inflated by a factor of $1 + (n_i-1)\phi_i$. 
+
+# Library
+
+First you have to load the package:
+```{r}
+## Load package
+library(dalmatian)
+```
+
+# Raw data
+
+The raw data for this example is provided in the package and can be accessed with:
+```{r}
+## Load beta-binomial data
+data(betabin_data_1)
+```
+This data contains observations from a hypothetical study in which 50 individuals who each complete 10 replicates of some experiment consisting of 30 independent Bernoulli trials. Let $y_{ij}$ denote the number of successes on the $j$th replicate for individual $i$ and $p_{ij}$ the corresponding probability of success so that $y_{ij} \sim \mbox{Bernoulli}(5,p_{ij})$. The probability of success on each replicate is then assumed to follow a beta distribution with mean $\mu_{i}=E(p_{ij})$ defined by
+$$\mbox{logit}(\mu_{i})=\alpha_0 + \alpha_1 x_{i1} + \epsilon_{i}$$
+where $x_{i1}$ and $z_{i1}$ represent individual fixed and random effects on the mean and dispersion parameter defined by
+$$\mbox{logit}(\phi_{i})=\psi_0 + \psi_1 x_{i2} + \xi_{i}$$
+where $x_{i2}$ and $\xi_{i}$ represent individual fixed and random effects on the dispersion. For the simulation we set $\alpha_0=0$, $\alpha_1=1$, $\psi_0=0$, and $\psi_1=2$. We then generate the fixed and random effects as
+$$x_{i1} \sim \mbox{Normal}(0,1)$$
+$$x_{i2} \sim \mbox{Normal}(0,1)$$
+$$\epsilon_{i} \sim \mbox{Normal}(0,1)$$
+$$\xi_{i} \sim \mbox{Normal}(0,1).$$
+
+# Defining the Model
+
+To illustrate the beta-binomial we fit the data generating model to the simulated data. The model structure is defined through two lists specifying the fixed and random effects for the mean and dispersion components:
+
+```{r}
+## Define mean and variance objects
+mymean <- list(fixed = list(name = "alpha",
+                            formula = ~x1,
+                            link = "logit",
+                            priors = list(c("dnorm",0,.001))),
+               random = list(name = "epsilon",
+                             formula = ~ID - 1))
+
+mydisp <- list(fixed = list(name = "psi",
+                            formula = ~x2,
+                            link = "logit",
+                            priors = list(c("dnorm",0,.001))),
+               random = list(name = "xi",
+                             formula = ~ID - 1))
+
+```
+
+# Running the Model with dalmatian
+
+Once the model structure has been defined the model can be fit with the function `dalmatian`. The following code creates the lists of arguments supplied to `jags.model` and `coda.samples` and then calls `dalmatian` to run the MCMC sampler. Note that the beta-binomial model is fit by specifying that `family="betabin"`. For the beta-binomial model it is necessary to specify the name of the variable in the data set that contains the number of trials for each observation (in this case "m"). Though the number of trials is constant in the simulated data this is not necessary. 
+
+```{r}
+
+## Set working directory
+## By default uses a system temp directory. You probably want to change this.
+workingDir <- tempdir()
+
+## Define list of arguments for jags.model()
+jm.args <- list(file=file.path(workingDir,"betabin_test_1.R"),n.chains = 3, n.adapt = 1000)
+
+## Define list of arguments for coda.samples()
+cs.args <- list(n.iter=5000,thin=20)
+
+## Run the model using dalmatian
+## This is how the model is run. However, to save you time we will load output from a previous run instead.
+if(runModels){
+  bbresults <- dalmatian(df=betabin_data_1,
+                         family = "betabin",
+                         mean.model=mymean,
+                         dispersion.model=mydisp,
+                         jags.model.args=jm.args,
+                         coda.samples.args=cs.args,
+                         response = "y",
+                         ntrials = "m",
+                         residuals = FALSE,
+                         run.model = TRUE,
+                         engine = "JAGS",
+                         n.cores = 3,
+                         overwrite = TRUE,
+                         saveJAGSinput = workingDir)
+					 
+  save(bbresults, file = "bbresults.RData")
+}
+if(!runModels){
+  load(system.file("Beta_Binomial_1","bbresults.RData",package="dalmatian"))
+}
+```
+
+# Results
+
+Once the samples have been generated the post-processing functions can be used to examine the behaviour of the sampler and compute posterior summary statistics. These functions are described further in the help pages and in the vignettes analyzing the pied flycatcher data.
+
+## Convergence Diagnostics
+```{r}
+## Compute convergence diagnostics
+bbconvergence <- convergence(bbresults)
+
+## Gelman-Rubin diagnostics
+bbconvergence$gelman
+
+## Raftery diagnostics
+bbconvergence$raftery
+
+## Effective sample size
+bbconvergence$effectiveSize
+```
+
+## Traceplots
+```{r,fig.width=6,fig.align="center"}
+## Generate traceplots
+bbtraceplots <- traceplots(bbresults,show=FALSE)
+
+## Fixed effects for mean
+bbtraceplots$meanFixed
+
+## Fixed effects for dispersion
+bbtraceplots$dispersionFixed
+```
+
+## Numerical Summaries
+```{r}
+## Compute numerical summaries
+summary(bbresults)
+```
+
+## Graphical Summaries
+```{r,fig.width=6,fig.align="center"}
+## Generate caterpillar
+bbcaterpillar <- caterpillar(bbresults,show = FALSE)
+
+## Fixed effects for mean
+bbcaterpillar$meanFixed
+
+## Fixed effects for dispersion
+bbcaterpillar$dispersionFixed
+```
