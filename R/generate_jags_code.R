@@ -191,8 +191,8 @@ buildLinearPredictor <- function(lp = NULL,
   if(is.null(lp)){
     if(component == "mean")
       lhs <- "muy[i]"
-    else if(component == "variance")
-      lhs <- "sdy[i]"
+    else if(component == "dispersion")
+      lhs <- "phi[i]"
     else
       stop("Unknown model component,", component,", in buildLinearpredictor.")
 
