@@ -266,6 +266,11 @@ ranef.dalmatian <-
                 myCodaSummary(object$coda,
                               paste0("^", object$dispersion.model$random$name))
 
+        if (!is.null(object$joint.model$random))
+          output$joint <-
+            myCodaSummary(object$coda,
+                          paste0("^", object$joint.model$random$name))
+
         return(output)
     }
 
@@ -818,7 +823,8 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
     summary <- summary(object)
 
   ## Compute posterior summaries of random effects (if not provided and model contains random effects)
-  if((!is.null(object$mean.model$random) | !is.null(object$dispersion.model$random)) & is.null(ranef))
+  if((!is.null(object$mean.model$random) | !is.null(object$dispersion.model$random) |
+      !is.null(objec$joint.model$random) & is.null(ranef))
     ranef <- ranef(object)
 
   ## Mean model
