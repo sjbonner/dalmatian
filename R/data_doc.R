@@ -18,3 +18,31 @@
 #'
 "weights.df"
 
+#' Simulated data for illustrating the beta-binomial model
+#'
+#' Simulated data to show how the beta-binomial model may be fit with fixed and random effects on both the mean and dispersion.
+#'
+#' @format A data frame containing 500 observations and 6 columns:
+#' \describe{
+#'   \item{ID}{The individual ID.}
+#'   \item{Rep}{The replicate number}.
+#'   \item{x1}{The value of the covariate for the mean.}
+#'   \item{x2}{The value of the covariate for the dispersion.}
+#'   \item{m}{The number of Bernoulli trials for each observation.}
+#'   \item{y}{The number of successes.}
+#' }
+"betabin_data_1"
+
+' Simulated data for illustrating the negative binomial model
+#'
+#' Simulated data to show how the negative binomial model may be fit with fixed and random effects on both the mean and dispersion.
+#'
+#' @format A data frame containing 1500 observations and 5 columns:
+#' \describe{
+#'   \item{ID}{The individual ID.}
+#'   \item{Rep}{The replicate number.}
+#'   \item{x1}{The value of the covariate for the mean.}
+#'   \item{x2}{The value of the covariate for the dispersion.}
+#'   \item{y}{The count.}
+#' }
+"nbinom_data_1"

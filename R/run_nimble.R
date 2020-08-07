@@ -13,7 +13,7 @@ runNimble <- function(jags.model.args, coda.samples.args){
 
   coda <- nimble::nimbleMCMC(model = model,
                              inits = jags.model.args$inits,
-                             monitors = parameters,
+                             monitors = coda.samples.args$variable.names,
                              niter = jags.model.args$n.adapt +
                                coda.samples.args$n.iter,
                              thin = coda.samples.args$thin,
@@ -44,7 +44,8 @@ parRunNimble <- function(jags.model.args, coda.samples.args, n.cores){
 
 parRunNimble_helper <- function(k, jags.model.args, coda.samples.args){
   ## Load nimble on node
-  library(nimble)
+  requireNamespace("nimble", quietly = TRUE)
+  attachNamespace("nimble")
   
   ## Initialize model
   cat("    Initializing model\n")

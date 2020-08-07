@@ -1,9 +1,11 @@
 ##' @importFrom stats model.matrix
 generateJAGSdata <-
   function(df,
+           family,
            mean.model,
-           variance.model,
+           dispersion.model,
            response = NULL,
+           ntrials = NULL,
            lower = NULL,
            upper = NULL,
            drop.levels = TRUE,
@@ -59,29 +61,29 @@ generateJAGSdata <-
         mean.model$random$sigma ^ 2
     }
 
-    ## Construct design matrices for variance model
-    jags.data$variance.fixed <-
-      model.matrix(variance.model$fixed$formula, df)
-    jags.data[[paste0(variance.model$fixed$name, ".n")]] <-
-      ncol(jags.data$variance.fixed)
+    ## Construct design matrices for dispersion model
+    jags.data$dispersion.fixed <-
+      model.matrix(dispersion.model$fixed$formula, df)
+    jags.data[[paste0(dispersion.model$fixed$name, ".n")]] <-
+      ncol(jags.data$dispersion.fixed)
 
-    if (!is.null(variance.model$random)) {
-      jags.data$variance.random <-
-        model.matrix(variance.model$random$formula, df)
+    if (!is.null(dispersion.model$random)) {
+      jags.data$dispersion.random <-
+        model.matrix(dispersion.model$random$formula, df)
 
-      tmp <- attr(jags.data$variance.random, "assign")
+      tmp <- attr(jags.data$dispersion.random, "assign")
 
-      jags.data[[paste0(variance.model$random$name, ".ncomponents")]] <-
+      jags.data[[paste0(dispersion.model$random$name, ".ncomponents")]] <-
         max(tmp)
-      jags.data[[paste0(variance.model$random$name, ".neffects")]] <-
+      jags.data[[paste0(dispersion.model$random$name, ".neffects")]] <-
         length(tmp)
-      jags.data[[paste0(variance.model$random$name, ".levels")]] <-
+      jags.data[[paste0(dispersion.model$random$name, ".levels")]] <-
         tmp
     }
 
-    ## Construct weights for variance model
-    if (!is.null(variance.model$weights))
-      jags.data$weights <- df[[variance.model$weights]]
+    ## Construct weights for dispersion model
+    if (!is.null(dispersion.model$weights))
+      jags.data$weights <- df[[dispersion.model$weights]]
 
     ## Add response variable
     if(("tbl" %in% class(df))){
@@ -109,6 +111,14 @@ generateJAGSdata <-
         stop(
           "You must either specify the exact response value or both lower and upper bounds for rounding.\n\n"
         )
+    }
+
+    ## Add number of trials for betabinomial
+    if(family == "betabin"){
+      if(is.null(ntrials))
+        stop("You must specify the number of independent trials for each observation of the beta-binomial model.\n\n")
+      
+      jags.data$m <- dplyr::pull(df,ntrials)
     }
 
     ## Return data list

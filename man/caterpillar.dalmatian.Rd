@@ -26,9 +26,11 @@
 
 \item{nthin}{Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).}
 
-\item{...}{Ignored}
+\item{show}{If TRUE then plots are displayed on the computer screen and the session is paused between each plot.}
 
-\item{plot}{If TRUE then generate plots. Otherwise, a list of \code{ggplot} objects will be returned.}
+\item{return_plots}{If TRUE then a named list of ggplot objects containing the plots will be returned as output.}
+
+\item{...}{Ignored}
 }
 \value{
 A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.

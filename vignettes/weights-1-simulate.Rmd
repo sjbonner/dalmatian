@@ -38,7 +38,7 @@ mymean=list(fixed=list(name="alpha",formula=~ x,
             priors=list(c("dnorm",0,.001))))
 
 ## Variance model
-myvar=list(fixed=list(name="psi",link="log",formula=~ x,
+mydisp=list(fixed=list(name="psi",link="log",formula=~ x,
            priors=list(c("dnorm",0,.001))))
 
 ## Set working directory
@@ -55,7 +55,7 @@ cs.args = list(n.iter=1000)
 results1 <- dalmatian(
   df = weights.df,
   mean.model = mymean,
-  variance.model = myvar,
+  dispersion.model = mydisp,
   jags.model.args = jm.args,
   coda.samples.args = cs.args,
   response = "y",
@@ -78,19 +78,19 @@ We now re-run the model including the weights.
 
 ```{r}
 ## Specify column containing weights
-myvar$weights = "n"
+mydisp$weights = "n"
 
 ## Run model
 jm.args = list(file="weights_2_jags.R",n.adapt=1000)
 
 results2 = dalmatian(df=weights.df,
-                        mean.model=mymean,
-                        variance.model=myvar,
-                        jags.model.args=jm.args,
-                        coda.samples.args=cs.args,
-                        response="y",
+                     mean.model=mymean,
+                     dispersion.model=mydisp,
+                     jags.model.args=jm.args,
+                     coda.samples.args=cs.args,
+                     response="y",
                      overwrite = TRUE,
-                        debug=FALSE)
+                     debug=FALSE)
 
 ## Numerical summary statistics
 summary(results2)

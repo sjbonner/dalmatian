@@ -1,4 +1,4 @@
-# History files
+.# History files
 .Rhistory
 .Rapp.history
 
@@ -25,3 +25,8 @@ vignettes/*.pdf
 # Git ignore
 .gitignore
 dalmatian/.gitignore
+doc
+Meta
+
+# Rcheck
+..Rcheck

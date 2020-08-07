@@ -4,11 +4,13 @@
 ##' @title Run DGLM in \code{JAGS} via \code{rjags}
 ##'
 ##' @param df Data frame containing the response and predictor values for each individual. (data.frame)
+##' @param family Name of family of response distribution. Currently supported families include normal (\code{gaussian}) and negative binomial (\code{nbinom}). (character)
 ##' @param mean.model Model list specifying the structure of the mean. (list)
-##' @param variance.model Model list specifying the structure of the variance. (list)
+##' @param dispersion.model Model list specifying the structure of the dispersion. (list)
 ##' @param jags.model.args  List containing named arguments of \code{jags.model}. (list)
 ##' @param coda.samples.args List containing named arguments of \code{coda.samples}. (list)
 ##' @param response Name of variable in the data frame representing the response. (character)
+##' @param ntrials Name of variable in the data frame representing the number of independent trials for each observation of the beta binomial model.
 ##' @param rounding Specifies that response has been rounded if TRUE. (logical)
 ##' @param lower Name of variable in the data frame representing the lower bound on the response if rounded. (character)
 ##' @param upper Name of variable in the data frame representing the upper bound on the response if rounded. (character)
@@ -17,6 +19,7 @@
 ##' @param debug If TRUE then enter debug model. (logical)
 ##' @param residuals If TRUE then compute residuals in output. (logical)
 ##' @param gencode If TRUE then generate code potentially overwriting existing model file. By default generate code if the file does not exist and prompt user if it does. (logical)
+##' @param run.model If TRUE then run sampler. Otherwise, stop once code and data have been created. (logical)
 ##' @param engine Specifies the sampling software. Packages currently supported include JAGS (the default) and nimble. (character)
 ##' @param n.cores Number of cores to use. If equal to 1 then chains will not be run in parallel. If greater than 1 then chains will be run in parallel using the designated number of cores. 
 ##' @param drop.levels If TRUE then drop unused levels from all factors in df. (logical)
@@ -25,7 +28,7 @@
 ##' @param saveJAGSinput Directory to which jags.model input is saved prior to calling \code{jags.model()}. This is useful for debugging. No files saved if NULL. (character)
 ##'
 ##' @return An object of class \code{dalmatian} contaiining copies of the original data frame, the mean model, the
-##' variance model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler. 
+##' dispersion model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler. 
 ##' @author Simon Bonner
 ##' @importFrom stats terms
 ##' @export
@@ -44,7 +47,7 @@
 ##'                       formula=~ log(IVI) + broodsize + sex,
 ##'                       priors=list(c("dnorm",0,.001))))
 ##'
-##' ## Variance model
+##' ## Dispersion model
 ##' myvar=list(fixed=list(name="psi",
 ##'                       link="log",
 ##'                       formula=~broodsize + sex,
@@ -63,7 +66,7 @@
 ##' ## Run the model using dalmatian
 ##' pfresults <- dalmatian(df=pfdata,
 ##'                          mean.model=mymean,
-##'                          variance.model=myvar,
+##'                          dispersion.model=myvar,
 ##'                          jags.model.args=jm.args,
 ##'                          coda.samples.args=cs.args,
 ##'                          rounding=TRUE,
@@ -72,18 +75,21 @@
 ##'                          debug=FALSE)
 ##' }                          
 dalmatian <- function(df,
+                      family = "gaussian",
                       mean.model,
-                      variance.model,
+                      dispersion.model,
                       jags.model.args,
                       coda.samples.args,
                       response = NULL,
+                      ntrials = NULL,
                       rounding = FALSE,
                       lower = NULL,
                       upper = NULL,
                       parameters = NULL,
-                      svd = TRUE,
+                      svd = FALSE,
                       residuals = FALSE,
                       gencode = NULL,
+                      run.model = TRUE,
                       engine = "JAGS",
                       n.cores = 1L,
                       drop.levels = TRUE,
@@ -96,14 +102,20 @@ dalmatian <- function(df,
   if (debug)
     browser()
 
-  ## Check that input is sufficient
-  if (rounding && (is.null(lower) || is.null(upper)))
+  ## Check that input is consistent and sufficient
+  if (! family %in% c("gaussian","nbinom","betabin"))
+    stop("Currently supported families of distributions for the response include either Gaussian (family=\"gaussian\"), negative binomial (family=\"nbinom\"), or b.\n\n")
+  
+  if (rounding & (is.null(lower) || is.null(upper)))
     stop(
       "If rounding=TRUE then you must specify the names of both the lower and upper bounds of the response.\n\n"
     )
 
-  if (!rounding && is.null(response))
+  if (!rounding & is.null(response))
     stop("Please specify the name of the response variable.\n\n")
+
+  if (rounding & family %in% c("negbinom","betabin"))
+    stop("Rounding of responses is currently not supported for discrete response distributions. Please contact the maintainer to ask about this feature,.\n\n")
 
   if (is.null(jags.model.args$file))
     stop(
@@ -126,11 +138,20 @@ dalmatian <- function(df,
       stop("The \"nimble\" package is required to run models in nimble. You may either install it with install.packages(\"nimble\") or run your model with \"JAGS\" instead using the argument engine=\"JAGS\".",
            call. = FALSE)
     }
+    else{
+      ## It is necessary to attach the namespace in order for nimble to
+      ## find its own functions.
+      attachNamespace("nimble")
+    }
   }
   else{
     stop(engine,"is not a recognized engine for MCMC sampling.",
          call. = FALSE)
   }
+
+  if(engine == "nimble" & family == "betabin")
+    stop("The \"nimble\" package does not currently support the beta-binomial distribution. Please run your model with \"JAGS\" instead
+by using the argument engine = \"JAGS\".")
 
   if(n.cores < 1 | !all.equal(n.cores %% 1, 0)){
     stop("Number of cores (n.cores) must be a positive integer.\n")
@@ -139,7 +160,7 @@ dalmatian <- function(df,
   if(n.cores > 1){
     ## Load parallel
     if (!requireNamespace("parallel", quietly = TRUE)) {
-      stop("The \"parallel\" packages is required to run chains in parallel. Please install the packge and try again.",
+      stop("The \"parallel\" packages is required to run chains in parallel. Please install the package and try again.",
            call. = FALSE)
     }
   } 
@@ -150,9 +171,11 @@ dalmatian <- function(df,
   jags.model.args$data <-
     generateJAGSdata(
       df,
+      family,
       mean.model,
-      variance.model,
+      dispersion.model,
       response = response,
+      ntrials = ntrials,
       lower = lower,
       upper = upper,
       drop.levels = drop.levels,
@@ -166,9 +189,9 @@ dalmatian <- function(df,
                              ".",
                              colnames(jags.model.args$data$mean.fixed))
 
-  variance.names.fixed <- paste0(variance.model$fixed$name,
+  dispersion.names.fixed <- paste0(dispersion.model$fixed$name,
                                  ".",
-                                 colnames(jags.model.args$data$variance.fixed))
+                                 colnames(jags.model.args$data$dispersion.fixed))
 
   if (!is.null(mean.model$random)) {
     mean.names.sd <-
@@ -182,18 +205,18 @@ dalmatian <- function(df,
                                 colnames(jags.model.args$data$mean.random))
   }
 
-  if (!is.null(variance.model$random)) {
-    variance.names.sd <-
+  if (!is.null(dispersion.model$random)) {
+    dispersion.names.sd <-
       paste0("sd.",
-             variance.model$random$name,
+             dispersion.model$random$name,
              ".",
-             attr(terms(mean.model$random$formula), "term.labels"))
-
-    variance.names.random <-
+             attr(terms(dispersion.model$random$formula), "term.labels"))
+    
+    dispersion.names.random <-
       paste0(
-        variance.model$random$name,
+        dispersion.model$random$name,
         ".",
-        colnames(jags.model.args$data$variance.random)
+        colnames(jags.model.args$data$dispersion.random)
       )
   }
   ## Perform SVD if requested
@@ -202,12 +225,12 @@ dalmatian <- function(df,
 
     ## Compute SVD
     mean.fixed.svd <- svd(jags.model.args$data$mean.fixed)
-    variance.fixed.svd <-
-      svd(jags.model.args$data$variance.fixed)
+    dispersion.fixed.svd <-
+      svd(jags.model.args$data$dispersion.fixed)
 
     ## Replace design matrices with orthogal matrices
     jags.model.args$data$mean.fixed <- mean.fixed.svd$u
-    jags.model.args$data$variance.fixed <- variance.fixed.svd$u
+    jags.model.args$data$dispersion.fixed <- dispersion.fixed.svd$u
 
     cat("Done\n")
   }
@@ -239,9 +262,10 @@ dalmatian <- function(df,
 
   if (gencode)
     generateJAGScode(
+      family,
       jags.model.args,
       mean.model,
-      variance.model,
+      dispersion.model,
       rounding = rounding,
       residuals = residuals
     )
@@ -249,32 +273,39 @@ dalmatian <- function(df,
   cat("Done\n")
   
   ## Generate JAGS initial values
-  cat("Step 3: Generating initial values...")
+  cat("Step 3: Generating initial values...\n")
 
-  if (is.null(jags.model.args$inits)) {
-    if (is.null(jags.model.args$n.chains)){
-      cat("\n    Running three parallel chains by default...")
+  ## Only implemented for normal model at the moment
+  if(family == "gaussian"){
+    if (is.null(jags.model.args$inits)) {
+      if (is.null(jags.model.args$n.chains)){
+        cat("\n    Running three parallel chains by default...")
+      }
+      else {
+        cat("\n    Automatic generation of initial values currently works only with three chains. Setting n.chains=3...")
+      }
+      jags.model.args$n.chains <- 3
+      
+      jags.model.args$inits <-
+        generateJAGSinits(family,
+                          mean.model,
+                          dispersion.model,
+                          jags.model.args$data)
+      
+      cat("Done\n")
     }
-    else {
-      cat("\n    Automatic generation of initial values currently works only with three chains. Setting n.chains=3...")
+    else{
+      if (is.null(jags.model.args$n.chains))
+        jags.model.args$n.chains <-
+          length(jags.model.args$inits)
+      
+      cat("Skipped\n")
     }
-    jags.model.args$n.chains <- 3
-
-    jags.model.args$inits <-
-      generateJAGSinits(mean.model,
-                        variance.model,
-                        jags.model.args$data)
-
-    cat("Done\n")
   }
   else{
-    if (is.null(jags.model.args$n.chains))
-      jags.model.args$n.chains <-
-        length(jags.model.args$inits)
-
-    cat("Skipped\n")
+    jags.model.args$inits <- NULL
   }
-
+  
   ## Save JAGS files
   if(!is.null(saveJAGSinput)){
     if(!dir.exists(saveJAGSinput))
@@ -284,6 +315,24 @@ dalmatian <- function(df,
   }
 
   ## Run model
+  output <- list(
+    df=df,
+    family = family,
+    mean.model = mean.model,
+    dispersion.model = dispersion.model,
+    jags.model.args = jags.model.args,
+    coda.samples.args = coda.samples.args,
+    rounding = rounding,
+    parameters = parameters,
+    svd = svd,
+    residuals = residuals,
+    drop.levels = drop.levels,
+    drop.missing = drop.missing)
+
+  if(!run.model){
+    return(output)
+  }
+
   cat("Step 4: Running model\n")
 
   ## List parameters to monitor
@@ -291,8 +340,8 @@ dalmatian <- function(df,
     parameters <- c(
       mean.model$fixed$name,
       mean.model$random$name,
-      variance.model$fixed$name,
-      variance.model$random$name
+      dispersion.model$fixed$name,
+      dispersion.model$random$name
     )
   
   if (residuals && !(residuals %in% parameters))
@@ -302,17 +351,17 @@ dalmatian <- function(df,
     parameters <- c(parameters,
                     paste0("sd.", mean.model$random$name))
   
-  if (!is.null(variance.model$random))
+  if (!is.null(dispersion.model$random))
     parameters <- c(parameters,
-                    paste0("sd.", variance.model$random$name))
+                    paste0("sd.", dispersion.model$random$name))
 
   coda.samples.args$variable.names <- parameters
 
   if(engine == "JAGS"){
     if(n.cores > 1)
-      coda <- parRunJAGS(jags.model.args, coda.samples.args, n.cores)
+      coda <- parRunJAGS(family, jags.model.args, coda.samples.args, n.cores)
     else
-      coda <- runJAGS(jags.model.args, coda.samples.args)
+      coda <- runJAGS(family, jags.model.args, coda.samples.args)
   }
 
   if(engine == "nimble"){
@@ -327,12 +376,12 @@ dalmatian <- function(df,
   ## Final tidying
   cat("Step 5: Tidying Output...")
 
-  ## Identify indices of mean and variance parameters in coda output
+  ## Identify indices of mean and dispersion parameters in coda output
   mean.index.fixed <- grep(paste0("^", mean.model$fixed$name),
                            coda::varnames(coda))
 
-  variance.index.fixed <-
-    grep(paste0("^", variance.model$fixed$name),
+  dispersion.index.fixed <-
+    grep(paste0("^", dispersion.model$fixed$name),
          coda::varnames(coda))
 
   if (!is.null(mean.model$random)) {
@@ -344,12 +393,12 @@ dalmatian <- function(df,
            coda::varnames(coda))
   }
 
-  if (!is.null(variance.model$random)) {
-    variance.index.sd <-
-      grep(paste0("^sd\\.", variance.model$random$name), coda::varnames(coda))
+  if (!is.null(dispersion.model$random)) {
+    dispersion.index.sd <-
+      grep(paste0("^sd\\.", dispersion.model$random$name), coda::varnames(coda))
 
-    variance.index.random <-
-      grep(paste0("^", variance.model$random$name),
+    dispersion.index.random <-
+      grep(paste0("^", dispersion.model$random$name),
            coda::varnames(coda))
   }
 
@@ -360,10 +409,10 @@ dalmatian <- function(df,
       coda[[i]][, mean.index.fixed] <-
         t(solve(mean.fixed.svd$d * t(mean.fixed.svd$v), t(coda[[i]][, mean.index.fixed])))
 
-      coda[[i]][, variance.index.fixed] <-
+      coda[[i]][, dispersion.index.fixed] <-
         t(solve(
-          variance.fixed.svd$d * t(variance.fixed.svd$v),
-          t(coda[[i]][, variance.index.fixed])
+          dispersion.fixed.svd$d * t(dispersion.fixed.svd$v),
+          t(coda[[i]][, dispersion.index.fixed])
         ))
     }
   }
@@ -371,8 +420,8 @@ dalmatian <- function(df,
   ## Replace column names in coda with names from formula
   for (i in 1:length(coda)) {
     colnames(coda[[i]])[mean.index.fixed] <- mean.names.fixed
-    colnames(coda[[i]])[variance.index.fixed] <-
-      variance.names.fixed
+    colnames(coda[[i]])[dispersion.index.fixed] <-
+      dispersion.names.fixed
 
     if (!is.null(mean.model$random)) {
       colnames(coda[[i]])[mean.index.sd] <- mean.names.sd
@@ -381,31 +430,18 @@ dalmatian <- function(df,
         mean.names.random
     }
 
-    if (!is.null(variance.model$random)) {
-      colnames(coda[[i]])[variance.index.sd] <- variance.names.sd
+    if (!is.null(dispersion.model$random)) {
+      colnames(coda[[i]])[dispersion.index.sd] <- dispersion.names.sd
 
-      colnames(coda[[i]])[variance.index.random] <-
-        variance.names.random
+      colnames(coda[[i]])[dispersion.index.random] <-
+        dispersion.names.random
     }
   }
 
   cat("Done\n")
 
   ## Create output object
-  output <- list(
-    df=df,
-    mean.model = mean.model,
-    variance.model = variance.model,
-    jags.model.args = jags.model.args,
-    coda.samples.args = coda.samples.args,
-    rounding = rounding,
-    parameters = parameters,
-    svd = svd,
-    residuals = residuals,
-    drop.levels = drop.levels,
-    drop.missing = drop.missing,
-    coda = coda
-  )
+  output$coda <- coda
 
   if(rounding){
     output$lower <- lower
@@ -428,9 +464,10 @@ dalmatian <- function(df,
 ##' Further control is available by calling these functions directly.
 ##'
 ##' @title Printed Summary of a \code{dalmatian} Object
-##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
+##' @param x Object of class \code{dalmatian} created by \code{dalmatian()}.
 ##' @param summary If TRUE (default) compute posterior summary statistics via \code{summary.dalmatian()}.
 ##' @param convergence If TRUE (default) compute MCMC convergence diagnostics via \code{convergence()}.
+##' @param ... Ignored
 ##' @return List of two elements containing posterior summary statstics and convergence diagnostics (if requested). 
 ##' @author Simon Bonner
 ##' @export
@@ -441,38 +478,38 @@ dalmatian <- function(df,
 ##' print(pfresults)
 ##' print(pfresults2)
 ##' }
-print.dalmatian <- function(object,summary=TRUE,convergence=TRUE){
+print.dalmatian <- function(x,summary=TRUE,convergence=TRUE,...){
     ## Print information about model
     cat("Model Components\n\n")
 
     ## 1) Mean
     cat("  Mean:\n")
     cat("    Fixed:\n")
-    cat("      Formula: ",as.character(object$mean.model$fixed$formula),"\n")
-    cat("      Parameter name: ",object$mean.model$fixed$name,"\n\n")
+    cat("      Formula: ",as.character(x$mean.model$fixed$formula),"\n")
+    cat("      Parameter name: ",x$mean.model$fixed$name,"\n\n")
     
-    if(!is.null(object$mean.model$random)){
+    if(!is.null(x$mean.model$random)){
         cat("    Random:\n")
-        cat("      Formula: ",as.character(object$mean.model$random$formula),"\n")
-        cat("      Parameter name: ",object$mean.model$random$name,"\n\n")
+        cat("      Formula: ",as.character(x$mean.model$random$formula),"\n")
+        cat("      Parameter name: ",x$mean.model$random$name,"\n\n")
     }
 
-    ## 2) Variance
-    cat("  Variance:\n")
+    ## 2) Dispersion
+    cat("  Dispersion:\n")
     cat("    Fixed:\n")
-    cat("      Formula: ",as.character(object$variance.model$fixed$formula),"\n")
-    cat("      Parameter name: ",object$variance.model$fixed$name,"\n\n")
+    cat("      Formula: ",as.character(x$dispersion.model$fixed$formula),"\n")
+    cat("      Parameter name: ",x$dispersion.model$fixed$name,"\n\n")
     
-    if(!is.null(object$variance.model$random)){
+    if(!is.null(x$dispersion.model$random)){
         cat("    Random:\n")
-        cat("      Formula: ",as.character(object$variance.model$random$formula),"\n")
-        cat("      Parameter name: ",object$variance.model$random$name,"\n\n")
+        cat("      Formula: ",as.character(x$dispersion.model$random$formula),"\n")
+        cat("      Parameter name: ",x$dispersion.model$random$name,"\n\n")
     }
 
 
     ## Compute summary and print
     if(summary){
-        summ <- summary(object)
+        summ <- summary(x)
 
         cat("\n\n")
         
@@ -484,7 +521,7 @@ print.dalmatian <- function(object,summary=TRUE,convergence=TRUE){
 
     ## Compute convergence diagnostics and print
     if(convergence){
-        diag <- convergence(object)
+        diag <- convergence(x)
 
         cat("\n\nConvergence Diagnostics\n\n")
 
@@ -512,11 +549,12 @@ print.dalmatian <- function(object,summary=TRUE,convergence=TRUE){
 ##' these functions directly.
 ##' 
 ##' @title Plot Function for \code{dalmatian} objects
-##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
+##' @param x Object of class \code{dalmatian} created by \code{dalmatian()}.
 ##' @param trace If TRUE (default) then generate traceplots.
 ##' @param caterpillar If TRUE (default) then generate caterpillar plots
 ##' @param show If TRUE (default) then display plots as they are generated.
 ##' @param return_plots If TRUE (not default) return a list of \code{ggplot} objects representing the plots. 
+##' @param ... Ignored
 ##' @return List of \code{ggplot} objects if \code{return_plots} is true. 
 ##' @export
 ##' @author Simon Bonner
@@ -529,16 +567,16 @@ print.dalmatian <- function(object,summary=TRUE,convergence=TRUE){
 ##' ## Plot results for pied-flycatcher model with random effects
 ##' plot(pfresults2)
 ##' }
-plot.dalmatian <- function(object,trace=TRUE,caterpillar=TRUE,show=TRUE,return_plots=FALSE){
+plot.dalmatian <- function(x,trace=TRUE,caterpillar=TRUE,show=TRUE,return_plots=FALSE,...){
     ## Create traceplots
     if(trace)
-        traces <- traceplots(object,show=show,return_plots=return_plots)
+        traces <- traceplots(x,show=show,return_plots=return_plots)
     else
         traces <- NULL
 
     ## Create caterpillar plots
     if(caterpillar)
-        cater <- caterpillar(object,show=show,return_plots=return_plots)
+        cater <- caterpillar(x,show=show,return_plots=return_plots)
     else
         traces <- NULL
 

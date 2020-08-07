@@ -6,24 +6,24 @@
 \usage{
 setJAGSInits(
   mean.model,
-  variance.model,
+  dispersion.model,
   fixed.mean = NULL,
-  fixed.variance = NULL,
+  fixed.dispersion = NULL,
   y = NULL,
   random.mean = NULL,
   sd.mean = NULL,
-  random.variance = NULL,
-  sd.variance = NULL
+  random.dispersion = NULL,
+  sd.dispersion = NULL
 )
 }
 \arguments{
 \item{mean.model}{Model list specifying the structure of the mean. (list)}
 
-\item{variance.model}{Model list specifyint the structure of the variance. (list)}
+\item{dispersion.model}{Model list specifyint the structure of the dispersion. (list)}
 
 \item{fixed.mean}{Initial values for the fixed effects of the mean. (numeric)}
 
-\item{fixed.variance}{Initial values for the fixed effects of the variance. (numeric)}
+\item{fixed.dispersion}{Initial values for the fixed effects of the dispersion. (numeric)}
 
 \item{y}{Inital values for the true response. This should only be specified if the \code{rounding = TRUE} in the main call to dalmatian.}
 
@@ -31,9 +31,9 @@ setJAGSInits(
 
 \item{sd.mean}{Initial values for the standard deviation of the random effects of the mean. (numeric)}
 
-\item{random.variance}{Initial values for the random effects of the variance. (numeric}
+\item{random.dispersion}{Initial values for the random effects of the dispersion. (numeric}
 
-\item{sd.variance}{Initial values for the standard deviation of the random effects of the variance. (numeric)}
+\item{sd.dispersion}{Initial values for the standard deviation of the random effects of the dispersion. (numeric)}
 }
 \value{
 inits (list)
@@ -59,10 +59,10 @@ load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
 ## Set initial values for a new run of the same model
 inits <- lapply(1:3,function(i){
   setJAGSInits(pfresults$mean.model,
-               pfresults$variance.model,
+               pfresults$dispersion.model,
                y = runif(nrow(pfdata),pfdata$lower,pfdata$upper),
                fixed.mean = tail(pfresults$coda[[i]],1)[1:4],
-               fixed.variance = tail(pfresults$coda[[i]],1)[5:7],
+               fixed.dispersion = tail(pfresults$coda[[i]],1)[5:7],
                sd.mean = 1)
 })
 }
