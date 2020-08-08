@@ -247,14 +247,27 @@ by using the argument engine = \"JAGS\".")
   if (svd) {
     cat("    Computing singular value decompositions to improve mixing...")
 
-    ## Compute SVD
-    mean.fixed.svd <- svd(jags.model.args$data$mean.fixed)
-    dispersion.fixed.svd <-
-      svd(jags.model.args$data$dispersion.fixed)
+    ## Compute SVD and replace original matrices with orthogonal matrices
+    if(!is.null(mean.model$fixed)){
+      mean.fixed.svd <- svd(jags.model.args$data$mean.fixed)
+      jags.model.args$data$mean.fixed <- mean.fixed.svd$u
+    }
 
+    if(!is.null(dispersion.model$fixed)){
+      dispersion.fixed.svd <-
+        svd(jags.model.args$data$dispersion.fixed)
+      
+      jags.model.args$data$dispersion.fixed <- dispersion.fixed.svd$u
+    }
+
+    if(!is.null(joint.model$fixed)){
+      joint.fixed.svd <-
+        svd(jags.model.args$data$dispersion.fixed)
+
+      jags.model.args$data$dispersion.fixed <- dispersion.fixed.svd$u
+    }
+        
     ## Replace design matrices with orthogal matrices
-    jags.model.args$data$mean.fixed <- mean.fixed.svd$u
-    jags.model.args$data$dispersion.fixed <- dispersion.fixed.svd$u
 
     cat("Done\n")
   }
@@ -387,8 +400,8 @@ by using the argument engine = \"JAGS\".")
       if (!is.null(joint.model$random))
         parameters <- c(parameters,
                         paste0("sd.", joint.model$random$name))
-
-      coda.samples.args$variable.names <- parameters
+  
+  coda.samples.args$variable.names <- parameters
 
   if(engine == "JAGS"){
     if(n.cores > 1)
@@ -410,14 +423,23 @@ by using the argument engine = \"JAGS\".")
   cat("Step 5: Tidying Output...")
 
   ## Identify indices of mean, dispersion, and joint parameters in coda output
-  mean.index.fixed <- grep(paste0("^", mean.model$fixed$name),
-                           coda::varnames(coda))
+  if(!is.null(mean.model$fixed))
+    mean.index.fixed <- grep(paste0("^", mean.model$fixed$name),
+                             coda::varnames(coda))
+  else
+    mean.index.fixed <- NULL
 
-  dispersion.index.fixed <- grep(paste0("^", dispersion.model$fixed$name),
-                                 coda::varnames(coda))
+  if(!is.null(dispersion.model$fixed))
+    dispersion.index.fixed <- grep(paste0("^", dispersion.model$fixed$name),
+                                   coda::varnames(coda))
+  else
+    dispersion.index.fixed <- NULL
 
-  joint.index.fixed <- grep(paste0("^", joint.model$fixed$name),
-                            coda::varnames(coda))
+  if(!is.null(joint.model$fixed))
+    joint.index.fixed <- grep(paste0("^", joint.model$fixed$name),
+                              coda::varnames(coda))
+  else
+    joint.index.fixed <- NULL
 
   if (!is.null(mean.model$random)) {
     mean.index.sd <-
@@ -430,7 +452,8 @@ by using the argument engine = \"JAGS\".")
 
   if (!is.null(dispersion.model$random)) {
     dispersion.index.sd <-
-      grep(paste0("^sd\\.", dispersion.model$random$name), coda::varnames(coda))
+      grep(paste0("^sd\\.", dispersion.model$random$name),
+           coda::varnames(coda))
 
     dispersion.index.random <-
       grep(paste0("^", dispersion.model$random$name),
@@ -468,9 +491,14 @@ by using the argument engine = \"JAGS\".")
   
   ## Replace column names in coda with names from formula
   for (i in 1:length(coda)) {
-    colnames(coda[[i]])[mean.index.fixed] <- mean.names.fixed
-    colnames(coda[[i]])[dispersion.index.fixed] <- dispersion.names.fixed
-    colnames(coda[[i]])[joint.index.fixed] <- joint.names.fixed
+    if(!is.null(mean.index.fixed))
+       colnames(coda[[i]])[mean.index.fixed] <- mean.names.fixed
+
+    if(!is.null(dispersion.index.fixed))
+      colnames(coda[[i]])[dispersion.index.fixed] <- dispersion.names.fixed
+
+    if(!is.null(joint.index.fixed))
+      colnames(coda[[i]])[joint.index.fixed] <- joint.names.fixed
 
     if (!is.null(mean.model$random)) {
       colnames(coda[[i]])[mean.index.sd] <- mean.names.sd
