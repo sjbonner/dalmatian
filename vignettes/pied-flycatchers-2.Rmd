@@ -1,10 +1,10 @@
 ---
-title: "Analysis of the Pied Flycatcher Data: Random Slopes"
+title: "Pied Flycatcher 2: Random Slopes"
 author: "Simon Bonner"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Pied Flycatchers -- Part II}
+  %\VignetteIndexEntry{Pied Flycatcher 2: Random Slopes}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
