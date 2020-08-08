@@ -6,7 +6,7 @@ Authors@R: c(
   person("Hanna","Kim",email="hkim787@uwo.ca",role=c("aut")))
 Description: Automates fitting of double GLM in 'JAGS'. Includes automatic
     generation of 'JAGS' scripts, running 'JAGS' or 'nimble' via the 'rjags'
-    and 'nimble' packaged, and summarizing the resulting output.
+    and 'nimble' package, and summarizing the resulting output.
 Depends:
     R (>= 3.5.0)
 License: file LICENSE
