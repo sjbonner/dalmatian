@@ -6,7 +6,7 @@ myCodaSummary <-
              nend = end(coda),
              nthin = coda::thin(coda)) {
         ## Generate summary for fixed effects components with names of the form base.
-
+      
         ## Identify parameters matching the given form
         pars <-
             grep(paste0("^", base, "\\."), coda::varnames(coda), value = TRUE)
@@ -86,7 +86,7 @@ summary.dalmatian <-
                      nchain = coda::nchain(object$coda))
 
       ## Compute summaries of fixed effects
-
+      
       ## Mean
       if(!is.null(object$mean.model$fixed)){
         output$meanFixed <- myCodaSummary(
@@ -705,7 +705,7 @@ caterpillar.dalmatian <-
           if(!is.null(object$joint.model$fixed)){
             ggs2 <-
               ggmcmc::ggs(coda,
-                          pastete0("^", object$joint.model$fixed$name, "\\."))
+                          paste0("^", object$joint.model$fixed$name, "\\."))
             output$jointFixed <- ggmcmc::ggs_caterpillar(ggs2)
             
             if (show){
@@ -842,6 +842,7 @@ terms.dalmatian <- function(x,...){
 ##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 ##' @param summary Posterior summaries computed from the supplied \code{dalmatian} object (optional).
 ##' @param ranef Random effects summary computed from the supplied \code{dalmatian} object (optional).
+##' @param ... Ignored
 ##' @return List of three lists named mean, dispersion, and joint each containing the posterior means of the coefficients
 ##' corresponding to the fixed and random terms of that model component (if present).
 ##' @export

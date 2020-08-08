@@ -12,6 +12,8 @@
 \item{summary}{Posterior summaries computed from the supplied \code{dalmatian} object (optional).}
 
 \item{ranef}{Random effects summary computed from the supplied \code{dalmatian} object (optional).}
+
+\item{...}{Ignored}
 }
 \value{
 List of three lists named mean, dispersion, and joint each containing the posterior means of the coefficients
