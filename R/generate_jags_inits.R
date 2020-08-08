@@ -1,4 +1,3 @@
-##' @importFrom stats coef formula gaussian rnorm runif sd
 ##' @importFrom dglm dglm
 ##'
 generateJAGSinits <- function(family,

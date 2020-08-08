@@ -1,4 +1,3 @@
-##' @importFrom stats start end window median sd
 ##' @importFrom coda thin
 myCodaSummary <-
     function(coda,

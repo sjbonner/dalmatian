@@ -31,7 +31,6 @@
 ##' @return An object of class \code{dalmatian} contaiining copies of the original data frame, the mean model, the
 ##' dispersion model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler. 
 ##' @author Simon Bonner
-##' @importFrom stats terms
 ##' @export
 ##' @examples
 ##' 
