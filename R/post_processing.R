@@ -976,6 +976,6 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL, ...){
   
   ## Return output
   list(mean = coef_mean,
-       jointersion = coef_disp,
+       dispersion = coef_disp,
        joint = coef_joint)
 }
