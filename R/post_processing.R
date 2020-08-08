@@ -1,4 +1,3 @@
-##' @importFrom stats start end window median sd
 ##' @importFrom coda thin
 myCodaSummary <-
     function(coda,
@@ -7,7 +6,7 @@ myCodaSummary <-
              nend = end(coda),
              nthin = coda::thin(coda)) {
         ## Generate summary for fixed effects components with names of the form base.
-
+      
         ## Identify parameters matching the given form
         pars <-
             grep(paste0("^", base, "\\."), coda::varnames(coda), value = TRUE)
@@ -79,30 +78,52 @@ summary.dalmatian <-
              nend = end(object$coda),
              nthin = thin(object$coda),
              ...) {
-        ## Compute summaries of fixed effects
-        output <-
-            list(
-                meanFixed = myCodaSummary(
-                    object$coda,
-                    object$mean.model$fixed$name,
-                    nstart,
-                    nend,
-                    nthin
-                ),
-                varFixed = myCodaSummary(
-                    object$coda,
-                    object$dispersion.model$fixed$name,
-                    nstart,
-                    nend,
-                    nthin
-                ),
-                start = nstart,
-                end = nend,
-                thin = nthin,
-                nchain = coda::nchain(object$coda)
-            )
 
-        ## Compute summaries of random effects
+      ## Initialize summary
+      output <- list(start = nstart,
+                     end = nend,
+                     thin = nthin,
+                     nchain = coda::nchain(object$coda))
+
+      ## Compute summaries of fixed effects
+      
+      ## Mean
+      if(!is.null(object$mean.model$fixed)){
+        output$meanFixed <- myCodaSummary(
+          object$coda,
+          object$mean.model$fixed$name,
+          nstart,
+          nend,
+          nthin
+        )
+      }
+
+      ## Dispersion
+      if(!is.null(object$dispersion.model$fixed)){
+        output$dispFixed <- myCodaSummary(
+          object$coda,
+          object$dispersion.model$fixed$name,
+          nstart,
+          nend,
+          nthin
+        )
+      }
+
+      ## Joint
+      if(!is.null(object$joint.model$fixed)){
+        output$jointFixed <- myCodaSummary(
+          object$coda,
+          object$joint.model$fixed$name,
+          nstart,
+          nend,
+          nthin
+        )
+      }
+        
+      
+      ## Compute summaries of random effects
+
+      ## Mean
         if (!is.null(object$mean.model$random))
             output$meanRandom = myCodaSummary(object$coda,
                                               paste0("sd\\.", object$mean.model$random$name),
@@ -110,10 +131,21 @@ summary.dalmatian <-
                                               nend,
                                               nthin)
 
+      ## Dispersion
         if (!is.null(object$dispersion.model$random))
-            output$varRandom = myCodaSummary(
+            output$dispRandom = myCodaSummary(
                 object$coda,
                 paste0("sd\\.", object$dispersion.model$random$name),
+                nstart,
+                nend,
+                nthin
+            )
+
+      ## Joint
+      if (!is.null(object$joint.model$random))
+            output$dispRandom = myCodaSummary(
+                object$coda,
+                paste0("sd\\.", object$joint.model$random$name),
                 nstart,
                 nend,
                 nthin
@@ -153,24 +185,42 @@ print.dalmatian.summary <- function(x, digits = 2, ...) {
 
     cat("Posterior Summary Statistics for Each Model Component\n\n")
 
+  if(!is.null(x$meanFixed)){
     cat("Mean Model: Fixed Effects \n")
     print(round(x$meanFixed, digits))
+  }
 
-    if (!is.null(x$meanRandom)) {
-        cat("\n")
-        cat("Mean Model: Random Effects \n")
-        print(round(x$meanRandom, digits))
-    }
-
+  if (!is.null(x$meanRandom)) {
     cat("\n")
+    cat("Mean Model: Random Effects \n")
+    print(round(x$meanRandom, digits))
+  }
+  
+  cat("\n")
+  if (!is.null(x$dispFixed)){
     cat("Dispersion Model: Fixed Effects \n")
-    print(round(x$varFixed, digits))
+    print(round(x$dispFixed, digits))
+  }
 
-    if (!is.null(x$varRandom)) {
-        cat("\n")
-        cat("Dispersion Model: Random Effects \n")
-        print(round(x$varRandom, digits))
-    }
+  if (!is.null(x$dispRandom)) {
+    cat("\n")
+    cat("Dispersion Model: Random Effects \n")
+    print(round(x$dispRandom, digits))
+  }
+  
+  cat("\n")
+  if (!is.null(x$jointFixed)){
+    cat("Joint Model: Fixed Effects \n")
+    print(round(x$jointFixed, digits))
+  }
+
+  if (!is.null(x$jointRandom)) {
+    cat("\n")
+    cat("Joint Model: Random Effects \n")
+    print(round(x$jointRandom, digits))
+  }
+
+  
 }
 
 #' Random Effects (S3 Generic)
@@ -232,6 +282,11 @@ ranef.dalmatian <-
                 myCodaSummary(object$coda,
                               paste0("^", object$dispersion.model$random$name))
 
+        if (!is.null(object$joint.model$random))
+          output$joint <-
+            myCodaSummary(object$coda,
+                          paste0("^", object$joint.model$random$name))
+
         return(output)
     }
 
@@ -261,7 +316,7 @@ convergence <- function(object, ...) {
 #' Compute convergence diagnostics for a dalmatian object.
 #'
 #' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
-#' @param pars List of parameters to assess. If NULL (default) then diagnostics are computed for the fixed effects and random effects standard deviations in both the mean and dispersion models.
+#' @param pars List of parameters to assess. If NULL (default) then diagnostics are computed for the fixed effects and random effects standard deviations in the mean, dispersion, and joint components.
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
@@ -299,6 +354,11 @@ convergence.dalmatian <-
                     paste0("^", object$dispersion.model$fixed$name, "\\."),
                     coda::varnames(object$coda),
                     value = TRUE
+                ),
+                grep(
+                    paste0("^", object$joint.model$fixed$name, "\\."),
+                    coda::varnames(object$coda),
+                    value = TRUE
                 ))
 
             if (!is.null(object$mean.model$random))
@@ -312,7 +372,15 @@ convergence.dalmatian <-
             if (!is.null(object$dispersion.model$random))
                 pars <-
                     c(pars, grep(
-                                paste0("sd\\.", object$variace.model$random$name),
+                                paste0("sd\\.", object$dispersion.model$random$name),
+                                coda::varnames(object$coda),
+                                value = TRUE
+                            ))
+
+            if (!is.null(object$joint.model$random))
+                pars <-
+                    c(pars, grep(
+                                paste0("sd\\.", object$joint.model$random$name),
                                 coda::varnames(object$coda),
                                 value = TRUE
                             ))
@@ -422,35 +490,55 @@ traceplots.dalmatian <-
             else
                 coda <- object$coda
             
-            ## Mean: fixed effects
+          ## Mean: fixed effects
+          if(!is.null(object$mean.model$fixed)){
             ggs1 <-
-                ggmcmc::ggs(coda,
-                            paste0("^", object$mean.model$fixed$name, "\\."))
+              ggmcmc::ggs(coda,
+                          paste0("^", object$mean.model$fixed$name, "\\."))
             output <- list(meanFixed = ggmcmc::ggs_traceplot(ggs1))
 
             if (show){
-                if(is_interactive){
-                    readline(prompt="Press any key for the next plot:")
-                }
-                
-                print(output$meanFixed)
+              if(is_interactive){
+                readline(prompt="Press any key for the next plot:")
+              }
+              
+              print(output$meanFixed)
             }
+          }
 
-            ## Dispersion: fixed effects
+          ## Dispersion: fixed effects
+          if(!is.null(object$dispersion.model$fixed)){
             ggs2 <-
-                ggmcmc::ggs(coda,
-                            paste0("^", object$dispersion.model$fixed$name, "\\."))
+              ggmcmc::ggs(coda,
+                          paste0("^", object$dispersion.model$fixed$name, "\\."))
             output$dispersionFixed <- ggmcmc::ggs_traceplot(ggs2)
-
+            
             if (show){
-                if(is_interactive){
-                    readline(prompt="Press any key for the next plot:")
-                }
-                
-                print(output$dispersionFixed)
+              if(is_interactive){
+                readline(prompt="Press any key for the next plot:")
+              }
+              
+              print(output$dispersionFixed)
             }
-
-            ## Mean: random effects
+          }
+          
+          ## Joint: fixed effects
+          if(!is.null(object$joint.model$fixed)){
+            ggs2 <-
+              ggmcmc::ggs(coda,
+                          paste0("^", object$joint.model$fixed$name, "\\."))
+            output$jointFixed <- ggmcmc::ggs_traceplot(ggs2)
+            
+            if (show){
+              if(is_interactive){
+                readline(prompt="Press any key for the next plot:")
+              }
+              
+              print(output$jointFixed)
+            }
+          }
+          
+          ## Mean: random effects
             if (!is.null(object$mean.model$random)) {
                 ggs3 <-
                     ggmcmc::ggs(coda,
@@ -466,6 +554,7 @@ traceplots.dalmatian <-
                 }
             }
 
+          ## Dispersion: random effects
             if (!is.null(object$dispersion.model$random)) {
                 ggs4 <-
                     ggmcmc::ggs(coda,
@@ -478,6 +567,22 @@ traceplots.dalmatian <-
                     }
                     
                     print(output$dispersionRandom)
+                }
+            }
+
+          ## Joint: random effects
+            if (!is.null(object$joint.model$random)) {
+                ggs4 <-
+                    ggmcmc::ggs(coda,
+                                paste0("^sd\\.", object$joint.model$random$name))
+                output$jointRandom <- ggmcmc::ggs_traceplot(ggs4)
+
+                if (show){
+                    if(is_interactive){
+                        readline(prompt="Press any key for the next plot:")
+                    }
+                    
+                    print(output$jointRandom)
                 }
             }
         }
@@ -564,36 +669,56 @@ caterpillar.dalmatian <-
             else
                 coda <- object$coda
 
-            ## Mean: fixed effects
+          ## Mean: fixed effects
+          if(!is.null(object$mean.model$fixed)){
             ggs1 <-
-                ggmcmc::ggs(coda,
-                            paste0("^", object$mean.model$fixed$name, "\\."))
+              ggmcmc::ggs(coda,
+                          paste0("^", object$mean.model$fixed$name, "\\."))
             output <- list(meanFixed = ggmcmc::ggs_caterpillar(ggs1))
-
+            
             if (show){
-                if(is_interactive){
-                    readline(prompt="Press any key for the next plot:")
-                }
-                
-                print(output$meanFixed)
+              if(is_interactive){
+                readline(prompt="Press any key for the next plot:")
+              }
+              
+              print(output$meanFixed)
             }
+          }
 
-            ## Dispersion: fixed effects
+          ## Dispersion: fixed effects
+          if(!is.null(object$dispersion.model$fixed)){
             ggs2 <-
-                ggmcmc::ggs(coda,
-                            paste0("^", object$dispersion.model$fixed$name, "\\."))
+              ggmcmc::ggs(coda,
+                          paste0("^", object$dispersion.model$fixed$name, "\\."))
             output$dispersionFixed <- ggmcmc::ggs_caterpillar(ggs2)
-
+            
             if (show){
-                if(is_interactive){
-                    readline(prompt="Press any key for the next plot:")
-                }
-                
-                print(output$dispersionFixed)
+              if(is_interactive){
+                readline(prompt="Press any key for the next plot:")
+              }
+              
+              print(output$dispersionFixed)
             }
-
+          }
+          
+          ## Joint: fixed effects
+          if(!is.null(object$joint.model$fixed)){
+            ggs2 <-
+              ggmcmc::ggs(coda,
+                          paste0("^", object$joint.model$fixed$name, "\\."))
+            output$jointFixed <- ggmcmc::ggs_caterpillar(ggs2)
+            
+            if (show){
+              if(is_interactive){
+                readline(prompt="Press any key for the next plot:")
+              }
+              
+              print(output$jointFixed)
+            }
+          }
+          
             ## Mean: random effects
-            if (!is.null(object$mean.model$random)) {
+          if (!is.null(object$mean.model$random)) {
                 ggs3 <-
                     ggmcmc::ggs(coda,
                                 paste0("^sd\\.", object$mean.model$random$name))
@@ -608,6 +733,7 @@ caterpillar.dalmatian <-
                 }
             }
 
+          ## Dispersion: random effects
             if (!is.null(object$dispersion.model$random)) {
                 ggs4 <-
                     ggmcmc::ggs(coda,
@@ -620,6 +746,22 @@ caterpillar.dalmatian <-
                     }
                     
                     print(output$dispersionRandom)
+                }
+            }
+
+          ## Joint: random effects
+            if (!is.null(object$joint.model$random)) {
+                ggs4 <-
+                    ggmcmc::ggs(coda,
+                                paste0("^sd\\.", object$joint.model$random$name))
+                output$jointRandom <- ggmcmc::ggs_caterpillar(ggs4)
+
+                if (show){
+                    if(is_interactive){
+                        readline(prompt="Press any key for the next plot:")
+                    }
+                    
+                    print(output$jointRandom)
                 }
             }
         }
@@ -687,7 +829,8 @@ terms.dalmatian <- function(x,...){
   
   ## Return output
   list(mean = terms.dalmatian.component(x$mean.model,...),
-       dispersion = terms.dalmatian.component(x$dispersion.model,...))
+       dispersion = terms.dalmatian.component(x$dispersion.model,...),
+       joint = terms.dalmatian.component(x$joint.model,...))
 }
 
 ##' coef (dalmatian)
@@ -699,16 +842,20 @@ terms.dalmatian <- function(x,...){
 ##' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 ##' @param summary Posterior summaries computed from the supplied \code{dalmatian} object (optional).
 ##' @param ranef Random effects summary computed from the supplied \code{dalmatian} object (optional).
-##' @return List of two lists named mean and dispersion each containing the posterior means of the coefficients
+##' @param ... Ignored
+##' @return List of three lists named mean, dispersion, and joint each containing the posterior means of the coefficients
 ##' corresponding to the fixed and random terms of that model component (if present).
+##' @export
 ##' @author Simon Bonner
-coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
+coef.dalmatian <- function(object,summary = NULL, ranef = NULL, ...){
+  
   ## Compute posterior summaries if not provided'
   if(is.null(summary))
     summary <- summary(object)
 
   ## Compute posterior summaries of random effects (if not provided and model contains random effects)
-  if((!is.null(object$mean.model$random) | !is.null(object$dispersion.model$random)) & is.null(ranef))
+  if((!is.null(object$mean.model$random) | !is.null(object$dispersion.model$random) |
+      !is.null(object$joint.model$random)) & is.null(ranef))
     ranef <- ranef(object)
 
   ## Mean model
@@ -753,43 +900,83 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
   ## Dispersion model
   
   ## Extract posterior means for fixed effects
-  var_fixef <- summary$varFixed[,"Mean"]
+  disp_fixef <- summary$dispFixed[,"Mean"]
 
   ## If model only contains fixed effects
-  if(is.null(object$var.model$random))
-    coef_var <- var_fixef
+  if(is.null(object$dispersion.model$random))
+    coef_disp <- disp_fixef
   
   ## Otherwise, combine fixed and random effects
   else{
     ## Extract and format posterior means for random effects
-    var_ranef <- dplyr::as_tibble(ranef$var,rownames = "Effect") %>%
+    disp_ranef <- dplyr::as_tibble(ranef$disp,rownames = "Effect") %>%
       dplyr::select(.data$Effect, .data$Mean) %>%
       tidyr::separate(.data$Effect, c("ID","Effect"),sep=":",fill="right") %>%
       tidyr::replace_na(list(Effect = "(Intercept)")) %>%
       tidyr::spread(key = .data$Effect, value = .data$Mean)
     
     ## Combine fixed and random effects
-    allef <- unique(c(names(var_fixef),names(var_ranef)[-1]))
+    allef <- unique(c(names(disp_fixef),names(disp_ranef)[-1]))
     
     tmp <- lapply(allef,function(ef){
-      if(!ef %in% names(var_fixef))
-        dplyr::pull(var_ranef,ef)
-      else if(!ef %in% names(var_ranef))
-        rep(var_fixef[ef],nrow(var_ranef))
+      if(!ef %in% names(disp_fixef))
+        dplyr::pull(disp_ranef,ef)
+      else if(!ef %in% names(disp_ranef))
+        rep(disp_fixef[ef],nrow(disp_ranef))
       else
-        var_fixef[ef] + dplyr::pull(var_ranef,ef)
+        disp_fixef[ef] + dplyr::pull(disp_ranef,ef)
     }) 
 
-    coef_var <- do.call("cbind",tmp)
+    coef_disp <- do.call("cbind",tmp)
 
     ## Add appropriate dimension names
-    dimnames(coef_var) <- list(dplyr::pull(var_ranef,"ID"),allef)
+    dimnames(coef_disp) <- list(dplyr::pull(disp_ranef,"ID"),allef)
 
     ## Return output
-    coef_var
+    coef_disp
   }
 
+  ## Joint model
+  
+  ## Extract posterior means for fixed effects
+  joint_fixef <- summary$jointFixed[,"Mean"]
+
+  ## If model only contains fixed effects
+  if(is.null(object$joint.model$random))
+    coef_joint <- joint_fixef
+  
+  ## Otherwise, combine fixed and random effects
+  else{
+    ## Extract and format posterior means for random effects
+    joint_ranef <- dplyr::as_tibble(ranef$joint,rownames = "Effect") %>%
+      dplyr::select(.data$Effect, .data$Mean) %>%
+      tidyr::separate(.data$Effect, c("ID","Effect"),sep=":",fill="right") %>%
+      tidyr::replace_na(list(Effect = "(Intercept)")) %>%
+      tidyr::spread(key = .data$Effect, value = .data$Mean)
+    
+    ## Combine fixed and random effects
+    allef <- unique(c(names(joint_fixef),names(joint_ranef)[-1]))
+    
+    tmp <- lapply(allef,function(ef){
+      if(!ef %in% names(joint_fixef))
+        dplyr::pull(joint_ranef,ef)
+      else if(!ef %in% names(joint_ranef))
+        rep(joint_fixef[ef],nrow(joint_ranef))
+      else
+        joint_fixef[ef] + dplyr::pull(joint_ranef,ef)
+    }) 
+
+    coef_joint <- do.call("cbind",tmp)
+
+    ## Add appropriate dimension names
+    dimnames(coef_joint) <- list(dplyr::pull(joint_ranef,"ID"),allef)
+
+    ## Return output
+    coef_joint
+  }
+  
   ## Return output
   list(mean = coef_mean,
-       dispersion = coef_var)
+       dispersion = coef_disp,
+       joint = coef_joint)
 }

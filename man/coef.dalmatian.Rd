@@ -4,7 +4,7 @@
 \alias{coef.dalmatian}
 \title{Coefficients function for \code{dalmatian} objects}
 \usage{
-\method{coef}{dalmatian}(object, summary = NULL, ranef = NULL)
+\method{coef}{dalmatian}(object, summary = NULL, ranef = NULL, ...)
 }
 \arguments{
 \item{object}{Object of class \code{dalmatian} created by \code{dalmatian()}.}
@@ -12,9 +12,11 @@
 \item{summary}{Posterior summaries computed from the supplied \code{dalmatian} object (optional).}
 
 \item{ranef}{Random effects summary computed from the supplied \code{dalmatian} object (optional).}
+
+\item{...}{Ignored}
 }
 \value{
-List of two lists named mean and dispersion each containing the posterior means of the coefficients
+List of three lists named mean, dispersion, and joint each containing the posterior means of the coefficients
 corresponding to the fixed and random terms of that model component (if present).
 }
 \description{

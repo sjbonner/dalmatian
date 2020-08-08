@@ -4,7 +4,7 @@ author: "Simon Bonner"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Negative Binomial Example 1}
+  %\VignetteIndexEntry{Implementation of Negative Binomial Model}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

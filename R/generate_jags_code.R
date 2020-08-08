@@ -2,10 +2,12 @@ generateJAGScode <- function(family,
                              jags.model.args,
                              mean.model,
                              dispersion.model,
+                             joint.model,
                              rounding=FALSE,
                              residuals=FALSE){
   ## Opening header
-  cat("## Created by generateJAGS: ", date(),"\n\n",file=jags.model.args$file)
+  cat("## Created by generateJAGS: ",
+      date(),"\n\n",file=jags.model.args$file)
 
   ## Open model
   cat("model {\n",file=jags.model.args$file,append=TRUE)
@@ -66,18 +68,34 @@ generateJAGScode <- function(family,
   cat("\t\t ## Mean Model\n",file=jags.model.args$file,append=TRUE)
   
   ## 2a) Fixed effects
-  dim.fixed <- paste0("1:",jags.model.args$data[paste0(mean.model$fixed$name,".n")])
   
-  if(!is.null(mean.model$fixed$link))
-    mean.jags <- paste("\t\t ",mean.model$fixed$link,"(muy[i]) <- inprod(mean.fixed[i,",dim.fixed,"],",mean.model$fixed$name,"[",dim.fixed,"])",sep="")
-  else
-    mean.jags <- paste("\t\t muy[i] <- inprod(mean.fixed[i,",dim.fixed,"],",mean.model$fixed$name,"[",dim.fixed,"])",sep="")
+  mean.jags <- buildLinearPredictor(component = "mean",
+                                    model = mean.model$fixed,
+                                    data = jags.model.args$data)
   
   ## 2b) Random effects
-  if(!is.null(mean.model$random)){
-    dim.random <- paste0("1:",jags.model.args$data[paste0(mean.model$random$name,".neffects")])
+  if(!is.null(mean.model$random))
+    mean.jags <- buildLinearPredictor(mean.jags,
+                                      component = "mean",
+                                      data = jags.model.args$data,
+                                      model = mean.model$random,
+                                      random = TRUE)
+  
+  if(!is.null(joint.model)){
+    ## 2c) Joint fixed effects
+    if(!is.null(joint.model$fixed))
+      mean.jags <- buildLinearPredictor(mean.jags,
+                                        component = "joint",
+                                        data = jags.model.args$data,
+                                        model = joint.model$fixed)
     
-    mean.jags <- paste(mean.jags," + inprod(mean.random[i,",dim.random,"],",mean.model$random$name,"[",dim.random,"])",sep="")
+    ## 2d) Joint random effects
+    if(!is.null(joint.model$random))
+      mean.jags <- buildLinearPredictor(mean.jags,
+                                        component = "joint",
+                                        data = jags.model.args$data,
+                                        model = joint.model$random,
+                                        random = TRUE)
   }
 
   cat(mean.jags,"\n\n",file=jags.model.args$file,append=TRUE,sep="")
@@ -86,52 +104,38 @@ generateJAGScode <- function(family,
   cat("\t\t ## Dispersion Model\n",file=jags.model.args$file,append=TRUE)
 
   ## 3a) Fixed effects
-   dim.fixed <- paste0("1:",jags.model.args$data[paste0(dispersion.model$fixed$name,".n")])
-
-  if(!is.null(dispersion.model$fixed$link))
-    dispersion.jags <- paste("\t\t ",dispersion.model$fixed$link,"(phi[i]) <- inprod(dispersion.fixed[i,",dim.fixed,"],",dispersion.model$fixed$name,"[",dim.fixed,"])",sep="")
-  else
-    dispersion.jags <- paste("\t\t phi[i] <- inprod(dispersion.fixed[i,",dim.fixed,"],",dispersion.model$fixed$name,"[",dim.fixed,"])",sep="")
-
+  dispersion.jags <- buildLinearPredictor(component = "dispersion",
+                                          model = dispersion.model$fixed,
+                                          data = jags.model.args$data)
+  
   ## 3b) Random effects
-  if(!is.null(dispersion.model$random)){
-       dim.random <- paste0("1:",jags.model.args$data[paste0(dispersion.model$random$name,".neffects")])
-
-       dispersion.jags <- paste(dispersion.jags," + inprod(dispersion.random[i,",dim.random,"],",dispersion.model$random$name,"[",dim.random,"])",sep="")
+  if(!is.null(dispersion.model$random))
+    dispersion.jags <- buildLinearPredictor(dispersion.jags,
+                                            component = "dispersion",
+                                            data = jags.model.args$data,
+                                            model = dispersion.model$random,
+                                            random = TRUE)
+  if(!is.null(joint.model)){
+    ## 2c) Joint random effects
+    if(!is.null(joint.model$fixed))
+      dispersion.jags <- buildLinearPredictor(dispersion.jags,
+                                              component = "joint",
+                                              data = jags.model.args$data,
+                                              model = joint.model$fixed)
+    
+    ## 2d) Joint fixed effects
+    if(!is.null(joint.model$random))
+      dispersion.jags <- buildLinearPredictor(dispersion.jags,
+                                              component = "joint",
+                                              data = jags.model.args$data,
+                                              model = joint.model$random,
+                                              random = TRUE)
   }
-
+  
+  ## Write model components to JAGS code
   cat(dispersion.jags,"\n\n",file=jags.model.args$file,append=TRUE,sep="")
 
-  ## Dispersion Components by Observation
-  ## if(!is.null(mean.model$random)){
-  ##     cat("\t\t ## Dispersion components by observation\n",file=jags.model.args$file,append=TRUE)
-
-  ##     varcomp1.jags <- paste0("\t\t for(k in 1:",mean.model$random$name,".ncomponents){")
-  ##     cat(varcomp1.jags,"\n",file=jags.model.args$file,append=TRUE)
-
-  ##     varcomp2.jags <- paste0("\t\t\t varcomp.ind[i,k] <- var.",mean.model$random$name,"[k]/(sum(var.",mean.model$random$name,"[]) + sdy[i]^2)")
-  ##     cat(varcomp2.jags,"\n",file=jags.model.args$file,append=TRUE)
-
-  ##     cat(" \t\t }\n",file=jags.model.args$file,append=TRUE)
-
-  ##     varcomp3.jags <- paste0("\t\t varcomp.ind[i,",mean.model$random$name,".ncomponents+1] <- 1 - sum(varcomp.ind[i,1:",mean.model$random$name,".ncomponents])")
-  ##     cat(varcomp3.jags,"\n",file=jags.model.args$file,append=TRUE)
-  ##}
-
   cat("\t }\n\n",file=jags.model.args$file,append=TRUE)
-
-  ## Mean dispersion components
-  ## if(!is.null(mean.model$random)){
-  ##     cat("\t ## Mean dispersion components \n",file=jags.model.args$file,append=TRUE)
-
-  ##     varcomp1.jags <- paste0("\t for(k in 1:",mean.model$random$name,".ncomponents+1){")
-  ##     cat(varcomp1.jags,"\n",file=jags.model.args$file,append=TRUE)
-
-  ##     varcomp2.jags <- paste0("\t\t varcomp[k] <- mean(varcomp.ind[,k])")
-  ##     cat(varcomp2.jags,"\n",file=jags.model.args$file,append=TRUE)
-
-  ##     cat(" \t }\n\n",file=jags.model.args$file,append=TRUE)
-  ## }
 
   ##### Priors #####
   cat("\t ##### Priors #####\n",file=jags.model.args$file,append=TRUE)
@@ -151,6 +155,8 @@ generateJAGScode <- function(family,
   cat("\t ## Dispersion Model: Fixed\n",file=jags.model.args$file,append=TRUE)
   generatePriorsFixed(dispersion.model,jags.model.args$file)
 
+  cat("\n",file=jags.model.args$file,append=TRUE)
+
   if(!is.null(dispersion.model$random)){
     cat("\t ## Dispersion Model: Random\n",file=jags.model.args$file,append=TRUE)
 
@@ -159,11 +165,69 @@ generateJAGScode <- function(family,
     cat("\n",file=jags.model.args$file,append=TRUE)
   }
 
+  if(!is.null(joint.model)){
+    if(!is.null(joint.model$fixed)){
+      cat("\t ## Joint Model: Fixed\n",file=jags.model.args$file,append=TRUE)
+      generatePriorsFixed(joint.model,jags.model.args$file)
+    }
 
+    if(!is.null(joint.model$random)){
+      cat("\t ## Joint Model: Random\n",file=jags.model.args$file,append=TRUE)
+      
+      generatePriorsRandom(joint.model,jags.model.args)
+      
+      cat("\n",file=jags.model.args$file,append=TRUE)
+    }
+  }
+  
   ## Close model
   cat("}\n",file=jags.model.args$file,append=TRUE)
 }
 
+buildLinearPredictor <- function(lp = NULL,
+                                 component,
+                                 model,
+                                 data,
+                                 random = FALSE){
+
+  ## If lp is empty then add lhs to linear predictor 
+  if(is.null(lp)){
+    if(component == "mean")
+      lhs <- "muy[i]"
+    else if(component == "dispersion")
+      lhs <- "phi[i]"
+    else
+      stop("Unknown model component,", component,", in buildLinearpredictor.")
+
+    if(!is.null(model$link))
+      lp <- paste0("\t\t ",model$link,"(",lhs,") <- ")
+    else 
+      lp <- paste0("\t\t ", lhs," <- ")
+  }
+  else{
+    lp <- paste0(lp,"+ ")
+  }
+  
+  ## Extract values from model componenent
+  if(random)
+    p <- data[paste0(model$name,".neffects")]
+  else
+    p <- data[paste0(model$name,".n")]
+  
+  dim <- paste0("1:",p)
+
+  ## Add predictors to lp
+  matrixName <- paste0(component,".",ifelse(random,"random","fixed"))
+  
+  lp <- paste0(lp,
+               "inprod(",
+               matrixName,"[i,",dim,"],",
+               model$name,"[",dim,"])")
+
+  lp
+}
+  
+   
 generatePriorsFixed <- function(model,file){
   if(length(model$fixed$priors)==1){
     cat("\t for(k in 1:",model$fixed$name,".n){\n",file=file,append=TRUE,sep="")
@@ -175,7 +239,6 @@ generatePriorsFixed <- function(model,file){
       cat("\t",model$fixed$name,"[",k,"] ~ ",model$fixed$priors[[k]][1],"(",model$fixed$priors[[k]][2],",",model$fixed$priors[[k]][3],")\n",file=file,append=TRUE,sep="")
     }
   }
-
 }
 
 generatePriorsRandom <- function(model,jags.model.args){

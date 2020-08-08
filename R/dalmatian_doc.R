@@ -7,6 +7,7 @@
 #'
 #' @docType package
 #' @name dalmatian
+#' @import stats 
 #' @importFrom dplyr %>%
 #' @importFrom rlang .data
 NULL

@@ -1,0 +1,145 @@
+---
+title: "Pied Flycatchers 3: Joint Effects"
+author: "Simon Bonner"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Pied Flycatchers 3: Joint Effects}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r,echo=FALSE}
+runModels <- FALSE # If true rerun models. OTW, reload previous output.
+```
+
+Joint effects are fixed or random effects that take the same value in linear predictors describing variation in both the mean and the dispersion parameter. As an example, we consider the simplest model of the pied flycatcher data with only fixed effects on the mean and dispersion, except that we assume that the effect of broodsize is the same in both linear predictors. 
+
+# Library
+
+First you have to load the package:
+```{r}
+## Load package
+library(dalmatian)
+```
+
+# Data
+
+```{r}
+## Load pied flycatcher data
+data(pied_flycatchers_1)
+
+## Create variables bounding the true load
+pfdata$lower=ifelse(pfdata$load==0,log(.001),log(pfdata$load-.049))
+pfdata$upper=log(pfdata$load+.05)
+```
+
+# Defining the Model
+Our model will assume that the logarithm of the load returned on the $j$th trip by adult $i$ is normally distributed with mean $\mu_{ij}$ and standard deviation $\phi$ where:
+$$\mu=\alpha_0 + \alpha_1 \mathrm{log(IVI)}_{ij} + \beta_2 \mathrm{sex}_i + \gamma_1 \mathrm{broodsize}_i$$
+and
+$$\log(\phi)=\psi_0 + \psi_1\mathrm{sex}_i$ + \gamma_1 \mathrm{broodsize}_i$.
+Here $\gamma_1$ is a fixed effect that is common to both the linear predictors describing the variation in both the mean and dispersion. This model can be defined with the following three components:
+```{r}
+## Mean model
+mymean <- list(fixed=list(name="alpha",
+                          formula=~ log(IVI) + sex,
+                          priors=list(c("dnorm",0,.001))))
+
+## Dispersion model
+mydisp=list(fixed=list(name="psi",
+      link="log",
+      formula=~sex,
+      priors=list(c("dnorm",0,.001))))
+
+## Joint components
+myjoint <- list(fixed = list(name = "gamma",
+                            formula = ~-1 + broodsize,
+                            priors = list(c("dnorm",0,.001))))
+
+```
+These three objects will now be used to generate the JAGS code, data, and initial values for running the model.
+
+# Running the Model 
+
+The model can then be fit with `dalmatian` by defining the arguments that control the construction and updating of the JAGS model. Full details are included in `vignette(pied-flycatchers-1)`. 
+```{r}
+
+## Set working directory
+## By default uses a system temp directory. You probably want to change this.
+workingDir <- tempdir()
+
+## Define list of arguments for jags.model()
+jm.args <- list(file=file.path(workingDir,"pied_flycatcher_joint_1_jags.R"),n.adapt=1000)
+
+## Define list of arguments for coda.samples()
+cs.args <- list(n.iter=5000,thin=20)
+
+## Run the model using dalmatian
+## This is how the model is run. However, to save you time we will load output from a previous run instead.
+if(runModels){
+  pfresults4 <- dalmatian(df=pfdata,
+                          mean.model=mymean,
+                          dispersion.model=mydisp,
+                          jags.model.args=jm.args,
+                          coda.samples.args=cs.args,
+                          rounding=TRUE,
+                          lower="lower",
+                          upper="upper",
+                          residuals = FALSE,
+                          debug=FALSE)
+}
+if(!runModels){
+  load(system.file("Pied_Flycatchers_3","pfresults4.RData",package="dalmatian"))
+}
+```
+
+# Results
+
+The following illustrates the functions for processing the results. Again, these are fully described in `vignette(pied-flycatchers-1)`.
+
+## Numerical Convergence Diagnostics
+```{r}
+## Compute convergence diagnostics
+pfconvergence <- convergence(pfresults4)
+
+## Gelman-Rubin diagnostics
+pfconvergence$gelman
+
+## Raftery diagnostics
+pfconvergence$raftery
+
+## Effective sample size
+pfconvergence$effectiveSize
+```
+
+## Graphical Convergence Diagnostics
+```{r,fig.width=6,fig.align="center"}
+## Generate traceplots
+pftraceplots <- traceplots(pfresults4,show=FALSE,nthin=10)
+
+## Fixed effects for mean
+pftraceplots$meanFixed
+
+## Fixed effects for dispersion
+pftraceplots$dispersionFixed
+
+```
+
+## Numerical Summaries
+```{r}
+## Compute numerical summaries
+summary(pfresults4)
+```
+
+## Graphical Summaries
+```{r,fig.width=6,fig.align="center"}
+## Generate caterpillar
+pfcaterpillar <- caterpillar(pfresults4,show = FALSE)
+
+## Fixed effects for mean
+pfcaterpillar$meanFixed
+
+## Fixed effects for dispersion
+pfcaterpillar$dispersionFixed
+```

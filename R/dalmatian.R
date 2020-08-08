@@ -7,7 +7,8 @@
 ##' @param family Name of family of response distribution. Currently supported families include normal (\code{gaussian}) and negative binomial (\code{nbinom}). (character)
 ##' @param mean.model Model list specifying the structure of the mean. (list)
 ##' @param dispersion.model Model list specifying the structure of the dispersion. (list)
-##' @param jags.model.args  List containing named arguments of \code{jags.model}. (list)
+##' @param joint.model Model list specifying structure with parameter shared between linear predictors of the mean and variance. (list)
+##' @param jags.model.args List containing named arguments of \code{jags.model}. (list)
 ##' @param coda.samples.args List containing named arguments of \code{coda.samples}. (list)
 ##' @param response Name of variable in the data frame representing the response. (character)
 ##' @param ntrials Name of variable in the data frame representing the number of independent trials for each observation of the beta binomial model.
@@ -16,7 +17,6 @@
 ##' @param upper Name of variable in the data frame representing the upper bound on the response if rounded. (character)
 ##' @param parameters Names of parameters to monitor. If NULL then default values are selected. (character)
 ##' @param svd Compute Singular Variable Decomposition of model matrices to improve convergence. (logical)
-##' @param debug If TRUE then enter debug model. (logical)
 ##' @param residuals If TRUE then compute residuals in output. (logical)
 ##' @param gencode If TRUE then generate code potentially overwriting existing model file. By default generate code if the file does not exist and prompt user if it does. (logical)
 ##' @param run.model If TRUE then run sampler. Otherwise, stop once code and data have been created. (logical)
@@ -25,12 +25,12 @@
 ##' @param drop.levels If TRUE then drop unused levels from all factors in df. (logical)
 ##' @param drop.missing If TRUE then remove records with missing response variable. (logical)
 ##' @param overwrite If TRUE then overwrite existing JAGS files (non-interactive sessions only). (logical)
+##' @param debug If TRUE then enter debug model. (logical)
 ##' @param saveJAGSinput Directory to which jags.model input is saved prior to calling \code{jags.model()}. This is useful for debugging. No files saved if NULL. (character)
 ##'
 ##' @return An object of class \code{dalmatian} contaiining copies of the original data frame, the mean model, the
 ##' dispersion model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler. 
 ##' @author Simon Bonner
-##' @importFrom stats terms
 ##' @export
 ##' @examples
 ##' 
@@ -78,6 +78,7 @@ dalmatian <- function(df,
                       family = "gaussian",
                       mean.model,
                       dispersion.model,
+                      joint.model = NULL,
                       jags.model.args,
                       coda.samples.args,
                       response = NULL,
@@ -127,7 +128,9 @@ dalmatian <- function(df,
       "The coda.samples.args list must include a variable n.iter. Please see help(coda.samples) for details.\n\n"
     )
 
-  if(engine == "JAGS"){
+  if(engine == "JAGS" || engine == "jags"){
+    engine <- "JAGS"
+    
     if (!requireNamespace("rjags", quietly = TRUE)) {
       stop("The \"rjags\" package is required to run models in JAGS. You may either install it with install.packages(\"rjags\") or run your model with \"nimble\" instead using the argument engine=\"nimble\".",
       call. = FALSE)
@@ -174,6 +177,7 @@ by using the argument engine = \"JAGS\".")
       family,
       mean.model,
       dispersion.model,
+      joint.model,
       response = response,
       ntrials = ntrials,
       lower = lower,
@@ -188,10 +192,14 @@ by using the argument engine = \"JAGS\".")
   mean.names.fixed <- paste0(mean.model$fixed$name,
                              ".",
                              colnames(jags.model.args$data$mean.fixed))
-
+  
   dispersion.names.fixed <- paste0(dispersion.model$fixed$name,
-                                 ".",
-                                 colnames(jags.model.args$data$dispersion.fixed))
+                                   ".",
+                                   colnames(jags.model.args$data$dispersion.fixed))
+
+  joint.names.fixed <- paste0(joint.model$fixed$name,
+                              ".",
+                              colnames(jags.model.args$data$joint.fixed))
 
   if (!is.null(mean.model$random)) {
     mean.names.sd <-
@@ -219,18 +227,47 @@ by using the argument engine = \"JAGS\".")
         colnames(jags.model.args$data$dispersion.random)
       )
   }
+  
+  if (!is.null(joint.model$random)) {
+      joint.names.sd <-
+      paste0("sd.",
+             joint.model$random$name,
+             ".",
+             attr(terms(joint.model$random$formula), "term.labels"))
+    
+    joint.names.random <-
+      paste0(
+        joint.model$random$name,
+        ".",
+        colnames(jags.model.args$data$joint.random)
+      )
+    }
+    
   ## Perform SVD if requested
   if (svd) {
     cat("    Computing singular value decompositions to improve mixing...")
 
-    ## Compute SVD
-    mean.fixed.svd <- svd(jags.model.args$data$mean.fixed)
-    dispersion.fixed.svd <-
-      svd(jags.model.args$data$dispersion.fixed)
+    ## Compute SVD and replace original matrices with orthogonal matrices
+    if(!is.null(mean.model$fixed)){
+      mean.fixed.svd <- svd(jags.model.args$data$mean.fixed)
+      jags.model.args$data$mean.fixed <- mean.fixed.svd$u
+    }
 
+    if(!is.null(dispersion.model$fixed)){
+      dispersion.fixed.svd <-
+        svd(jags.model.args$data$dispersion.fixed)
+      
+      jags.model.args$data$dispersion.fixed <- dispersion.fixed.svd$u
+    }
+
+    if(!is.null(joint.model$fixed)){
+      joint.fixed.svd <-
+        svd(jags.model.args$data$dispersion.fixed)
+
+      jags.model.args$data$dispersion.fixed <- dispersion.fixed.svd$u
+    }
+        
     ## Replace design matrices with orthogal matrices
-    jags.model.args$data$mean.fixed <- mean.fixed.svd$u
-    jags.model.args$data$dispersion.fixed <- dispersion.fixed.svd$u
 
     cat("Done\n")
   }
@@ -266,6 +303,7 @@ by using the argument engine = \"JAGS\".")
       jags.model.args,
       mean.model,
       dispersion.model,
+      joint.model,
       rounding = rounding,
       residuals = residuals
     )
@@ -315,11 +353,13 @@ by using the argument engine = \"JAGS\".")
   }
 
   ## Run model
+
   output <- list(
     df=df,
     family = family,
     mean.model = mean.model,
     dispersion.model = dispersion.model,
+    joint.model = joint.model,
     jags.model.args = jags.model.args,
     coda.samples.args = coda.samples.args,
     rounding = rounding,
@@ -341,7 +381,9 @@ by using the argument engine = \"JAGS\".")
       mean.model$fixed$name,
       mean.model$random$name,
       dispersion.model$fixed$name,
-      dispersion.model$random$name
+      dispersion.model$random$name,
+      joint.model$fixed$name,
+      joint.model$random$name
     )
   
   if (residuals && !(residuals %in% parameters))
@@ -355,6 +397,10 @@ by using the argument engine = \"JAGS\".")
     parameters <- c(parameters,
                     paste0("sd.", dispersion.model$random$name))
 
+      if (!is.null(joint.model$random))
+        parameters <- c(parameters,
+                        paste0("sd.", joint.model$random$name))
+  
   coda.samples.args$variable.names <- parameters
 
   if(engine == "JAGS"){
@@ -376,13 +422,24 @@ by using the argument engine = \"JAGS\".")
   ## Final tidying
   cat("Step 5: Tidying Output...")
 
-  ## Identify indices of mean and dispersion parameters in coda output
-  mean.index.fixed <- grep(paste0("^", mean.model$fixed$name),
-                           coda::varnames(coda))
+  ## Identify indices of mean, dispersion, and joint parameters in coda output
+  if(!is.null(mean.model$fixed))
+    mean.index.fixed <- grep(paste0("^", mean.model$fixed$name),
+                             coda::varnames(coda))
+  else
+    mean.index.fixed <- NULL
 
-  dispersion.index.fixed <-
-    grep(paste0("^", dispersion.model$fixed$name),
-         coda::varnames(coda))
+  if(!is.null(dispersion.model$fixed))
+    dispersion.index.fixed <- grep(paste0("^", dispersion.model$fixed$name),
+                                   coda::varnames(coda))
+  else
+    dispersion.index.fixed <- NULL
+
+  if(!is.null(joint.model$fixed))
+    joint.index.fixed <- grep(paste0("^", joint.model$fixed$name),
+                              coda::varnames(coda))
+  else
+    joint.index.fixed <- NULL
 
   if (!is.null(mean.model$random)) {
     mean.index.sd <-
@@ -395,13 +452,22 @@ by using the argument engine = \"JAGS\".")
 
   if (!is.null(dispersion.model$random)) {
     dispersion.index.sd <-
-      grep(paste0("^sd\\.", dispersion.model$random$name), coda::varnames(coda))
+      grep(paste0("^sd\\.", dispersion.model$random$name),
+           coda::varnames(coda))
 
     dispersion.index.random <-
       grep(paste0("^", dispersion.model$random$name),
            coda::varnames(coda))
   }
 
+  if (!is.null(joint.model$random)) {
+    joint.index.sd <-
+      grep(paste0("^sd\\.", joint.model$random$name), coda::varnames(coda))
+
+    joint.index.random <-
+      grep(paste0("^", joint.model$random$name),
+           coda::varnames(coda))
+  }
 
   ## 1) Transform chains to original scale
   if (svd) {
@@ -414,14 +480,25 @@ by using the argument engine = \"JAGS\".")
           dispersion.fixed.svd$d * t(dispersion.fixed.svd$v),
           t(coda[[i]][, dispersion.index.fixed])
         ))
+
+      coda[[i]][, joint.index.fixed] <-
+        t(solve(
+          joint.fixed.svd$d * t(joint.fixed.svd$v),
+          t(coda[[i]][, joint.index.fixed])
+        ))
     }
   }
-
+  
   ## Replace column names in coda with names from formula
   for (i in 1:length(coda)) {
-    colnames(coda[[i]])[mean.index.fixed] <- mean.names.fixed
-    colnames(coda[[i]])[dispersion.index.fixed] <-
-      dispersion.names.fixed
+    if(!is.null(mean.index.fixed))
+       colnames(coda[[i]])[mean.index.fixed] <- mean.names.fixed
+
+    if(!is.null(dispersion.index.fixed))
+      colnames(coda[[i]])[dispersion.index.fixed] <- dispersion.names.fixed
+
+    if(!is.null(joint.index.fixed))
+      colnames(coda[[i]])[joint.index.fixed] <- joint.names.fixed
 
     if (!is.null(mean.model$random)) {
       colnames(coda[[i]])[mean.index.sd] <- mean.names.sd
@@ -436,10 +513,17 @@ by using the argument engine = \"JAGS\".")
       colnames(coda[[i]])[dispersion.index.random] <-
         dispersion.names.random
     }
+
+    if (!is.null(joint.model$random)) {
+      colnames(coda[[i]])[joint.index.sd] <- joint.names.sd
+
+      colnames(coda[[i]])[joint.index.random] <-
+        joint.names.random
+    }
   }
 
   cat("Done\n")
-
+  
   ## Create output object
   output$coda <- coda
 
@@ -506,6 +590,17 @@ print.dalmatian <- function(x,summary=TRUE,convergence=TRUE,...){
         cat("      Parameter name: ",x$dispersion.model$random$name,"\n\n")
     }
 
+  ## 3) Joint
+  cat("  Joint:\n")
+    cat("    Fixed:\n")
+    cat("      Formula: ",as.character(x$joint.model$fixed$formula),"\n")
+    cat("      Parameter name: ",x$joint.model$fixed$name,"\n\n")
+    
+    if(!is.null(x$joint.model$random)){
+        cat("    Random:\n")
+        cat("      Formula: ",as.character(x$joint.model$random$formula),"\n")
+        cat("      Parameter name: ",x$joint.model$random$name,"\n\n")
+    }
 
     ## Compute summary and print
     if(summary){

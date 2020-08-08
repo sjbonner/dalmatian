@@ -1,6 +1,8 @@
 runJAGS <- function(family,jags.model.args, coda.samples.args){
 
-  ## Run model specificy code
+  ## Load modules
+  rjags::load.module("glm")
+  
   if(family == "betabin")
     rjags::load.module("mix")
   
@@ -32,7 +34,9 @@ parRunJAGS <- function(family,jags.model.args, coda.samples.args, n.cores){
     
   jags.model.args$name <- "dalmatian"
 
-  ## Run model specific code
+  ## Load modules
+  parallel::clusterCall(cl,rjags::load.module,"glm")
+  
   if(family == "betabin")
     parallel::clusterCall(cl,rjags::load.module,"mix")
   

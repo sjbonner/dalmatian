@@ -1,10 +1,10 @@
 ---
-title: "Analysis of the Pied Flycatcher Data"
+title: "Pied Flycatchers 1: Initial Models"
 author: "Simon Bonner"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Pied Flycatchers -- Part I}
+  %\VignetteIndexEntry{Pied Flycatchers 1: Initial Models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -39,7 +39,7 @@ pfdata$upper=log(pfdata$load+.05)
 
 # Model 1: Fixed Effects
 Our initial model for the logarithm of the load returned on the $j$th trip by adult $i$  will be $N(\mu_{ij},\sigma_{ij}^2)$ where:
-$$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)_{ij} + \beta_2 broodsize_i + \beta_3 sex_i}$$
+$$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)}_{ij} + \beta_2 \mathrm{broodsize}_i + \beta_3 \mathrm{sex}_i$$
 and
 $$\log(\sigma)=\psi_0 + \psi_1 \mathrm{broodsize}_i + \psi_2\mathrm{sex}_i$$.
 
@@ -51,12 +51,12 @@ The components of the model for the pied flycatcher data specified above would b
 
 ```{r}
 ## Mean model
-mymean=list(fixed=list(name="alpha",
+mymean <- list(fixed=list(name="alpha",
        formula=~ log(IVI) + broodsize + sex,
        priors=list(c("dnorm",0,.001))))
 
 ## Dispersion model
-mydisp=list(fixed=list(name="psi",
+mydisp <- list(fixed=list(name="psi",
       link="log",
       formula=~broodsize + sex,
       priors=list(c("dnorm",0,.001))))
@@ -91,7 +91,7 @@ if(runModels){
                          rounding=TRUE,
                          lower="lower",
                          upper="upper",
-                         residuals = TRUE,
+                         residuals = FALSE,
                          debug=FALSE)
   
   save(pfresults,file = "pfresults.RData")
@@ -162,7 +162,7 @@ pfcaterpillar$dispersionFixed
 # Model 2: Random Effects
 
 We will now consider adding individual (bird) random effects to both the fixed and random components of our model. This can be done by simply adding to the model components created above and then rerunnig the model. The new model will have mean and standard deviation
-$$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)_{ij} + \beta_2 broodsize_i + \beta_3 sex_i + \epsilon_{i}}$$
+$$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)}_{ij} + \beta_2 \mathrm{broodsize}_i + \beta_3 \mathrm{sex}_i + \epsilon_{i}}$$
 and
 $$\log(\sigma)=\psi_0 + \psi_1 \mathrm{broodsize}_i + \psi_2\mathrm{sex}_i + \xi_j$$
 where $\epsilon_i \sim N(0,\tau^2_\mu)$ and $\xi_i \sim N(0,\tau^2_\sigma)$. By default the variances $\tau^2_\epsilon$ and $\tau^2_\xi$ are assigned half-$t$ prior distributions.
@@ -173,10 +173,10 @@ Instead of creating new model objects we can simply add to the old objects by cr
 
 ```{r}
 # Random component of mean
-mymean$random=list(name="epsilon",formula=~-1 + indidx)
+mymean$random <- list(name="epsilon",formula=~-1 + indidx)
 
 # Random component of dispersion
-mydisp$random=list(name="xi",formula=~-1 + indidx)
+mydisp$random <- list(name="xi",formula=~-1 + indidx)
 ```
 
 ## Running the Model with dalmatian
@@ -214,7 +214,7 @@ if(runModels){
                           rounding=TRUE,
                           lower="lower",
                           upper="upper",
-                          residuals=TRUE,
+                          residuals=FALSE,
                           debug=FALSE)
   
   save(pfresults2,file = "pfresults2.RData")
