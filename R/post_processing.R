@@ -846,7 +846,8 @@ terms.dalmatian <- function(x,...){
 ##' @return List of three lists named mean, dispersion, and joint each containing the posterior means of the coefficients
 ##' corresponding to the fixed and random terms of that model component (if present).
 ##' @author Simon Bonner
-coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
+coef.dalmatian <- function(object,summary = NULL, ranef = NULL, ...){
+  
   ## Compute posterior summaries if not provided'
   if(is.null(summary))
     summary <- summary(object)
@@ -972,7 +973,7 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
     ## Return output
     coef_joint
   }
-
+  
   ## Return output
   list(mean = coef_mean,
        jointersion = coef_disp,
