@@ -80,7 +80,7 @@ generateJAGScode <- function(family,
                                       data = jags.model.args$data,
                                       model = mean.model$random,
                                       random = TRUE)
-
+  
   if(!is.null(joint.model)){
     ## 2c) Joint fixed effects
     if(!is.null(joint.model$fixed))
@@ -165,18 +165,21 @@ generateJAGScode <- function(family,
     cat("\n",file=jags.model.args$file,append=TRUE)
   }
 
-  cat("\t ## Joint Model: Fixed\n",file=jags.model.args$file,append=TRUE)
-  generatePriorsFixed(joint.model,jags.model.args$file)
+  if(!is.null(joint.model)){
+    if(!is.null(joint.model$fixed)){
+      cat("\t ## Joint Model: Fixed\n",file=jags.model.args$file,append=TRUE)
+      generatePriorsFixed(joint.model,jags.model.args$file)
+    }
 
-  if(!is.null(joint.model$random)){
-    cat("\t ## Joint Model: Random\n",file=jags.model.args$file,append=TRUE)
-
-    generatePriorsRandom(joint.model,jags.model.args)
-
-    cat("\n",file=jags.model.args$file,append=TRUE)
+    if(!is.null(joint.model$random)){
+      cat("\t ## Joint Model: Random\n",file=jags.model.args$file,append=TRUE)
+      
+      generatePriorsRandom(joint.model,jags.model.args)
+      
+      cat("\n",file=jags.model.args$file,append=TRUE)
+    }
   }
-
-
+  
   ## Close model
   cat("}\n",file=jags.model.args$file,append=TRUE)
 }
