@@ -17,7 +17,7 @@
 \arguments{
 \item{object}{Object of class \code{dalmatian} created by \code{dalmatian()}.}
 
-\item{pars}{List of parameters to assess. If NULL (default) then diagnostics are computed for the fixed effects and random effects standard deviations in both the mean and dispersion models.}
+\item{pars}{List of parameters to assess. If NULL (default) then diagnostics are computed for the fixed effects and random effects standard deviations in the mean, dispersion, and joint components.}
 
 \item{nstart}{Start point for computing summary statistics (relative to true start of chain).}
 

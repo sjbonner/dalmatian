@@ -10,6 +10,7 @@ dalmatian(
   family = "gaussian",
   mean.model,
   dispersion.model,
+  joint.model = NULL,
   jags.model.args,
   coda.samples.args,
   response = NULL,
@@ -39,6 +40,8 @@ dalmatian(
 \item{mean.model}{Model list specifying the structure of the mean. (list)}
 
 \item{dispersion.model}{Model list specifying the structure of the dispersion. (list)}
+
+\item{joint.model}{Model list specifying structure with parameter shared between linear predictors of the mean and variance. (list)}
 
 \item{jags.model.args}{List containing named arguments of \code{jags.model}. (list)}
 
