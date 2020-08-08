@@ -24,7 +24,7 @@ mydisp=list(fixed=list(name="psi",
 
 ## Joint components
 myjoint = list(fixed = list(name = "gamma",
-                            formula = ~broodsize,
+                            formula = ~-1 + broodsize,
                             priors = list(c("dnorm",0,.001))))
 
 ## Set working directory
@@ -32,10 +32,10 @@ myjoint = list(fixed = list(name = "gamma",
 workingDir <- tempdir()
 
 ## Define list of arguments for jags.model()
-jm.args <- list(file=file.path(workingDir,"pied_flycatcher_joint_1_jags.R"),n.adapt=100)
+jm.args <- list(file=file.path(workingDir,"pied_flycatcher_joint_1_jags.R"),n.adapt=1000)
 
 ## Define list of arguments for coda.samples()
-cs.args <- list(n.iter=500,thin=20)
+cs.args <- list(n.iter=5000,thin=20)
 
 ## Run the model using dalmatian
 pfresults4 <- dalmatian(df=pfdata,
@@ -58,7 +58,7 @@ save(pfresults4, file = file)
 
 
 ## Compute convergence diagnostics
-pfconvergence <- convergence(pfresults)
+pfconvergence <- convergence(pfresults4)
 
 ## Gelman-Rubin diagnostics
 pfconvergence$gelman
@@ -70,7 +70,7 @@ pfconvergence$raftery
 pfconvergence$effectiveSize
 
 ## Generate traceplots
-pftraceplots <- traceplots(pfresults,show=FALSE,nthin=100)
+pftraceplots <- traceplots(pfresults4,show=FALSE,nthin=10)
 
 ## Fixed effects for mean
 pftraceplots$meanFixed
@@ -81,11 +81,8 @@ pftraceplots$dispersionFixed
 ## Joint fixed effects 
 pftraceplots$jointFixed
 
-## Compute numerical summaries
-summary(pfresults)
-
 ## Generate caterpillar
-pfcaterpillar <- caterpillar(pfresults,show = FALSE)
+pfcaterpillar <- caterpillar(pfresults4,show = FALSE)
 
 ## Fixed effects for mean
 pfcaterpillar$meanFixed
@@ -95,4 +92,13 @@ pfcaterpillar$dispersionFixed
 
 ## Joint fixed effects
 pfcaterpillar$jointFixed
+
+## Compute numerical summaries
+summary(pfresults4)
+
+## Extract terms
+terms(pfresults4)
+
+## Extract summaries of coefficients
+coef(pfresults4)
 
