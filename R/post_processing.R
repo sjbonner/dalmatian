@@ -824,7 +824,7 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
 
   ## Compute posterior summaries of random effects (if not provided and model contains random effects)
   if((!is.null(object$mean.model$random) | !is.null(object$dispersion.model$random) |
-      !is.null(objec$joint.model$random) & is.null(ranef))
+      !is.null(object$joint.model$random)) & is.null(ranef))
     ranef <- ranef(object)
 
   ## Mean model
@@ -905,7 +905,47 @@ coef.dalmatian <- function(object,summary = NULL, ranef = NULL){
     coef_disp
   }
 
+  ## Joint model
+  
+  ## Extract posterior means for fixed effects
+  joint_fixef <- summary$jointFixed[,"Mean"]
+
+  ## If model only contains fixed effects
+  if(is.null(object$joint.model$random))
+    coef_joint <- joint_fixef
+  
+  ## Otherwise, combine fixed and random effects
+  else{
+    ## Extract and format posterior means for random effects
+    joint_ranef <- dplyr::as_tibble(ranef$joint,rownames = "Effect") %>%
+      dplyr::select(.data$Effect, .data$Mean) %>%
+      tidyr::separate(.data$Effect, c("ID","Effect"),sep=":",fill="right") %>%
+      tidyr::replace_na(list(Effect = "(Intercept)")) %>%
+      tidyr::spread(key = .data$Effect, value = .data$Mean)
+    
+    ## Combine fixed and random effects
+    allef <- unique(c(names(joint_fixef),names(joint_ranef)[-1]))
+    
+    tmp <- lapply(allef,function(ef){
+      if(!ef %in% names(joint_fixef))
+        dplyr::pull(joint_ranef,ef)
+      else if(!ef %in% names(joint_ranef))
+        rep(joint_fixef[ef],nrow(joint_ranef))
+      else
+        joint_fixef[ef] + dplyr::pull(joint_ranef,ef)
+    }) 
+
+    coef_joint <- do.call("cbind",tmp)
+
+    ## Add appropriate dimension names
+    dimnames(coef_joint) <- list(dplyr::pull(joint_ranef,"ID"),allef)
+
+    ## Return output
+    coef_joint
+  }
+
   ## Return output
   list(mean = coef_mean,
-       dispersion = coef_disp)
+       jointersion = coef_disp,
+       joint = coef_joint)
 }
