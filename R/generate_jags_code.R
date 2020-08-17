@@ -22,11 +22,11 @@ generateJAGScode <- function(family,
   ## Gaussian model
   if(family == "gaussian"){
     if(is.null(dispersion.model$weights))
-      cat("\t\t y[i] ~ dnorm(muy[i],1/pow(phi[i],2))\n\n",file=jags.model.args$file,append=TRUE)
+      cat("\t\t y[i] ~ dnorm(muy[i],1/pow(phi[i],2))\n",file=jags.model.args$file,append=TRUE)
     else
-      cat("\t\t y[i] ~ dnorm(muy[i],weights[i]/vary)\n\n",file=jags.model.args$file,append=TRUE)
+      cat("\t\t y[i] ~ dnorm(muy[i],weights[i]/vary)\n",file=jags.model.args$file,append=TRUE)
     
-    cat("\t\t vary[i] <- phi[i]\n\n",file=jags.model.args$file,append=TRUE)
+    cat("\t\t vary[i] <- phi[i]\n",file=jags.model.args$file,append=TRUE)
   }
 
   ## Negative binomial model
@@ -35,7 +35,6 @@ generateJAGScode <- function(family,
         "\t\t r[i] <- 1/phi[i]\n",
         "\t\t p[i] <- 1/(1 + phi[i] * muy[i])\n",
         "\t\t vary[i] <- muy[i] / p[i]\n",
-        "\n",
         file=jags.model.args$file,append=TRUE)
   }
 
@@ -45,7 +44,6 @@ generateJAGScode <- function(family,
         "\t\t alphay[i] <- muy[i] * (1 - phi[i]) / phi[i]\n",
         "\t\t betay[i] <- (1 - muy[i]) * (1 - phi[i]) / phi[i]\n",
         "\t\t vary[i] <- m[i] * muy[i] * (1-muy[i]) * (1 + (m[i] - 1) * phi[i])\n",
-        "\n",
         file=jags.model.args$file,append=TRUE)
   }
 
