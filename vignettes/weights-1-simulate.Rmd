@@ -9,8 +9,8 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-In some cases the response variable may be an average of responses from within the same subject or group. In this case, the variances for two observations having the same covariates will not be identical if the size of the groups vary. Instead, it will be inversely proportional to the size of the group. Mathematically, if the observed response is the group average $\bar{Y}_i=\sum_{j=1}^n_i Y_{ij}/n_i$ and $Y_{ij} \sim N(\mu_i,\sigma^2_i)$ where $\sigma^2_i$ may vary by group and depend on covariates then
-$$\bar{Y}_i \sim N(\mu_i,\sigma^2_i/n_i).$$
+In some cases the response variable may be an average of responses from within the same subject or group. In this case, the variances for two observations having the same covariates will not be identical if the size of the groups vary. Instead, it will be inversely proportional to the size of the group. Mathematically, if the observed response is the group average $\bar{Y}_i=\sum_{j=1}^n_i Y_{ij}/n_i$ and $Y_{ij} \sim N(\mu_i,\phi_i)$ where the dispersion parameter, $\phi_i$, may vary by group and depend on covariates then
+$$\bar{Y}_i \sim N(\mu_i,\phi_i/n_i).$$
 This situation can be accommodated in `dalmatian` by specifying a column of weights within the data frame that provides the group size. Here is an example with simulated data that demonstrates this feature and shows the importance of properly accounting for weights. 
 
 # Simulated data
