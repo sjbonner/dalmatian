@@ -19,33 +19,40 @@ generateJAGScode <- function(family,
   ## 1) Data model
   cat("\t\t ## Data distribution \n",file=jags.model.args$file,append=TRUE)
 
+  ## Gaussian model
   if(family == "gaussian"){
     if(is.null(dispersion.model$weights))
       cat("\t\t y[i] ~ dnorm(muy[i],1/pow(phi[i],2))\n\n",file=jags.model.args$file,append=TRUE)
     else
-      cat("\t\t y[i] ~ dnorm(muy[i],weights[i]/pow(phi[i],2))\n\n",file=jags.model.args$file,append=TRUE)
-
-    cat("\t\t sdy[i] <- phi[i]\n\n",file=jags.model.args$file,append=TRUE)
+      cat("\t\t y[i] ~ dnorm(muy[i],weights[i]/vary)\n\n",file=jags.model.args$file,append=TRUE)
+    
+    cat("\t\t vary[i] <- phi[i]\n\n",file=jags.model.args$file,append=TRUE)
   }
 
+  ## Negative binomial model
   else if(family == "nbinom"){
     cat("\t\t y[i] ~ dnegbin(p[i],r[i])\n",
         "\t\t r[i] <- 1/phi[i]\n",
         "\t\t p[i] <- 1/(1 + phi[i] * muy[i])\n",
-        "\t\t sdy[i] <- sqrt(muy[i] / p[i])\n",
+        "\t\t vary[i] <- muy[i] / p[i]\n",
         "\n",
         file=jags.model.args$file,append=TRUE)
   }
 
+  ## Beta-binomial model
   else if(family == "betabin"){
     cat("\t\t y[i] ~ dbetabin(alphay[i], betay[i], m[i])\n",
         "\t\t alphay[i] <- muy[i] * (1 - phi[i]) / phi[i]\n",
         "\t\t betay[i] <- (1 - muy[i]) * (1 - phi[i]) / phi[i]\n",
-        "\t\t sdy[i] <- sqrt(m[i] * muy[i] * (1-muy[i]) * (1 + (m[i] - 1) * phi[i]))\n",
+        "\t\t vary[i] <- m[i] * muy[i] * (1-muy[i]) * (1 + (m[i] - 1) * phi[i])\n",
         "\n",
         file=jags.model.args$file,append=TRUE)
   }
-  
+
+  ## Compute standard deviation
+  cat("\t\t sdy[i] <- sqrt(vary[i])\n\n", file=jags.model.args$file, append=TRUE)
+
+  ## Rounding 
   if(rounding){
     cat("\t\t ## Rounding\n",
         "\t\t round1[i] <- (lower[i] < y[i])\n",
@@ -54,6 +61,7 @@ generateJAGScode <- function(family,
        ,file=jags.model.args$file,append=TRUE)
   }
 
+  ## Pearson residuals
   if(residuals){
     if(family == "betabin")
       cat("\t\t resid[i] <- (y[i] - m[i] * muy[i])/sdy[i]\n\n",
