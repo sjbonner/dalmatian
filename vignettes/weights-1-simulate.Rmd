@@ -15,7 +15,7 @@ This situation can be accommodated in `dalmatian` by specifying a column of weig
 
 # Simulated data
 Data for this example are contained in the data frame `weights.df` saved within the file `weights-data-1.RData`. The data were generated from the model
-$$Y_{ij} \sim N(x_i,\exp(1+x_i)^2)$$
+$$Y_{ij} \sim N(x_i,\exp(2+2x_i))$$
 with $i=1,\ldots,100$ indexing the groups and $j$ the observarions within groups. In the data, the number of observations per group ranges from 5 to 43. 
 
 ```{r}
@@ -70,7 +70,7 @@ summary(results1)
 caterpillar1 <- caterpillar(results1)
 ```
 
-From the summaries we can see that that the intercept in the variance model is being underestimated. The true value is 1, but the posterior mean is -.24 with 95% HPD interval (-.39,-.12). 
+From the summaries we can see that that the intercept in the dispersion model is being underestimated. The true value is 1, but the posterior mean is -.24 with 95% HPD interval (-.39,-.12). 
 
 # Model 2: Weights
 
