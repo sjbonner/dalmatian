@@ -21,11 +21,14 @@ generateJAGScode <- function(family,
 
   ## Gaussian model
   if(family == "gaussian"){
-    if(is.null(dispersion.model$weights))
-      cat("\t\t y[i] ~ dnorm(muy[i],1/pow(phi[i],2))\n",file=jags.model.args$file,append=TRUE)
-    else
-      cat("\t\t y[i] ~ dnorm(muy[i],weights[i]/vary)\n",file=jags.model.args$file,append=TRUE)
-    
+      cat("\t\t y[i] ~ dnorm(muy[i],tauy[i])\n",file=jags.model.args$file,append=TRUE)
+      if(is.null(dispersion.model$weights))
+        cat("\t\t tauy[i] <- 1/phi[i]\n",
+            file=jags.model.args$file,append=TRUE)
+      else
+        cat("\t\t tauy[i] <- weights[i]/phi[i]\n",
+            file=jags.model.args$file,append=TRUE)
+      
     cat("\t\t vary[i] <- phi[i]\n",file=jags.model.args$file,append=TRUE)
   }
 
