@@ -1,5 +1,8 @@
 ## Simulate data for weighted model.
 
+## Load packages
+library(devtools)
+
 ## Parameters
 m = 100 # Number of groups
 n = 5 + rnbinom(m,size=2,mu=10) # Observations per group
@@ -13,7 +16,7 @@ sigmasq = exp(1 + 1 * x) # Variance
 ## Generate data
 y = sapply(1:m,function(i) mean(rnorm(n[i],mu[i],sqrt(sigmasq[i]))))
 
-weights.df = data.frame(n=n,x=x,y=y)
+weights_data_1 = data.frame(n=n,x=x,y=y)
 
 ## Save data
-load("weights-data-1.RData")
+usethis::use_data(weights_data_1)

@@ -23,8 +23,8 @@ with $i=1,\ldots,100$ indexing the groups and $j$ the observarions within groups
 library(dalmatian)
 
 ## Load simulated data
-data(weights_1_simulate)
-head(weights.df)
+data(weights_data_1)
+head(weights_data_1)
 ```
 The three columns in the data frame record the number of responses per group (`n`), the value of the covariate (`x`), and the mean response (`y`).
 
@@ -53,7 +53,7 @@ cs.args = list(n.iter=1000)
 
 ## Run the model using dalmatian
 results1 <- dalmatian(
-  df = weights.df,
+  df = weights_data_1,
   mean.model = mymean,
   dispersion.model = mydisp,
   jags.model.args = jm.args,
