@@ -1,4 +1,4 @@
-.# History files
+# History files
 .Rhistory
 .Rapp.history
 
@@ -30,3 +30,6 @@ Meta
 
 # Rcheck
 ..Rcheck
+
+# R output files
+*.Rout
