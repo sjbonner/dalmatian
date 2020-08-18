@@ -1,5 +1,5 @@
 ## Load packages
-library(devtools))
+library(devtools)
 
 ## Load dalmatian
 devtools::load_all()
@@ -50,4 +50,4 @@ nbresults <- dalmatian(df=nbinom_data_1,
 
 ## For use on local machine within packge
 save(nbresults,
-     file = path(proj_path(),"Negative_Binomial_1","nbresults.RData"))
+     file = file.path(proj_path(),"inst","Negative_Binomial_1","nbresults.RData"))
