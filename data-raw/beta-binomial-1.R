@@ -52,4 +52,4 @@ bbresults <- dalmatian(df=betabin_data_1,
 
 ## For use on local machine within packge
 save(bbresults,
-     file = path(proj_path(),"Negative_Binomial_1","bbresults.RData"))
+     file = file.path(proj_path(),"inst","Beta_Binomial_1","bbresults.RData"))
