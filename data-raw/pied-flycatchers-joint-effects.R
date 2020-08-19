@@ -2,7 +2,7 @@
 library(devtools)
 
 ## Load dalmatian
-devtools::load_all("../dalmatian")
+devtools::load_all()
 
 ## Load pied flycatcher data
 data(pied_flycatchers_1)
