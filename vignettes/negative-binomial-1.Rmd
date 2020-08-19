@@ -112,8 +112,6 @@ if(runModels){
                          n.cores = 3,
                          overwrite = TRUE,
                          saveJAGSinput = workingDir)
-					 
-  save(results, file = "nbresults.RData")
 }
 if(!runModels){
   load(system.file("Negative_Binomial_1","nbresults.RData",package="dalmatian"))

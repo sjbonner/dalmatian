@@ -98,8 +98,6 @@ if(runModels){
                          upper="upper",
                          residuals = FALSE,
                          debug=FALSE)
-  
-  save(pfresults,file = "pfresults.RData")
 }
 if(!runModels){
   load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
@@ -221,8 +219,6 @@ if(runModels){
                           upper="upper",
                           residuals=FALSE,
                           debug=FALSE)
-  
-  save(pfresults2,file = "pfresults2.RData")
 }
 if(!runModels){
   load(system.file("Pied_Flycatchers_1","pfresults2.RData",package="dalmatian"))
