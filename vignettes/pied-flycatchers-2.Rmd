@@ -90,8 +90,6 @@ if(runModels){
                           lower="lower",
                           upper="upper",
                           debug=FALSE)
-  
-  save(pfresults3,file = "pfresults3.RData")
 }
 if(!runModels){
   ## Load output from previously run chain
