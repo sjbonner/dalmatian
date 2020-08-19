@@ -41,6 +41,7 @@ pfresults3 <- dalmatian(df=pfdata,
                         rounding=TRUE,
                         lower="lower",
                         upper="upper",
+			n.cores = 3,
                         debug=FALSE)
   
 save(pfresults3,
