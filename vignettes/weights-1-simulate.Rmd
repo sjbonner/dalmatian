@@ -20,7 +20,7 @@ This situation can be accommodated in `dalmatian` by specifying a column of weig
 # Simulated data
 Data for this example are contained in the data frame `weights.df` saved within the file `weights-data-1.RData`. The data were generated from the model
 $$Y_{ij} \sim N(x_i,\exp(1+1x_i))$$
-with $i=1,\ldots,100$ indexing the groups and $j$ the observarions within groups. In the data, the number of observations per group ranges from 5 to 43. 
+with $i=1,\ldots,100$ indexing the groups and $j$ the observarions within groups. In the data, the number of observations per group ranges from `r min(weights_data_1$n)` to `r max(weights_data_1$n)`. 
 
 ```{r}
 ## Load library
