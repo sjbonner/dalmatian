@@ -41,7 +41,12 @@ pfdata$upper=log(pfdata$load+.05)
 Our initial model for the logarithm of the load returned on the $j$th trip by adult $i$  will be $N(\mu_{ij},\sigma_{ij}^2)$ where:
 $$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)}_{ij} + \beta_2 \mathrm{broodsize}_i + \beta_3 \mathrm{sex}_i$$
 and
-$$\log(\sigma)=\psi_0 + \psi_1 \mathrm{broodsize}_i + \psi_2\mathrm{sex}_i$$.
+$$\log(\sigma_{ij}^2)=\psi_0 + \psi_1 \mathrm{broodsize}_i + \psi_2\mathrm{sex}_i.$$
+In the framework of generalized linear models, the variance, $\sigma^2_i$, is equal to the dispersion parameter, which we denote generically with $\phi$. Hence, the model can then be written as:
+$Y_{ij} \sim N(\mu_{ij},\phi_{ij})$ where:
+$$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)}_{ij} + \beta_2 \mathrm{broodsize}_i + \beta_3 \mathrm{sex}_i$$
+and
+$$\log(\phi_{ij})=\psi_0 + \psi_1 \mathrm{broodsize}_i + \psi_2\mathrm{sex}_i.$$
 
 ## Model
 
@@ -93,8 +98,6 @@ if(runModels){
                          upper="upper",
                          residuals = FALSE,
                          debug=FALSE)
-  
-  save(pfresults,file = "pfresults.RData")
 }
 if(!runModels){
   load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
@@ -161,11 +164,11 @@ pfcaterpillar$dispersionFixed
 
 # Model 2: Random Effects
 
-We will now consider adding individual (bird) random effects to both the fixed and random components of our model. This can be done by simply adding to the model components created above and then rerunnig the model. The new model will have mean and standard deviation
-$$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)}_{ij} + \beta_2 \mathrm{broodsize}_i + \beta_3 \mathrm{sex}_i + \epsilon_{i}}$$
+We will now consider adding individual (bird) random effects to both the fixed and random components of our model. This can be done by simply adding to the model components created above and then rerunnig the model. The new model will have mean and variance
+$$\mu_{ij}=\beta_0 + \beta_1 \mathrm{log(IVI)}_{ij} + \beta_2 \mathrm{broodsize}_i + \beta_3 \mathrm{sex}_i + \epsilon_{i}}$$
 and
-$$\log(\sigma)=\psi_0 + \psi_1 \mathrm{broodsize}_i + \psi_2\mathrm{sex}_i + \xi_j$$
-where $\epsilon_i \sim N(0,\tau^2_\mu)$ and $\xi_i \sim N(0,\tau^2_\sigma)$. By default the variances $\tau^2_\epsilon$ and $\tau^2_\xi$ are assigned half-$t$ prior distributions.
+$$\log(\phi_{ij})=\psi_0 + \psi_1 \mathrm{broodsize}_i + \psi_2\mathrm{sex}_i + \xi_j$$
+where $\epsilon_i \sim N(0,\tau^2_\mu)$ and $\xi_i \sim N(0,\tau^2_\phi)$. By default the variances $\tau^2_\epsilon$ and $\tau^2_\xi$ are assigned half-$t$ prior distributions.
 
 ## Model
 
@@ -216,8 +219,6 @@ if(runModels){
                           upper="upper",
                           residuals=FALSE,
                           debug=FALSE)
-  
-  save(pfresults2,file = "pfresults2.RData")
 }
 if(!runModels){
   load(system.file("Pied_Flycatchers_1","pfresults2.RData",package="dalmatian"))
@@ -291,14 +292,14 @@ pfdata$'log(IVI)' <- log(pfdata$IVI)
 We can now get predictions.
 
 ```{r}
-## Plot predictions for the Model 1
+## Plot predictions for Model 1
 pred.pfresults <- fitted(object = pfresults, 
                          df = pfdata,
                          method = "mean",
                          ci = TRUE,
                          level = 0.95)
 
-# predictions for the Model 2
+# predictions for Model 2
 pred.pfresults2 <- fitted(object = pfresults2,
                           df = pfdata,
                           method = "mean",

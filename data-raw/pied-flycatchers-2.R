@@ -41,8 +41,9 @@ pfresults3 <- dalmatian(df=pfdata,
                         rounding=TRUE,
                         lower="lower",
                         upper="upper",
+			n.cores = 3,
                         debug=FALSE)
   
 save(pfresults3,
-     file = path(proj_path(),"Pied_Flycatchers_2","pfresults3.RData"))
+     file = file.path(proj_path(),"inst","Pied_Flycatchers_2","pfresults3.RData"))
 

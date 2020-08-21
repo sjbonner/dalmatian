@@ -41,9 +41,9 @@ pfdata$upper=log(pfdata$load+.05)
 # Model
 
 The model we consider will be the similar to the random effects model in "pied-flycatchers-1". We will modify this model by including a random, individual slope for the effect of $log(IVI)$ as well as the random intercept in the mean model. The new model for the mean will be:
-$$\mu=\beta_0 + \beta_1 \mathrm{log(IVI)_{ij}} + \beta_2 \mathrm{broodsize}_i + \beta_3 \mathrm{sex}_i + \epsilon_{1i} + \epsilon_{2i} \mathrm{log(IVI)_{ij}}$$
+$$\mu_{ij}=\beta_0 + \beta_1 \mathrm{log(IVI)_{ij}} + \beta_2 \mathrm{broodsize}_i + \beta_3 \mathrm{sex}_i + \epsilon_{1i} + \epsilon_{2i} \mathrm{log(IVI)_{ij}}$$
 For convenience, we will also simplify the model of the dispersion by assuming that the variance is constant across all observations. This can be done by setting:
-$$\log(\sigma)=\psi_0$$.
+$$\log(\phi_{ij})=\psi_0$$.
 
 The objects defining the new mean and dispersion components are specified as:
 
@@ -52,7 +52,7 @@ The objects defining the new mean and dispersion components are specified as:
 mymean=list(fixed=list(name="alpha",
                 formula=~ log(IVI) + broodsize + sex,
                 priors=list(c("dnorm",0,.001))),
-    random=list(name="epsilon",formula=~-1 + indidx + indidx:log(IVI)))
+            random=list(name="epsilon",formula=~-1 + indidx + indidx:log(IVI)))
 
 
 # Random component of dispersion
@@ -90,8 +90,6 @@ if(runModels){
                           lower="lower",
                           upper="upper",
                           debug=FALSE)
-  
-  save(pfresults3,file = "pfresults3.RData")
 }
 if(!runModels){
   ## Load output from previously run chain
@@ -155,7 +153,12 @@ pfcaterpillar2$meanFixed
 pfcaterpillar2$dispersionFixed
 ```
 
-The convergence diagnostics and traceplots suggest that the chains should be run for longer. In particular, the effective sample size for the variance of the random slopes is very small, but we will proceed with inference for illustration. In the numerical summaries we see that the estimated variance of the random slopes is very small, .02 with 95% credible interval (.00,.04). This suggests that there is very little inter-individual variation in the effect of `log(IVI)`.
+```{r, echo = FALSE}
+## Extract numerical output
+summ <- summary(pfresults3)
+```
+
+The convergence diagnostics and traceplots suggest that the chains should be run for longer. In particular, the effective sample size for the variance of the random slopes is very small, but we will proceed with inference for illustration. In the numerical summaries we see that the estimated variance of the random slopes is very small, `r summ$meanRandom[2,"Mean"]` with 95% credible interval (`r summ$meanRandom[2,"Lower 95%"]`,`r summ$meanRandom[2,"Upper 95%"]`). This suggests that there is very little inter-individual variation in the effect of `log(IVI)`.
 
 Estimates of the individual random effects (predictions for frequentists) can be obtained from the function `ranef()`. This function computes posterior summary statistics for the individual random effects. In this case, the random effects for the mean include both the intercept and the effect of `log(IVI)`. 
 

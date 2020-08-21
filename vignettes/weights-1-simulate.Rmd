@@ -9,22 +9,26 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-In some cases the response variable may be an average of responses from within the same subject or group. In this case, the variances for two observations having the same covariates will not be identical if the size of the groups vary. Instead, it will be inversely proportional to the size of the group. Mathematically, if the observed response is the group average $\bar{Y}_i=\sum_{j=1}^n_i Y_{ij}/n_i$ and $Y_{ij} \sim N(\mu_i,\sigma^2_i)$ where $\sigma^2_i$ may vary by group and depend on covariates then
-$$\bar{Y}_i \sim N(\mu_i,\sigma^2_i/n_i).$$
+```{r, echo = FALSE}
+## Setup
+options(scipen=1, digits=2)
+```
+In some cases the response variable may be an average of responses from within the same subject or group. In this case, the variances for two observations having the same covariates will not be identical if the size of the groups vary. Instead, it will be inversely proportional to the size of the group. Mathematically, if the observed response is the group average $\bar{Y}_i=\sum_{j=1}^{n_i} Y_{ij}/n_i$ and $Y_{ij} \sim N(\mu_i,\phi_i)$ where the dispersion parameter, $\phi_i$, may vary by group and depend on covariates then
+$$\bar{Y}_i \sim N(\mu_i,\phi_i/n_i).$$
 This situation can be accommodated in `dalmatian` by specifying a column of weights within the data frame that provides the group size. Here is an example with simulated data that demonstrates this feature and shows the importance of properly accounting for weights. 
 
 # Simulated data
 Data for this example are contained in the data frame `weights.df` saved within the file `weights-data-1.RData`. The data were generated from the model
-$$Y_{ij} \sim N(x_i,\exp(1+x_i)^2)$$
-with $i=1,\ldots,100$ indexing the groups and $j$ the observarions within groups. In the data, the number of observations per group ranges from 5 to 43. 
+$$Y_{ij} \sim N(x_i,\exp(1+1x_i))$$
+with $i=1,\ldots,100$ indexing the groups and $j$ the observarions within groups. In the data, the number of observations per group ranges from `r min(weights_data_1$n)` to `r max(weights_data_1$n)`. 
 
 ```{r}
 ## Load library
 library(dalmatian)
 
 ## Load simulated data
-data(weights_1_simulate)
-head(weights.df)
+data(weights_data_1)
+head(weights_data_1)
 ```
 The three columns in the data frame record the number of responses per group (`n`), the value of the covariate (`x`), and the mean response (`y`).
 
@@ -53,7 +57,7 @@ cs.args = list(n.iter=1000)
 
 ## Run the model using dalmatian
 results1 <- dalmatian(
-  df = weights.df,
+  df = weights_data_1,
   mean.model = mymean,
   dispersion.model = mydisp,
   jags.model.args = jm.args,
@@ -64,13 +68,21 @@ results1 <- dalmatian(
 )
 
 ## Numerical summary statistics
-summary(results1)
+summary1 <- summary(results1)
+summary1
 
 ## Graphical summaries
-caterpillar1 <- caterpillar(results1)
+caterpillar1 <- caterpillar(results1, show = TRUE)
 ```
 
-From the summaries we can see that that the intercept in the variance model is being underestimated. The true value is 1, but the posterior mean is -.24 with 95% HPD interval (-.39,-.12). 
+```{r,echo = FALSE}
+## Extract results
+mean1 <- summary1$dispFixed[1,"Mean"]
+lower1 <- summary1$dispFixed[1,"Lower 95%"]
+upper1 <- summary1$dispFixed[1,"Upper 95%"]
+```
+
+From the summaries we can see that that the intercept in the dispersion model is being underestimated. The true value is 1, but the posterior mean is `r mean1` with 95% HPD interval (`r lower1`,`r upper1`). 
 
 # Model 2: Weights
 
@@ -83,7 +95,7 @@ mydisp$weights = "n"
 ## Run model
 jm.args = list(file=file.path(workingDir,"weights_2_jags.R"),n.adapt=1000)
 
-results2 = dalmatian(df=weights.df,
+results2 = dalmatian(df=weights_data_1,
                      mean.model=mymean,
                      dispersion.model=mydisp,
                      jags.model.args=jm.args,
@@ -93,11 +105,19 @@ results2 = dalmatian(df=weights.df,
                      debug=FALSE)
 
 ## Numerical summary statistics
-summary(results2)
+summary2 <- summary(results2)
+summary2
 
 ## Graphical summaries
-caterpillar2 <- caterpillar(results2)
+caterpillar2 <- caterpillar(results2, show = TRUE)
 
 ```
 
-The new output shows that the estimate of the intercept for the variance model, .95, is now very close to the truth and the 95% credible interval, (.82,1.10) easily covers the true value of 1.
+```{r,echo = FALSE}
+## Extract results
+mean2 <- summary2$dispFixed[1,"Mean"]
+lower2 <- summary2$dispFixed[1,"Lower 95%"]
+upper2 <- summary2$dispFixed[1,"Upper 95%"]
+```
+
+The new output shows that the estimate of the intercept for the variance model, `r mean2`, is now very close to the truth and the 95% credible interval, (`r lower2`,`r upper2`) easily covers the true value of 1. 

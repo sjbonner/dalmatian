@@ -16,7 +16,7 @@
 #'    \item{y}{The mean response value.}
 #'  }
 #'
-"weights.df"
+"weights_data_1"
 
 #' Simulated data for illustrating the beta-binomial model
 #'
