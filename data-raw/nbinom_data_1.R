@@ -9,11 +9,13 @@ m <- 30  # Number of observations per individual
 alpha0 <- log(10)
 alpha1 <- log(2)
 
+tau.epsilon <- 1 # Random effects standard deviation
+
 ## Dispersion model
 psi0 <- 0 # Intercept of dipsersion on log scale
 psi1 <- 2 # Fixed effect on dispersion
 
-tau <- 1 # Random effects variance
+tau.xi <- 1 # Random effects standard deviation
 
 ## Simulate data
 set.seed(7777)
