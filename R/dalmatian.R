@@ -104,8 +104,8 @@ dalmatian <- function(df,
     browser()
 
   ## Check that input is consistent and sufficient
-  if (! family %in% c("gaussian","nbinom","betabin"))
-    stop("Currently supported families of distributions for the response include either Gaussian (family=\"gaussian\"), negative binomial (family=\"nbinom\"), or b.\n\n")
+  if (! family %in% c("gaussian","nbinom","betabin","gamma"))
+    stop("Currently supported families of distributions for the response include either Gaussian (family=\"gaussian\"), negative binomial (family=\"nbinom\"), beta-binomial (family = \"betabin\") of gamma (family = \"gamma\").\n\n")
   
   if (rounding & (is.null(lower) || is.null(upper)))
     stop(

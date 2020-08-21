@@ -50,6 +50,15 @@ generateJAGScode <- function(family,
         file=jags.model.args$file,append=TRUE)
   }
 
+  ## Gamma model
+  else if(family == "gamma"){
+    cat("\t\t y[i] ~ dgamma(ry[i], lambdayd[i])\n",
+        "\t\t lambday[i] <- 1/phi[i]\n",
+        "\t\t ry[i] <- muy[i] * lambday[i]\n",
+        "\t\t vary[i] <- phi[i] * muy[i]\n",
+        file=jags.model.args$file,append=TRUE)
+  }
+        
   ## Compute standard deviation
   cat("\t\t sdy[i] <- sqrt(vary[i])\n\n", file=jags.model.args$file, append=TRUE)
 
