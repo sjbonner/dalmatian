@@ -72,9 +72,9 @@ generateJAGScode <- function(family,
   }
 
   ## Pearson residuals
-  cat("\t\t ## Pearson residuals\n",file=jags.model.args$file,append=TRUE)
-  
   if(residuals){
+    cat("\t\t ## Pearson residuals\n",file=jags.model.args$file,append=TRUE)
+  
     if(family == "betabin")
       cat("\t\t resid[i] <- (y[i] - m[i] * muy[i])/sdy[i]\n\n",
           file=jags.model.args$file,append=TRUE)
