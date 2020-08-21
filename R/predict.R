@@ -309,15 +309,15 @@ predict.dalmatian <- function(object,
 	########################################
 
   if(type == "response"){
-	if(!is.null(object$mean.model$fixed$link)){
+	if(!is.null(object$mean.model$link)){
 	  mean.pred = switch(object$mean.model$link,
 	                     "log"=exp(mean.pred),
 	                     "logit"=(1+exp(-mean.pred))^-1,
 	                     "sqrt"=mean.pred^2)
 	}
 	
-	if(!is.null(object$dispersion.model$fixed$link)){
-	  var.pred = switch(object$dispersion.model$fixed$link,
+	if(!is.null(object$dispersion.model$link)){
+	  var.pred = switch(object$dispersion.model$link,
 	                     "log"=exp(var.pred),
 	                     "logit"=(1+exp(-var.pred))^-1,
 	                     "sqrt"=var.pred^2)

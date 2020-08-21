@@ -13,14 +13,14 @@ pfdata$upper=log(pfdata$load+.05)
 
 ## Mean model
 mymean=list(fixed=list(name="alpha",
-       formula=~ log(IVI) + sex,
-       priors=list(c("dnorm",0,.001))))
+                       formula=~ log(IVI) + sex,
+                       priors=list(c("dnorm",0,.001))))
 
 ## Dispersion model
 mydisp=list(fixed=list(name="psi",
-      link="log",
-      formula=~sex,
-      priors=list(c("dnorm",0,.001))))
+                       formula=~sex,
+                       priors=list(c("dnorm",0,.001))),
+            link="log")
 
 ## Joint components
 myjoint = list(fixed = list(name = "gamma",

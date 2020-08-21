@@ -42,8 +42,10 @@ mymean=list(fixed=list(name="alpha",formula=~ x,
             priors=list(c("dnorm",0,.001))))
 
 ## Variance model
-mydisp=list(fixed=list(name="psi",link="log",formula=~ x,
-           priors=list(c("dnorm",0,.001))))
+mydisp=list(fixed=list(name="psi",
+                       formula=~ x,
+                       priors=list(c("dnorm",0,.001))),
+            link="log")
 
 ## Set working directory
 ## By default uses a system temp directory. You probably want to change this.

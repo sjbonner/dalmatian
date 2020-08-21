@@ -89,15 +89,16 @@ generateJAGScode <- function(family,
 
   ## Create LHS
   if(!is.null(mean.model$link))
-      lp <- paste0("\t\t ",mean.model$fixed$link,"(",lhs,")")
-    else 
-      lp <- paste0("\t\t ", lhs)
+    mean.lp <- paste0("\t\t ",mean.model$link,"(muy[i]) <- ")
+  else 
+    mean.lp <- paste0("\t\t muy[i] <- ")
 
-  sep <- " <- "
+  sep <- " "
   
   ## 2a) Fixed effects
   if(!is.null(mean.model$fixed)){
-    mean.lp <- buildLinearPredictor(component = "mean",
+    mean.lp <- buildLinearPredictor(lp = mean.lp,
+                                    component = "mean",
                                     sep = sep,
                                     model = mean.model$fixed,
                                     data = jags.model.args$data)
@@ -108,6 +109,7 @@ generateJAGScode <- function(family,
   ## 2b) Random effects
   if(!is.null(mean.model$random)){
     mean.lp <- buildLinearPredictor(mean.lp,
+                                    sep = sep,
                                     component = "mean",
                                     data = jags.model.args$data,
                                     model = mean.model$random,
@@ -120,6 +122,7 @@ generateJAGScode <- function(family,
     ## 2c) Joint fixed effects
     if(!is.null(joint.model$fixed)){
       mean.lp <- buildLinearPredictor(mean.lp,
+                                      sep = sep,
                                       component = "joint",
                                       data = jags.model.args$data,
                                       model = joint.model$fixed)
@@ -130,6 +133,7 @@ generateJAGScode <- function(family,
     ## 2d) Joint random effects
     if(!is.null(joint.model$random)){
       mean.lp <- buildLinearPredictor(mean.lp,
+                                      sep = sep,
                                       component = "joint",
                                       data = jags.model.args$data,
                                       model = joint.model$random,
@@ -146,15 +150,16 @@ generateJAGScode <- function(family,
 
   ## Create LHS
   if(!is.null(dispersion.model$link))
-    disp.lp <- paste0("\t\t ",dispersion.model$fixed$link,"(",lhs,")")
+    disp.lp <- paste0("\t\t ",dispersion.model$link,"(phi[i]) <- ")
   else 
-    disp.lp <- paste0("\t\t ", lhs)
+    disp.lp <- paste0("\t\t phi[i] <- ")
 
-  sep <- " <- "
+  sep <- " "
 
   ## 3a) Fixed effects
   if(!is.null(dispersion.model$fixed)){
     disp.lp <- buildLinearPredictor(component = "dispersion",
+                                    lp = disp.lp,
                                     sep = sep,
                                     model = dispersion.model$fixed,
                                     data = jags.model.args$data)
@@ -250,6 +255,7 @@ generateJAGScode <- function(family,
 
 buildLinearPredictor <- function(lp = NULL,
                                  component,
+                                 sep = "",
                                  model,
                                  data,
                                  random = FALSE){

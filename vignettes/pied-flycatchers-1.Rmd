@@ -57,15 +57,14 @@ The components of the model for the pied flycatcher data specified above would b
 ```{r}
 ## Mean model
 mymean <- list(fixed=list(name="alpha",
-       formula=~ log(IVI) + broodsize + sex,
-       priors=list(c("dnorm",0,.001))))
+                          formula=~ log(IVI) + broodsize + sex,
+                          priors=list(c("dnorm",0,.001))))
 
 ## Dispersion model
 mydisp <- list(fixed=list(name="psi",
-      link="log",
-      formula=~broodsize + sex,
-      priors=list(c("dnorm",0,.001))))
-
+                          formula=~broodsize + sex,
+                          priors=list(c("dnorm",0,.001))),
+               link="log")
 ```
 These two objects will now be used to generate the JAGS code, data, and initial values for running the model.
 

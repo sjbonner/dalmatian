@@ -10,17 +10,18 @@ data(nbinom_data_1)
 ## Define mean and variance objects
 mymean <- list(fixed = list(name = "alpha",
                             formula = ~x1,
-                            link = "log",
                             priors = list(c("dnorm",0,.001))),
                random = list(name = "epsilon",
-                             formula = ~ID - 1))
+                             formula = ~ID - 1),
+               link = "log")
 
 mydisp <- list(fixed = list(name = "psi",
                             formula = ~x2,
-                            link = "log",
                             priors = list(c("dnorm",0,.001))),
                random = list(name = "xi",
-                             formula = ~ID - 1))
+                             formula = ~ID - 1),
+               link = "log")
+
 ## Set working directory
 workingDir <- tempdir()
 

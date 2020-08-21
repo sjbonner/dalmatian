@@ -50,17 +50,17 @@ The objects defining the new mean and dispersion components are specified as:
 ```{r}
 # Random component of mean
 mymean=list(fixed=list(name="alpha",
-                formula=~ log(IVI) + broodsize + sex,
-                priors=list(c("dnorm",0,.001))),
-            random=list(name="epsilon",formula=~-1 + indidx + indidx:log(IVI)))
+                       formula=~ log(IVI) + broodsize + sex,
+                       priors=list(c("dnorm",0,.001))),
+            random=list(name="epsilon",
+                        formula=~-1 + indidx + indidx:log(IVI)))
 
 
 # Random component of dispersion
 mydisp=list(fixed=list(name="psi",
-               link="log",
-               formula=~1,
-               priors=list(c("dnorm",0,.001))))
-
+                       formula=~1,
+                       priors=list(c("dnorm",0,.001))),
+            link="log")
 ```
 
 ## Running the Model with dalmatian

@@ -20,9 +20,10 @@ mymean=list(fixed=list(name="alpha",
 
 # Random component of dispersion
 mydisp=list(fixed=list(name="psi",
-               link="log",
                formula=~1,
-               priors=list(c("dnorm",0,.001))))
+               priors=list(c("dnorm",0,.001))),
+            link="log")
+
 ## Set working directory
 workingDir <- tempdir()
 
