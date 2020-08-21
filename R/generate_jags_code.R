@@ -52,7 +52,7 @@ generateJAGScode <- function(family,
 
   ## Gamma model
   else if(family == "gamma"){
-    cat("\t\t y[i] ~ dgamma(ry[i], lambdayd[i])\n",
+    cat("\t\t y[i] ~ dgamma(ry[i], lambday[i])\n",
         "\t\t lambday[i] <- 1/phi[i]\n",
         "\t\t ry[i] <- muy[i] * lambday[i]\n",
         "\t\t vary[i] <- phi[i] * muy[i]\n",
