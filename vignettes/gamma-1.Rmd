@@ -1,0 +1,167 @@
+---
+title: "Implementation of Gamma Model"
+author: "Simon Bonner"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Implementation of Gamma Model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r,echo=FALSE}
+runModels <- FALSE # If true rerun models. OTW, reload previous output.
+```
+
+This package illustrates the implementation of the gamma model for analyzing data including a continuous response that is constrained to be positive. As an example we consider the analysis of a simulated data set. We recommend that you first work through the vignettes for the pied flycatcher data ("pied-flycatcher-1" and "pied-flycatcher-2") which contain further information on the structure of the package.
+
+# Gamma model
+
+The gamma distribution is parametrized in JAGS according to the shape parameter, $r$, and the rate parameter, $\lambda$. Given this parametrization the mean and variance of $Y \sim \mbox{Gamma}(r,\lambda)$ are
+$$E(Y)=\mu=\frac{r}{\lambda}$$
+and 
+$$\mbox{Var(Y)}=\frac{r}{\lambda^2}=\phi\mu$$
+where $\phi=1/\lambda$ is the dispersion parameter. 
+
+In the implementation of the negative binomial double generalized linear mixed effects model the mean and variance for the $i^{th}$ observation are modelled as
+$$
+g(\mu_i)=\eta_i=\mathbf x_{\mu,i}^\top \mathbf \alpha + \mathbf z_{\mu,i}^\top \mathbf \epsilon
+$$
+and 
+$$
+h(\phi_i)=\lambda_i= \mathbf x_{\sigma,i}^\top \mathbf \psi + \mathbf z_{\sigma,i}^\top \mathbf \xi
+$$
+with $\mathbf \alpha$ and $\mathbf \epsilon$ representing vectors of fixed and random effects for the mean and $\mathbf \psi$ and $\mathbf \xi$ fixed and random effects for the dispersion. Both $\mu_i$ and $\phi_i$ may take any non-negative value, and so it is natural to assume that both $g(x)=h(x)=log(x)$, though other link functions may be appropriate in certain situations. The inverse function $g(x)=1/x$ is the canonical link for the mean but is not often used in practice because it does not constrain the mean to be positive. 
+
+# Library
+
+First you have to load the package:
+```{r}
+## Load package
+library(dalmatian)
+```
+
+# Raw data
+
+The raw data for this example is provided in the package and can be accessed with:
+```{r}
+## Load gamma data
+data(gamma_data_1)
+```
+This data contains observations from a hypothetical study in which 50 individuals each observed over 30 occasions for which the observed response is a count. Let $y_{ij}$ denote observed count on the $j$th occasion for individual $i$. The counts for each individual are assumed to be drawn from separate, independent, gamma distributions with mean
+$$\mbox{log}(\mu_{i})=\alpha_0 + \alpha_1 x_{i1} + \epsilon_{i}$$
+where $x_{i1}$ and $z_{i1}$ represent individual fixed and random effects on the mean and dispersion parameter defined by
+$$\mbox{log}(\phi_{i})=\psi_0 + \psi_1 x_{i2} + \xi_{i}$$
+where $x_{i2}$ and $\xi_{i}$ represent individual fixed and random effects on the dispersion. For the simulation we set $\alpha_0=\log(10)$, $\alpha_1=\log(2)$, $\psi_0=0$, and $\psi_1=2$. We then generate the fixed and random effects as
+$$x_{i1} \sim \mbox{Normal}(0,1)$$
+$$x_{i2} \sim \mbox{Normal}(0,1)$$
+$$\epsilon_{i} \sim \mbox{Normal}(0,1)$$
+$$\xi_{i} \sim \mbox{Normal}(0,1).$$
+
+# Defining the Model
+
+To illustrate the gamma we fit the data generating model to the simulated data. The model structure is defined through two lists specifying the fixed and random effects for the mean and dispersion components:
+
+```{r}
+## Define mean and variance objects
+mymean <- list(fixed = list(name = "alpha",
+                            formula = ~x1,
+                            priors = list(c("dnorm",0,.001))),
+               random = list(name = "epsilon",
+                             formula = ~ID - 1),
+               link = "log")
+
+mydisp <- list(fixed = list(name = "psi",
+                            formula = ~x2,
+                            priors = list(c("dnorm",0,.001))),
+               random = list(name = "xi",
+                             formula = ~ID - 1),
+               link = "log")
+```
+
+# Running the Model with dalmatian
+
+Once the model structure has been defined the model can be fit with the function `dalmatian`. The following code creates the lists of arguments supplied to `jags.model` and `coda.samples` and then calls `dalmatian` to run the MCMC sampler. Note that the gamma model is fit by specifying that `family="gamma"`.
+
+```{r}
+
+## Set working directory
+## By default uses a system temp directory. You probably want to change this.
+workingDir <- tempdir()
+
+## Define list of arguments for jags.model()
+jm.args <- list(file=file.path(workingDir,"gamma_test_1.R"),n.chains = 3, n.adapt = 1000)
+
+## Define list of arguments for coda.samples()
+cs.args <- list(n.iter=5000,thin=20)
+
+## Run the model using dalmatian
+## This is how the model is run. However, to save you time we will load output from a previous run instead.
+if(runModels){
+  gresults <- dalmatian(df=gamma_data_1,
+                         family = "gamma",
+                         mean.model=mymean,
+                         dispersion.model=mydisp,
+                         jags.model.args=jm.args,
+                         coda.samples.args=cs.args,
+                         response = "y",
+                         residuals = FALSE,
+                         run.model = TRUE,
+                         engine = "JAGS",
+                         n.cores = 3,
+                         overwrite = TRUE,
+                         saveJAGSinput = workingDir)
+}
+if(!runModels){
+  load(system.file("Gamma_1","gresults.RData",package="dalmatian"))
+}
+```
+
+# Results
+
+Once the samples have been generated the post-processing functions can be used to examine the behaviour of the sampler and compute posterior summary statistics. These functions are described further in the help pages and in the vignettes analyzing the pied flycatcher data.
+
+## Convergence Diagnostics
+```{r}
+## Compute convergence diagnostics
+gconvergence <- convergence(gresults)
+
+## Gelman-Rubin diagnostics
+gconvergence$gelman
+
+## Raftery diagnostics
+gconvergence$raftery
+
+## Effective sample size
+gconvergence$effectiveSize
+```
+
+## Traceplots
+```{r,fig.width=6,fig.align="center"}
+## Generate traceplots
+gtraceplots <- traceplots(gresults,show=FALSE)
+
+## Fixed effects for mean
+gtraceplots$meanFixed
+
+## Fixed effects for dispersion
+gtraceplots$dispersionFixed
+```
+
+## Numerical Summaries
+```{r}
+## Compute numerical summaries
+summary(gresults)
+```
+
+## Graphical Summaries
+```{r,fig.width=6,fig.align="center"}
+## Generate caterpillar
+gcaterpillar <- caterpillar(gresults,show = FALSE)
+
+## Fixed effects for mean
+gcaterpillar$meanFixed
+
+## Fixed effects for dispersion
+gcaterpillar$dispersionFixed
+```
