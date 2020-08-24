@@ -81,6 +81,7 @@ if(runModels){
   pfresults4 <- dalmatian(df=pfdata,
                           mean.model=mymean,
                           dispersion.model=mydisp,
+                          joint.model=myjoint,
                           jags.model.args=jm.args,
                           coda.samples.args=cs.args,
                           rounding=TRUE,
