@@ -18,10 +18,7 @@ $$\bar{Y}_i \sim N(\mu_i,\phi_i/n_i).$$
 This situation can be accommodated in `dalmatian` by specifying a column of weights within the data frame that provides the group size. Here is an example with simulated data that demonstrates this feature and shows the importance of properly accounting for weights. 
 
 # Simulated data
-Data for this example are contained in the data frame `weights.df` saved within the file `weights-data-1.RData`. The data were generated from the model
-$$Y_{ij} \sim N(x_i,\exp(1+1x_i))$$
-with $i=1,\ldots,100$ indexing the groups and $j$ the observarions within groups. In the data, the number of observations per group ranges from `r min(weights_data_1$n)` to `r max(weights_data_1$n)`. 
-
+Data for this example are contained in the data frame `weights.df` saved within the file `weights-data-1.RData`. 
 ```{r}
 ## Load library
 library(dalmatian)
@@ -30,7 +27,8 @@ library(dalmatian)
 data(weights_data_1)
 head(weights_data_1)
 ```
-The three columns in the data frame record the number of responses per group (`n`), the value of the covariate (`x`), and the mean response (`y`).
+The three columns in the data frame record the number of responses per group (`n`), the value of the covariate (`x`), and the mean response (`y`). The data were generated from the model
+$$Y_{ij} \sim N(x_i,\exp(1+1x_i))$$ with $i=1,\ldots,100$ indexing the groups and $j$ the observations within groups. In the data, the number of observations per group ranges from `r min(weights_data_1$n)` to `r max(weights_data_1$n)`. 
 
 # Model 1: No Weights
 
