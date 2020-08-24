@@ -33,7 +33,7 @@ mutate(eta.mu = alpha0 + alpha1 * x1 + epsilon,
 
 ## Removed unbserved values
 gamma_data_1 <- gamma_data_1 %>%
-  select(ID, Rep, x1, x2, epsilon, xi, y)
+  select(ID, Rep, x1, x2, y)
 
 ## Save data to package
 usethis::use_data(gamma_data_1, overwrite = TRUE)
