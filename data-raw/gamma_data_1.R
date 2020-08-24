@@ -2,28 +2,28 @@
 library(tidyverse)
 
 ## Design
-n <- 30 # Number of individuals
-m <- 10  # Number of observations per individual
+n <- 50 # Number of individuals
+m <- 30  # Number of observations per individual
 
 ## Mean model
 alpha0 <- log(10)
 alpha1 <- log(2)
 
-tau.epsilon <- 1 # Random effects standard deviation
+tau.epsilon <- .1 # Random effects standard deviation
 
 ## Dispersion model
 psi0 <- 0 # Intercept of dipsersion on log scale
-psi1 <- 0 #2 # Fixed effect on dispersion
+psi1 <- 2 # Fixed effect on dispersion
 
-tau.xi <- 1 # Random effects standard deviation
+tau.xi <- .1 # Random effects standard deviation
 
 ## Simulate data
 set.seed(7777)
 gamma_data_1 <- tibble(ID = as.factor(1:n),
                  x1 = rnorm(n), ## Simulate covariate for mean
                  x2 = rnorm(n), ## Simulate covariate for dispersion
-                 epsilon = rnorm(n,0,sqrt(tau.epsilon)), ## Simulate random effect for mean
-                 xi = 0) %>% #rnorm(n, 0, sqrt(tau.xi))) %>% ## Simulate random effect for dispersion
+                 epsilon = rnorm(n,0,tau.epsilon), ## Simulate random effect for mean
+                 xi = rnorm(n, 0, tau.xi)) %>% ## Simulate random effect for dispersion
 mutate(eta.mu = alpha0 + alpha1 * x1 + epsilon,
        mu = exp(eta.mu),
        eta.phi = psi0 + psi1 * x2 + xi,
