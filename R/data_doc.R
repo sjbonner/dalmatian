@@ -46,3 +46,17 @@
 #'   \item{y}{The count.}
 #' }
 "nbinom_data_1"
+
+' Simulated data for illustrating the gamma model
+#'
+#' Simulated data to show how the gamma model may be fit with fixed and random effects on both the mean and dispersion.
+#'
+#' @format A data frame containing 1500 observations and 5 columns:
+#' \describe{
+#'   \item{ID}{The individual ID.}
+#'   \item{Rep}{The replicate number.}
+#'   \item{x1}{The value of the covariate for the mean.}
+#'   \item{x2}{The value of the covariate for the dispersion.}
+#'   \item{y}{The response.}
+#' }
+"gamma_data_1"
