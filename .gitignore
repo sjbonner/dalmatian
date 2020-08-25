@@ -20,11 +20,11 @@ vignettes/*.pdf
 .Rproj.user
 
 # R build ignore
-.Rbuildignore
+# .Rbuildignore
 
 # Git ignore
-.gitignore
-dalmatian/.gitignore
+# .gitignore
+# dalmatian/.gitignore
 doc
 Meta
 
