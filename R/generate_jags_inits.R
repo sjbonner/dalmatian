@@ -16,7 +16,7 @@ generateJAGSinits <- function(family,
       y <- jags.data$y
     
     ## Remove zeros with negative binomial response and log link
-    if(family == "nbinom" && mean.model$fixed$link == "log" && any(y == 0))
+    if(family == "nbinom" && mean.model$link == "log" && any(y == 0))
       y <- y + .1
     
     ## Mean formula
@@ -49,8 +49,8 @@ generateJAGSinits <- function(family,
     
     ##### My simple implementation of a double glm fit non-iteratively #####
     # ## Fit linear regression model
-    # if(!is.null(mean.model$fixed$link))
-    #   meanlm <- glm(mean.formula,family = gaussian(link=mean.model$fixed$link))
+    # if(!is.null(mean.model$link))
+    #   meanlm <- glm(mean.formula,family = gaussian(link=mean.model$link))
     # else
     #   meanlm <- lm(mean.formula)
     # 
@@ -66,7 +66,7 @@ generateJAGSinits <- function(family,
     # epsilonsq <- residuals(meanlm)^2
     # 
     # # Fit gamma GLM to squared residuals
-    # dispersionlm <- glm(dispersion.formula,family=Gamma(link=dispersion.model$fixed$link))
+    # dispersionlm <- glm(dispersion.formula,family=Gamma(link=dispersion.model$link))
     # 
     # # Extract coefficients
     # dispersion.coeff <- coef(dispersionlm)
@@ -75,19 +75,19 @@ generateJAGSinits <- function(family,
     # 
     
     # Set link functions to identity if not specified
-    if(is.null(mean.model$fixed$link))
-      mean.model$fixed$link <- "identity"
+    if(is.null(mean.model$link))
+      mean.model$link <- "identity"
     
-    if(is.null(dispersion.model$fixed$link))
-      dispersion.model$fixed$link <- "identity"
+    if(is.null(dispersion.model$link))
+      dispersion.model$link <- "identity"
       
     # Fit double GLM (without random effects)
-    dlink <- dispersion.model$fixed$link # I don't understand, but this is necessary.
+    dlink <- dispersion.model$link # I don't understand, but this is necessary.
     
       
     dglmfit <- dglm::dglm(formula=mean.formula,
                  dformula=dispersion.formula,
-                 family=gaussian(link=mean.model$fixed$link),
+                 family=gaussian(link=mean.model$link),
                  dlink=dlink)
     
     # Extract coefficients of mean model

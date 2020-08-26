@@ -21,10 +21,9 @@ mymean=list(fixed=list(name="alpha",
 
 ## Dispersion model
 mydisp=list(fixed=list(name="psi",
-      link="log",
-      formula=~broodsize + sex,
-      priors=list(c("dnorm",0,.001))))
-
+                       formula=~broodsize + sex,
+                       priors=list(c("dnorm",0,.001))),
+            link="log")
 
 ## Set working directory
 workingDir <- tempdir()

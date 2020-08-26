@@ -1,10 +1,10 @@
 ---
-title: "Implementation of Negative Binomial Model"
+title: "Implementation of Gamma Model"
 author: "Simon Bonner"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Implementation of Negative Binomial Model}
+  %\VignetteIndexEntry{Implementation of Gamma Model}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -13,15 +13,15 @@ vignette: >
 runModels <- FALSE # If true rerun models. OTW, reload previous output.
 ```
 
-This package illustrates the implementation of the negative binomial model for analyzing count data with overdispersion for which the level of overdisperion may vary dependent on fixed and/or random effects. As an example we consider the analysis of a simulated data set. We recommend that you first work through the vignettes for the pied flycatcher data ("pied-flycatcher-1" and "pied-flycatcher-2") which contain further information on the structure of the package.
+This package illustrates the implementation of the gamma model for analyzing data including a continuous response that is constrained to be positive. As an example we consider the analysis of a simulated data set. We recommend that you first work through the vignettes for the pied flycatcher data ("pied-flycatcher-1" and "pied-flycatcher-2") which contain further information on the structure of the package.
 
-# Negative binomial model
+# Gamma model
 
-The negative binomial distribution is commonly considered as a model for count data which is overdispersed relative to the Poisson distribution (i.e., the variance is bigger than the mean). The distribution is often motivated by considering independent Bernoulli trials with constant probability of success, $p$, and counting the number of failures that occur before a set number, $r$, of successes has been observed. In this case, the number of successes observed, $Y$, follows a negative binomial distribution with mean 
-$$E(Y)=\mu=\frac{r(1-p)}{p}$$ 
-and variance 
-$$\mbox{Var(Y)}=\frac{r(1-p)}{p^2}=\mu + \phi\mu^2$$
-where $\phi=1/r$ is the dispersion parameter. 
+The gamma distribution is parametrized in JAGS according to the shape parameter, $r$, and the rate parameter, $\lambda$. Given this parametrization the mean and variance of $Y \sim \mbox{Gamma}(r,\lambda)$ are
+$$E(Y)=\mu=\frac{r}{\lambda}$$
+and 
+$$\mbox{Var(Y)}=\frac{r}{\lambda^2}=\phi\mu$$
+where $\phi=1/\lambda$ is the dispersion parameter. 
 
 In the implementation of the negative binomial double generalized linear mixed effects model the mean and variance for the $i^{th}$ observation are modelled as
 $$
@@ -31,7 +31,7 @@ and
 $$
 h(\phi_i)=\lambda_i= \mathbf x_{\sigma,i}^\top \mathbf \psi + \mathbf z_{\sigma,i}^\top \mathbf \xi
 $$
-with $\mathbf \alpha$ and $\mathbf \epsilon$ representing vectors of fixed and random effects for the mean and $\mathbf \psi$ and $\mathbf \xi$ fixed and random effects for the dispersion. Note that both $\mu_i$ and $\phi_i$ may take any non-negative value, and so it is natural to assume that both $g(x)=h(x)=log(x)$, though other link functions may be appropriate in certain situations. 
+with $\mathbf \alpha$ and $\mathbf \epsilon$ representing vectors of fixed and random effects for the mean and $\mathbf \psi$ and $\mathbf \xi$ fixed and random effects for the dispersion. Both $\mu_i$ and $\phi_i$ may take any non-negative value, and so it is natural to assume that both $g(x)=h(x)=log(x)$, though other link functions may be appropriate in certain situations. The inverse function $g(x)=1/x$ is the canonical link for the mean but is not often used in practice because it does not constrain the mean to be positive. 
 
 # Library
 
@@ -45,10 +45,10 @@ library(dalmatian)
 
 The raw data for this example is provided in the package and can be accessed with:
 ```{r}
-## Load negative binomial data
-data(nbinom_data_1)
+## Load gamma data
+data(gamma_data_1)
 ```
-This data contains observations from a hypothetical study in which 50 individuals each observed over 30 occasions for which the observed response is a count. Let $y_{ij}$ denote observed count on the $j$th occasion for individual $i$. The counts for each individual are assumed to be drawn from separate, independent, negative binomial distributions with mean
+This data contains observations from a hypothetical study in which 50 individuals each observed over 30 occasions for which the observed response is a count. Let $y_{ij}$ denote observed count on the $j$th occasion for individual $i$. The counts for each individual are assumed to be drawn from separate, independent, gamma distributions with mean
 $$\mbox{log}(\mu_{i})=\alpha_0 + \alpha_1 x_{i1} + \epsilon_{i}$$
 where $x_{i1}$ and $z_{i1}$ represent individual fixed and random effects on the mean and dispersion parameter defined by
 $$\mbox{log}(\phi_{i})=\psi_0 + \psi_1 x_{i2} + \xi_{i}$$
@@ -60,7 +60,7 @@ $$\xi_{i} \sim \mbox{Normal}(0,1).$$
 
 # Defining the Model
 
-To illustrate the negative binomial we fit the data generating model to the simulated data. The model structure is defined through two lists specifying the fixed and random effects for the mean and dispersion components:
+To illustrate the gamma we fit the data generating model to the simulated data. The model structure is defined through two lists specifying the fixed and random effects for the mean and dispersion components:
 
 ```{r}
 ## Define mean and variance objects
@@ -81,7 +81,7 @@ mydisp <- list(fixed = list(name = "psi",
 
 # Running the Model with dalmatian
 
-Once the model structure has been defined the model can be fit with the function `dalmatian`. The following code creates the lists of arguments supplied to `jags.model` and `coda.samples` and then calls `dalmatian` to run the MCMC sampler. Note that the negative binomial model is fit by specifying that `family="nbinom"`.
+Once the model structure has been defined the model can be fit with the function `dalmatian`. The following code creates the lists of arguments supplied to `jags.model` and `coda.samples` and then calls `dalmatian` to run the MCMC sampler. Note that the gamma model is fit by specifying that `family="gamma"`.
 
 ```{r}
 
@@ -90,7 +90,7 @@ Once the model structure has been defined the model can be fit with the function
 workingDir <- tempdir()
 
 ## Define list of arguments for jags.model()
-jm.args <- list(file=file.path(workingDir,"nbinom_test_1.R"),n.chains = 3, n.adapt = 1000)
+jm.args <- list(file=file.path(workingDir,"gamma_test_1.R"),n.chains = 3, n.adapt = 1000)
 
 ## Define list of arguments for coda.samples()
 cs.args <- list(n.iter=5000,thin=20)
@@ -98,8 +98,8 @@ cs.args <- list(n.iter=5000,thin=20)
 ## Run the model using dalmatian
 ## This is how the model is run. However, to save you time we will load output from a previous run instead.
 if(runModels){
-  nbresults <- dalmatian(df=nbinom_data_1,
-                         family = "nbinom",
+  gresults <- dalmatian(df=gamma_data_1,
+                         family = "gamma",
                          mean.model=mymean,
                          dispersion.model=mydisp,
                          jags.model.args=jm.args,
@@ -113,10 +113,9 @@ if(runModels){
                          saveJAGSinput = workingDir)
 }
 if(!runModels){
-  load(system.file("Negative_Binomial_1","nbresults.RData",package="dalmatian"))
+  load(system.file("Gamma_1","gresults.RData",package="dalmatian"))
 }
 ```
-
 
 # Results
 
@@ -125,44 +124,44 @@ Once the samples have been generated the post-processing functions can be used t
 ## Convergence Diagnostics
 ```{r}
 ## Compute convergence diagnostics
-nbconvergence <- convergence(nbresults)
+gconvergence <- convergence(gresults)
 
 ## Gelman-Rubin diagnostics
-nbconvergence$gelman
+gconvergence$gelman
 
 ## Raftery diagnostics
-nbconvergence$raftery
+gconvergence$raftery
 
 ## Effective sample size
-nbconvergence$effectiveSize
+gconvergence$effectiveSize
 ```
 
 ## Traceplots
 ```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
-nbtraceplots <- traceplots(nbresults,show=FALSE)
+gtraceplots <- traceplots(gresults,show=FALSE)
 
 ## Fixed effects for mean
-nbtraceplots$meanFixed
+gtraceplots$meanFixed
 
 ## Fixed effects for dispersion
-nbtraceplots$dispersionFixed
+gtraceplots$dispersionFixed
 ```
 
 ## Numerical Summaries
 ```{r}
 ## Compute numerical summaries
-summary(nbresults)
+summary(gresults)
 ```
 
 ## Graphical Summaries
 ```{r,fig.width=6,fig.align="center"}
 ## Generate caterpillar
-nbcaterpillar <- caterpillar(nbresults,show = FALSE)
+gcaterpillar <- caterpillar(gresults,show = FALSE)
 
 ## Fixed effects for mean
-nbcaterpillar$meanFixed
+gcaterpillar$meanFixed
 
 ## Fixed effects for dispersion
-nbcaterpillar$dispersionFixed
+gcaterpillar$dispersionFixed
 ```

@@ -48,9 +48,9 @@ mymean <- list(fixed=list(name="alpha",
 
 ## Dispersion model
 mydisp=list(fixed=list(name="psi",
-      link="log",
-      formula=~sex,
-      priors=list(c("dnorm",0,.001))))
+                       formula=~sex,
+                       priors=list(c("dnorm",0,.001))),
+            link="log")
 
 ## Joint components
 myjoint <- list(fixed = list(name = "gamma",
@@ -81,6 +81,7 @@ if(runModels){
   pfresults4 <- dalmatian(df=pfdata,
                           mean.model=mymean,
                           dispersion.model=mydisp,
+                          joint.model=myjoint,
                           jags.model.args=jm.args,
                           coda.samples.args=cs.args,
                           rounding=TRUE,
