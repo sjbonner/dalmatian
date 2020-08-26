@@ -53,7 +53,7 @@ workingDir <- tempdir()
 jm.args = list(file=file.path(workingDir,"weights_1_jags.R"),n.adapt=1000)
 
 ## Define list of arguments for coda.samples()
-cs.args = list(n.iter=1000)
+cs.args = list(n.iter = 5000, n.thin = 20)
 
 ## Run the model using dalmatian
 results1 <- dalmatian(
@@ -64,8 +64,7 @@ results1 <- dalmatian(
   coda.samples.args = cs.args,
   response = "y",
   overwrite = TRUE,
-  debug = FALSE
-)
+  debug = FALSE)
 
 ## Numerical summary statistics
 summary1 <- summary(results1)
