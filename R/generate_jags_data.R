@@ -8,6 +8,7 @@ generateJAGSdata <-
            ntrials = NULL,
            lower = NULL,
            upper = NULL,
+           include.checks = TRUE,
            drop.levels = TRUE,
            drop.missing = TRUE) {
     ## Remove unused factor level from data frame
@@ -145,9 +146,11 @@ generateJAGSdata <-
       jags.data$m <- dplyr::pull(df,ntrials)
     }
 
-    ## Add dummy variables for checking support of mean and dispersion
-    jags.data$mean.check <- rep(1, nrow(df))
-    jags.data$disp.check <- rep(1, nrow(df))
+    if(include.checks){
+      ## Add dummy variables for checking support of mean and dispersion
+      jags.data$mean.check <- rep(1, nrow(df))
+      jags.data$disp.check <- rep(1, nrow(df))
+    }
     
     ## Return data list
     jags.data

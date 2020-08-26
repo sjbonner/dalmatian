@@ -21,7 +21,8 @@
 ##' @param gencode If TRUE then generate code potentially overwriting existing model file. By default generate code if the file does not exist and prompt user if it does. (logical)
 ##' @param run.model If TRUE then run sampler. Otherwise, stop once code and data have been created. (logical)
 ##' @param engine Specifies the sampling software. Packages currently supported include JAGS (the default) and nimble. (character)
-##' @param n.cores Number of cores to use. If equal to 1 then chains will not be run in parallel. If greater than 1 then chains will be run in parallel using the designated number of cores. 
+##' @param n.cores Number of cores to use. If equal to 1 then chains will not be run in parallel. If greater than 1 then chains will be run in parallel using the designated number of cores.
+##' @param include.checks If TRUE (default) then include extra Bernoulli variables in the model to ensure that the mean and dispersion parameters remain within their support. (logical)
 ##' @param drop.levels If TRUE then drop unused levels from all factors in df. (logical)
 ##' @param drop.missing If TRUE then remove records with missing response variable. (logical)
 ##' @param overwrite If TRUE then overwrite existing JAGS files (non-interactive sessions only). (logical)
@@ -95,6 +96,7 @@ dalmatian <- function(df,
                       n.cores = 1L,
                       drop.levels = TRUE,
                       drop.missing = TRUE,
+                      include.checks = TRUE,
                       overwrite = FALSE,
                       debug = FALSE,
                       saveJAGSinput=NULL) {
@@ -182,6 +184,7 @@ by using the argument engine = \"JAGS\".")
       ntrials = ntrials,
       lower = lower,
       upper = upper,
+      include.checks = include.checks,
       drop.levels = drop.levels,
       drop.missing = drop.missing
     )
@@ -305,7 +308,8 @@ by using the argument engine = \"JAGS\".")
       dispersion.model,
       joint.model,
       rounding = rounding,
-      residuals = residuals
+      residuals = residuals,
+      include.checks = include.checks
     )
 
   cat("Done\n")

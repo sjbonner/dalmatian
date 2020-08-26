@@ -27,6 +27,7 @@ dalmatian(
   n.cores = 1L,
   drop.levels = TRUE,
   drop.missing = TRUE,
+  include.checks = TRUE,
   overwrite = FALSE,
   debug = FALSE,
   saveJAGSinput = NULL
@@ -74,6 +75,8 @@ dalmatian(
 \item{drop.levels}{If TRUE then drop unused levels from all factors in df. (logical)}
 
 \item{drop.missing}{If TRUE then remove records with missing response variable. (logical)}
+
+\item{include.checks}{If TRUE (default) then include extra Bernoulli variables in the model to ensure that the mean and dispersion parameters remain within their support. (logical)}
 
 \item{overwrite}{If TRUE then overwrite existing JAGS files (non-interactive sessions only). (logical)}
 
