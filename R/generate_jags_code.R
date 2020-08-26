@@ -29,7 +29,10 @@ generateJAGScode <- function(family,
         cat("\t\t tauy[i] <- weights[i]/phi[i]\n",
             file=jags.model.args$file,append=TRUE)
       
-    cat("\t\t vary[i] <- phi[i]\n",file=jags.model.args$file,append=TRUE)
+      cat("\t\t vary[i] <- phi[i]\n",
+          "\t\t pmean.check[i] <- 1\n", 
+          "\t\t pdisp.check[i] <- 1 - step(-1 * phi[i])\n",
+          file=jags.model.args$file,append=TRUE)
   }
 
   ## Negative binomial model
@@ -38,6 +41,8 @@ generateJAGScode <- function(family,
         "\t\t r[i] <- 1/phi[i]\n",
         "\t\t p[i] <- 1/(1 + phi[i] * muy[i])\n",
         "\t\t vary[i] <- muy[i] / p[i]\n",
+        "\t\t pmean.check[i] <- 1 - step(-1 * muy[i])\n", 
+        "\t\t pdisp.check[i] <- 1 - step(-1 * phi[i])\n",
         file=jags.model.args$file,append=TRUE)
   }
 
@@ -47,6 +52,8 @@ generateJAGScode <- function(family,
         "\t\t alphay[i] <- muy[i] * (1 - phi[i]) / phi[i]\n",
         "\t\t betay[i] <- (1 - muy[i]) * (1 - phi[i]) / phi[i]\n",
         "\t\t vary[i] <- m[i] * muy[i] * (1-muy[i]) * (1 + (m[i] - 1) * phi[i])\n",
+        "\t\t pmean.check[i] <- (1 - step(-1 * muy[i])) * step(1 - muy[i])\n", 
+        "\t\t pdisp.check[i] <- (1 - step(-1 * phi[i])) * step(1-\phi[i])\n",
         file=jags.model.args$file,append=TRUE)
   }
 
@@ -56,11 +63,17 @@ generateJAGScode <- function(family,
         "\t\t lambday[i] <- 1/phi[i]\n",
         "\t\t ry[i] <- muy[i] * lambday[i]\n",
         "\t\t vary[i] <- phi[i] * muy[i]\n",
+        "\t\t pmean.check[i] <- 1 - step(-1 * muy[i])\n", 
+        "\t\t pdisp.check[i] <- 1 - step(-1 * phi[i])\n",
         file=jags.model.args$file,append=TRUE)
   }
         
   ## Compute standard deviation
   cat("\t\t sdy[i] <- sqrt(vary[i])\n\n", file=jags.model.args$file, append=TRUE)
+
+  ## Add checks for support of mean and dispersion parameter
+  cat("\t\t mean.check[i] ~ dbern(pmean.check[i])\n", file=jags.model.args$file,append=TRUE)
+  cat("\t\t disp.check[i] ~ dbern(pdisp.check[i])\n", file=jags.model.args$file,append=TRUE)
 
   ## Rounding 
   if(rounding){

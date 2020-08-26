@@ -145,6 +145,10 @@ generateJAGSdata <-
       jags.data$m <- dplyr::pull(df,ntrials)
     }
 
+    ## Add dummy variables for checking support of mean and dispersion
+    jags.data$mean.check <- rep(1, nrow(df))
+    jags.data$disp.check <- rep(1, nrow(df))
+    
     ## Return data list
     jags.data
   }
