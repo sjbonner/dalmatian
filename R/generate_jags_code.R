@@ -6,129 +6,189 @@ generateJAGScode <- function(family,
                              rounding = FALSE,
                              residuals = FALSE,
                              include.checks = TRUE){
+
+  ## Generate header
+  generateJAGSheader(jags.model.args$file)
+
+  ## Add likelihood
+  generateJAGSlhd(family,
+                  jags.model.args,
+                  mean.model,
+                  dispersion.model,
+                  joint.model,
+                  rounding,
+                  residuals,
+                  include.checks)
+
+  ## Add priors
+  generateJAGSpriors(jags.model.args,
+                     mean.model,
+                     dispersion.model,
+                     joint.model)
+
+  ## Close model
+  cat("}\n",file=jags.model.args$file,append=TRUE)
+}
+
+buildLinearPredictor <- function(lp = NULL,
+                                 component,
+                                 sep = "",
+                                 model,
+                                 data,
+                                 random = FALSE){
+
+  ## Add separator before next element in linear predictor
+  lp <- paste0(lp,sep)
+  
+  ## Extract values from model componenent
+  if(random)
+    p <- data[paste0(model$name,".neffects")]
+  else
+    p <- data[paste0(model$name,".n")]
+  
+  dim <- paste0("1:",p)
+
+  ## Add predictors to lp
+  matrixName <- paste0(component,".",ifelse(random,"random","fixed"))
+  
+  lp <- paste0(lp,
+               "inprod(",
+               matrixName,"[i,",dim,"],",
+               model$name,"[",dim,"])")
+
+  lp
+}
+  
+generateJAGSheader <- function(file){
   ## Opening header
-  cat("## Created by generateJAGS: ",
-      date(),"\n\n",file=jags.model.args$file)
+  string <- paste("## Created by dalmatian:",date(),"\n\n")
 
   ## Open model
-  cat("model {\n",file=jags.model.args$file,append=TRUE)
+  string <- c(string,
+              "model {\n")
 
-  ##### Likelihood #####
-  cat("\t ##### Likelihood #####\n",file=jags.model.args$file,append=TRUE)
-  cat("\t for(i in 1:n){\n",file=jags.model.args$file,append=TRUE)
+  cat(string, file = file, sep = "")
+}
 
-  ## 1) Data model
-  cat("\t\t ## Data distribution \n",file=jags.model.args$file,append=TRUE)
-
-  ## Gaussian model
-  if(family == "gaussian"){
-      cat("\t\t y[i] ~ dnorm(muy[i],tauy[i])\n",file=jags.model.args$file,append=TRUE)
-      if(is.null(dispersion.model$weights))
-        cat("\t\t tauy[i] <- 1/phi[i]\n",
-            file=jags.model.args$file,append=TRUE)
-      else
-        cat("\t\t tauy[i] <- weights[i]/phi[i]\n",
-            file=jags.model.args$file,append=TRUE)
-      
-      cat("\t\t vary[i] <- phi[i]\n",file=jags.model.args$file,append=TRUE)
-
-      if(include.checks){
-        cat("\t\t pmean.check[i] <- 1\n", 
-            "\t\t pdisp.check[i] <- 1 - step(-1 * phi[i])\n",
-            file=jags.model.args$file,append=TRUE)
-      }
-  }
-
-  ## Negative binomial model
-  else if(family == "nbinom"){
-    cat("\t\t y[i] ~ dnegbin(p[i],r[i])\n",
-        "\t\t r[i] <- 1/phi[i]\n",
-        "\t\t p[i] <- 1/(1 + phi[i] * muy[i])\n",
-        "\t\t vary[i] <- muy[i] / p[i]\n",
-        file=jags.model.args$file,append=TRUE)
-
-    if(include.checks){
-      cat("\t\t pmean.check[i] <- 1 - step(-1 * muy[i])\n", 
-          "\t\t pdisp.check[i] <- 1 - step(-1 * phi[i])\n",
-          file=jags.model.args$file,append=TRUE)
-    }
-  }
-
-  ## Beta-binomial model
-  else if(family == "betabin"){
-    cat("\t\t y[i] ~ dbetabin(alphay[i], betay[i], m[i])\n",
-        "\t\t alphay[i] <- muy[i] * (1 - phi[i]) / phi[i]\n",
-        "\t\t betay[i] <- (1 - muy[i]) * (1 - phi[i]) / phi[i]\n",
-        "\t\t vary[i] <- m[i] * muy[i] * (1-muy[i]) * (1 + (m[i] - 1) * phi[i])\n",
-        file=jags.model.args$file,append=TRUE)
-
-    if(include.checks){
-      cat("\t\t pmean.check[i] <- (1 - step(-1 * muy[i])) * step(1 - muy[i])\n", 
-          "\t\t pdisp.check[i] <- (1 - step(-1 * phi[i])) * step(1-phi[i])\n",
-          file=jags.model.args$file,append=TRUE)
-    }
+generateJAGSlhd <- function(family,
+                              jags.model.args,
+                              mean.model,
+                              dispersion.model,
+                              joint.model,
+                              rounding,
+                              residuals,
+                              include.checks = TRUE){
   
-  }
+  ## Open likelihood block
+  string <- paste("\t ##### Likelihood #####\n",
+                  "\t for(i in 1:n){\n")
 
-  ## Gamma model
-  else if(family == "gamma"){
-    cat("\t\t y[i] ~ dgamma(ry[i], lambday[i])\n",
-        "\t\t lambday[i] <- 1/phi[i]\n",
-        "\t\t ry[i] <- muy[i] * lambday[i]\n",
-        "\t\t vary[i] <- phi[i] * muy[i]\n",
-        file=jags.model.args$file,append=TRUE)
+  ## Add model of mean
+  string <- c(string,
+              generateJAGSmeanmodel(jags.model.args,
+                                    mean.model,
+                                    joint.model))
 
-    if(include.checks){
-      cat("\t\t pmean.check[i] <- 1 - step(-1 * muy[i])\n", 
-          "\t\t pdisp.check[i] <- 1 - step(-1 * phi[i])\n",
-          file=jags.model.args$file,append=TRUE)
-    }
-  }
-        
-  ## Compute standard deviation
-  cat("\t\t sdy[i] <- sqrt(vary[i])\n\n", file=jags.model.args$file, append=TRUE)
+  ## Add model of dispersion
+  string <- c(string,
+              generateJAGSdispmodel(jags.model.args,
+                                    dispersion.model,
+                                    joint.model))
 
-  if(include.checks){
-    ## Add checks for support of mean and dispersion parameter
-    cat("\t\t mean.check[i] ~ dbern(pmean.check[i])\n",
-        "\t\t disp.check[i] ~ dbern(pdisp.check[i])\n",
-        file=jags.model.args$file,append=TRUE)
-  }
+  ## Add data model
+  if(family == "gaussian")
+    string <- c(string,
+                generateJAGSlhd.gaussian(jags.model.args,
+                                         mean.model,
+                                         dispersion.model,
+                                         rounding,
+                                         residuals,
+                                         include.checks = TRUE))
 
-  ## Rounding 
-  if(rounding){
-    cat("\t\t ## Rounding\n",
-        "\t\t round1[i] <- (lower[i] < y[i])\n",
-        "\t\t round2[i] <- (y[i] < upper[i])\n", 
-        "\t\t dummy[i] ~ dbern(round1[i] * round2[i])\n\n"
-       ,file=jags.model.args$file,append=TRUE)
-  }
+  if(family == "gamma")
+    string <- c(string,
+                generateJAGSlhd.gamma(jags.model.args,
+                                      mean.model,
+                                      dispersion.model,
+                                      rounding,
+                                      residuals,
+                                      include.checks = TRUE))
 
-  ## Pearson residuals
-  if(residuals){
-    cat("\t\t ## Pearson residuals\n",file=jags.model.args$file,append=TRUE)
+   if(family == "betabin")
+    string <- c(string,
+                generateJAGSlhd.betabin(jags.model.args,
+                                        mean.model,
+                                        dispersion.model,
+                                        rounding,
+                                        residuals,
+                                        include.checks = TRUE))
   
-    if(family == "betabin")
-      cat("\t\t resid[i] <- (y[i] - m[i] * muy[i])/sdy[i]\n\n",
-          file=jags.model.args$file,append=TRUE)
+   if(family == "nbinom")
+    string <- c(string,
+                generateJAGSlhd.nbinom(jags.model.args,
+                                       mean.model,
+                                       dispersion.model,
+                                       rounding,
+                                       residuals,
+                                       include.checks = TRUE))
+
+  ## Close likelihood block
+  string <- c(string,
+              "\t }\n\n")
+
+  ## Write string to file
+  cat(string, file = jags.model.args$file, sep = "", append = TRUE)
+}
+  
+generateJAGSrounding <- function(jags.model.args){
+
+  ## Add code block defining rounding
+  string <- c("\t\t ## Rounding\n",
+              "\t\t round1[i] <- (lower[i] < y[i])\n",
+              "\t\t round2[i] <- (y[i] < upper[i])\n", 
+              "\t\t dummy[i] ~ dbern(round1[i] * round2[i])\n\n")
+
+  string
+}
+
+generateJAGSchecks <- function(jags.model.args,
+                               mean.check,
+                               disp.check){
+
+  ## Add comment
+  string <- "\t\t ## Check range of mean and dispersion\n"
     
-    else 
-      cat("\t\t resid[i] <- (y[i] - muy[i])/sdy[i]\n\n",
-          file=jags.model.args$file,append=TRUE)
-  }
+  ## Define probabilities based on conditions for mean and dispersion
+  string <- c(string,
+              "\t\t pmean.check[i] <- ", mean.check,"\n",
+              "\t\t pdisp.check[i] <- ", disp.check,"\n")
+  
+  ## Add dummy variables with zero likelihood if conditions are false
+  string <- c(string,
+              "\t\t mean.check[i] ~ dbern(pmean.check[i])\n",
+              "\t\t disp.check[i] ~ dbern(pdisp.check[i])\n\n")
 
-  ## 2) Mean model
-  cat("\t\t ## Mean Model\n",file=jags.model.args$file,append=TRUE)
+  string
+}
 
-  ## Create LHS
+generateJAGSmeanmodel <- function(jags.model.args,
+                                  mean.model,
+                                  joint.model){
+  
+  ## Add comment to open block
+  string <- "\t\t ## Mean Model\n"
+
+  ## Create LHS 
   if(!is.null(mean.model$link))
     mean.lp <- paste0("\t\t ",mean.model$link,"(muy[i]) <- ")
   else 
     mean.lp <- paste0("\t\t muy[i] <- ")
 
   sep <- " "
-  
-  ## 2a) Fixed effects
+
+  ## Create linear predictor
+
+  ## 1) Fixed effects
   if(!is.null(mean.model$fixed)){
     mean.lp <- buildLinearPredictor(lp = mean.lp,
                                     component = "mean",
@@ -139,7 +199,7 @@ generateJAGScode <- function(family,
     sep <- " + "
   }
   
-  ## 2b) Random effects
+  ## 2) Random effects
   if(!is.null(mean.model$random)){
     mean.lp <- buildLinearPredictor(mean.lp,
                                     sep = sep,
@@ -150,9 +210,10 @@ generateJAGScode <- function(family,
 
     sep <- " + "
   }
-  
+
+  ## 3) Joint effects
   if(!is.null(joint.model)){
-    ## 2c) Joint fixed effects
+    ## 3a) Joint fixed effects
     if(!is.null(joint.model$fixed)){
       mean.lp <- buildLinearPredictor(mean.lp,
                                       sep = sep,
@@ -163,7 +224,7 @@ generateJAGScode <- function(family,
       sep <- " + "
     }
     
-    ## 2d) Joint random effects
+    ## 3b) Joint random effects
     if(!is.null(joint.model$random)){
       mean.lp <- buildLinearPredictor(mean.lp,
                                       sep = sep,
@@ -176,10 +237,19 @@ generateJAGScode <- function(family,
     }
   }
 
-  cat(mean.lp,"\n\n",file=jags.model.args$file,append=TRUE,sep="")
+  string <- c(string,
+              mean.lp,
+              "\n\n")
 
-  ## 3) Dispersion model
-  cat("\t\t ## Dispersion Model\n",file=jags.model.args$file,append=TRUE)
+  string
+}
+
+generateJAGSdispmodel <- function(jags.model.args,
+                                  dispersion.model,
+                                  joint.model){
+  
+  ## Add comment to open code block
+  string <- "\t\t ## Dispersion Model\n"
 
   ## Create LHS
   if(!is.null(dispersion.model$link))
@@ -189,7 +259,8 @@ generateJAGScode <- function(family,
 
   sep <- " "
 
-  ## 3a) Fixed effects
+  ## Add linear predictor
+  ## 1) Fixed effects
   if(!is.null(dispersion.model$fixed)){
     disp.lp <- buildLinearPredictor(component = "dispersion",
                                     lp = disp.lp,
@@ -200,7 +271,7 @@ generateJAGScode <- function(family,
     sep <- " + "
   }
   
-  ## 3b) Random effects
+  ## 2) Random effects
   if(!is.null(dispersion.model$random)){
     disp.lp <- buildLinearPredictor(disp.lp,
                                     component = "dispersion",
@@ -211,9 +282,10 @@ generateJAGScode <- function(family,
 
     sep <- " + "
   }
-  
+
+  ## 3) Joint effect
   if(!is.null(joint.model)){
-    ## 2c) Joint random effects
+    ## 3a) Joint random effects
     if(!is.null(joint.model$fixed)){
       disp.lp <- buildLinearPredictor(disp.lp,
                                       component = "joint",
@@ -223,7 +295,7 @@ generateJAGScode <- function(family,
       sep <- " + "
     }
   
-    ## 2d) Joint fixed effects
+    ## 3b) Joint fixed effects
     if(!is.null(joint.model$random)){
       disp.lp <- buildLinearPredictor(disp.lp,
                                       component = "joint",
@@ -233,13 +305,20 @@ generateJAGScode <- function(family,
                                       random = TRUE)
     }
   }
+
+  string <- c(string,
+              disp.lp,
+              "\n\n")
+
+  string
+}
   
-  ## Write model components to JAGS code
-  cat(disp.lp,"\n\n",file=jags.model.args$file,append=TRUE,sep="")
+generateJAGSpriors <- function(jags.model.args,
+                               mean.model,
+                               dispersion.model,
+                               joint.model){
 
-  cat("\t }\n\n",file=jags.model.args$file,append=TRUE)
-
-  ##### Priors #####
+  ## Open code block with comment
   cat("\t ##### Priors #####\n",file=jags.model.args$file,append=TRUE)
 
   cat("\t ## Mean Model: Fixed\n",file=jags.model.args$file,append=TRUE)
@@ -282,40 +361,9 @@ generateJAGScode <- function(family,
     }
   }
   
-  ## Close model
-  cat("}\n",file=jags.model.args$file,append=TRUE)
 }
 
-buildLinearPredictor <- function(lp = NULL,
-                                 component,
-                                 sep = "",
-                                 model,
-                                 data,
-                                 random = FALSE){
-
-  ## Add separator before next element in linear predictor
-  lp <- paste0(lp,sep)
-  
-  ## Extract values from model componenent
-  if(random)
-    p <- data[paste0(model$name,".neffects")]
-  else
-    p <- data[paste0(model$name,".n")]
-  
-  dim <- paste0("1:",p)
-
-  ## Add predictors to lp
-  matrixName <- paste0(component,".",ifelse(random,"random","fixed"))
-  
-  lp <- paste0(lp,
-               "inprod(",
-               matrixName,"[i,",dim,"],",
-               model$name,"[",dim,"])")
-
-  lp
-}
-  
-   
+     
 generatePriorsFixed <- function(model,file){
   if(length(model$fixed$priors)==1){
     cat("\t for(k in 1:",model$fixed$name,".n){\n",file=file,append=TRUE,sep="")
