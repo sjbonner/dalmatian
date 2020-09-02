@@ -328,7 +328,7 @@ generateJAGSpriors <- function(jags.model.args,
 
   if(!is.null(mean.model$random)){
     cat("\t ## Mean Model: Random\n",file=jags.model.args$file,append=TRUE)
-    generatePriorsRandom(mean.model,jags.model.args)
+    generatePriorsRandom(mean.model,jags.model.args$file)
 
     cat("\n",file=jags.model.args$file,append=TRUE)
   }
@@ -341,7 +341,7 @@ generateJAGSpriors <- function(jags.model.args,
   if(!is.null(dispersion.model$random)){
     cat("\t ## Dispersion Model: Random\n",file=jags.model.args$file,append=TRUE)
 
-    generatePriorsRandom(dispersion.model,jags.model.args)
+    generatePriorsRandom(dispersion.model,jags.model.args$file)
 
     cat("\n",file=jags.model.args$file,append=TRUE)
   }
@@ -355,31 +355,46 @@ generateJAGSpriors <- function(jags.model.args,
     if(!is.null(joint.model$random)){
       cat("\t ## Joint Model: Random\n",file=jags.model.args$file,append=TRUE)
       
-      generatePriorsRandom(joint.model,jags.model.args)
+      generatePriorsRandom(joint.model,jags.model.args$file)
       
       cat("\n",file=jags.model.args$file,append=TRUE)
     }
   }
   
 }
-
      
 generatePriorsFixed <- function(model,file){
+  ## Assign default priors
+  if(is.null(model$fixed$priors)){
+    ## Assign default priors
+    model$fixed$priors <- list(c("dnorm",0,.001))
+  }
+
+  ## Write priors to file
   if(length(model$fixed$priors)==1){
-    cat("\t for(k in 1:",model$fixed$name,".n){\n",file=file,append=TRUE,sep="")
-    cat("\t\t",model$fixed$name,"[k] ~ ",model$fixed$priors[[1]][1],"(",model$fixed$priors[[1]][2],",",model$fixed$priors[[1]][3],")\n",file=file,append=TRUE,sep="")
+    ## Common prior for all fixed effets
+    cat("\t for(k in 1:",model$fixed$name,".n){\n",
+        file=file,append=TRUE,sep="")
+    cat("\t\t",model$fixed$name,"[k] ~ ",
+        unpackPrior(model$fixed$priors[[1]]),
+        file=file,append=TRUE,sep="")
     cat("\t }\n",file=file,append=TRUE,sep="")
   }
   else{
+    ## Unique priors
     for(k in 1:length(model$fixed$priors)){
-      cat("\t",model$fixed$name,"[",k,"] ~ ",model$fixed$priors[[k]][1],"(",model$fixed$priors[[k]][2],",",model$fixed$priors[[k]][3],")\n",file=file,append=TRUE,sep="")
+      cat("\t",model$fixed$name,"[",k,"] ~ ",
+          unpackPrior(model$fixed$priors[[k]]),
+          file=file,append=TRUE,sep="")
     }
   }
 }
 
-generatePriorsRandom <- function(model,jags.model.args){
+generatePriorsRandom <- function(model,file){
 
-  if(is.null(model$random$sigma)){
+  if(is.null(model$random$priors)){
+    ## Assign default prior distributions
+    
     ## Generate JAGS variable names
     redun <- paste0("redun.",model$random$name)
     redunk <- paste0(redun,"[k]")
@@ -387,36 +402,86 @@ generatePriorsRandom <- function(model,jags.model.args){
     sd <- paste0("sd.",model$random$name,"[k]")
     var <- paste0("var.",model$random$name,"[k]")
 
-    ## Random effects dispersions
-    cat("\t for(k in 1:",model$random$name,".ncomponents){\n",file=jags.model.args$file,append=TRUE,sep="")
-    cat("\t\t ",redunk,"~ dnorm(0,1)\n",file=jags.model.args$file,append=TRUE,sep="")
-    cat("\t\t ",tau,"~ dgamma(1.5,37.5)\n",file=jags.model.args$file,append=TRUE,sep="")
-    #cat("\t\t ",tau,"~ dgamma(.5,.1)\n",file=jags.model.args$file,append=TRUE,sep="")
-    cat("\t\t ",sd,"<- abs(",redunk,")/sqrt(",tau,")\n",file=jags.model.args$file,append=TRUE,sep="")
-    cat("\t\t ",var,"<- pow(",sd,",2) \n",file=jags.model.args$file,append=TRUE,sep="")
-    cat("\t }\n\n",file=jags.model.args$file,append=TRUE,sep="")
+    ## Random effects standard deviations
+    cat("\t for(k in 1:",model$random$name,".ncomponents){\n",file=file,append=TRUE,sep="")
+    cat("\t\t ",redunk,"~ dnorm(0,1)\n",file=file,append=TRUE,sep="")
+    cat("\t\t ",tau,"~ dgamma(1.5,37.5)\n",file=file,append=TRUE,sep="")
+    cat("\t\t ",sd,"<- abs(",redunk,")/sqrt(",tau,")\n",file=file,append=TRUE,sep="")
+    cat("\t\t ",var,"<- pow(",sd,",2) \n",file=file,append=TRUE,sep="")
+    cat("\t }\n\n",file=file,append=TRUE,sep="")
 
     ## Random effects
-    cat("\t for(k in 1:",model$random$name,".neffects){\n",file=jags.model.args$file,append=TRUE,sep="")
-    cat("\t\t",model$random$name,".tmp[k] ~ dnorm(0,tau.",model$random$name,"[",model$random$name,".levels[k]])\n",
-        file=jags.model.args$file,append=TRUE,sep="")
-    cat("\t\t",model$random$name,"[k] <- ",model$random$name,".tmp[k] * ",redun,"[",model$random$name,".levels[k]]\n",
-        file=jags.model.args$file,append=TRUE,sep="")
-    cat("\t }\n",file=jags.model.args$file,append=TRUE,sep="")
+    cat("\t for(k in 1:",model$random$name,".neffects){\n",file=file,append=TRUE,sep="")
+    cat("\t\t",model$random$name,".tmp[k] ~ dnorm(0,tau.",
+        model$random$name,"[",
+        model$random$name,".levels[k]])\n",
+        file=file,append=TRUE,sep="")
+    cat("\t\t",model$random$name,"[k] <- ",
+        model$random$name,".tmp[k] * ",redun,"[",
+        model$random$name,".levels[k]]\n",
+        file=file,append=TRUE,sep="")
+    cat("\t }\n",file=file,append=TRUE,sep="")
   }
   else{
-    ## Random effects dispersions
-    tau <- paste0("tau.",model$random$name,"[k]")
-    sd <- paste0("sd.",model$random$name,"[k]")
-    cat("\t for(k in 1:",model$random$name,".ncomponents){\n",file=jags.model.args$file,append=TRUE,sep="")
-    cat("\t\t ",tau,"<- 1/pow(",sd,",2)","\n",file=jags.model.args$file,append=TRUE,sep="")
-    cat("\t }\n\n",file=jags.model.args$file,append=TRUE,sep="")
+    ## Random effects standard deviations
+    if(length(model$random$priors) == 1){
+      cat("\t for(k in 1:",model$random$name,".ncomponents){\n",
+          file=file,append=TRUE,sep="")
+      cat("\t\t sd.",model$random$name,"[k] ~ ",
+          unpackPrior(model$random$priors[[1]]),
+          file=file,append=TRUE,sep="")
+      cat("\t\t tau.",model$random$name,"[k] <- ",
+          "1/pow(sd.",model$random$name,"[k],2)\n",
+          file=file,append=TRUE,sep="")
+      cat("\t\t var.",model$random$name,"[k] <- ",
+          "pow(sd.",model$random$name,"[k],2)\n",
+          file=file,append=TRUE,sep="")
+      cat("\t }\n\n",file=file,append=TRUE,sep="")
+    }
+    else{
+      for(k in 1:length(model$random$priors)){
+        cat("\t",model$random$name,"[",k,"] ~ ",
+            unpack(model$random$priors[[k]]),
+            file=file,append=TRUE,sep="")
+        cat("\t\t tau.",model$random$name,"[",k,"] <- ",
+          "1/pow(sd.",model$random$name,"[",k,"],2)\n",
+          ,file=file,append=TRUE,sep="")
+      cat("\t\t var.",model$random$name,"[",k,"] <- ",
+          "pow(sd.",model$random$name,"[k],2)\n\n",
+          file=file,append=TRUE,sep="")
+      }
+    }
 
-    ## Random effects
-    cat("\t for(k in 1:",model$random$name,".neffects){\n",file=jags.model.args$file,append=TRUE,sep="")
-    cat("\t\t",model$random$name,"[k] ~ dnorm(0,tau.",model$random$name,"[",model$random$name,".levels[k]])\n",
-        file=jags.model.args$file,append=TRUE,sep="")
-    cat("\t }\n",file=jags.model.args$file,append=TRUE,sep="")
+     ## Random effects
+    cat("\t for(k in 1:",model$random$name,".neffects){\n",
+        file=file,append=TRUE,sep="")
+    cat("\t\t",model$random$name,".tmp[k] ~ dnorm(0,tau.",
+        model$random$name,"[",
+        model$random$name,".levels[k]])\n",
+        file=file,append=TRUE,sep="")
   }
+
+  ## else{
+  ##   ## Random effects dispersions
+  ##   tau <- paste0("tau.",model$random$name,"[k]")
+  ##   sd <- paste0("sd.",model$random$name,"[k]")
+  ##   cat("\t for(k in 1:",model$random$name,".ncomponents){\n",file=file,append=TRUE,sep="")
+  ##   cat("\t\t ",tau,"<- 1/pow(",sd,",2)","\n",file=file,append=TRUE,sep="")
+  ##   cat("\t }\n\n",file=file,append=TRUE,sep="")
+
+  ##   ## Random effects
+  ##   cat("\t for(k in 1:",model$random$name,".neffects){\n",file=file,append=TRUE,sep="")
+  ##   cat("\t\t",model$random$name,"[k] ~ dnorm(0,tau.",model$random$name,"[",model$random$name,".levels[k]])\n",
+  ##       file=file,append=TRUE,sep="")
+  ##   cat("\t }\n",file=file,append=TRUE,sep="")
+  ## }
 }
 
+unpackPrior <- function(prior){
+  ## Converts a vector specification of the prior into a string
+
+  paste0(prior[1], "(",
+         paste(prior[-1], collapse = ","),
+         ")\n")
+  
+}
