@@ -10,7 +10,7 @@ devtools::load_all()
 
 # source("negative-binomial-1.R")
 
-# source("pied-flycatchers-1.R")
+source("pied-flycatchers-1.R")
 
 source("pied-flycatchers-2.R")
 

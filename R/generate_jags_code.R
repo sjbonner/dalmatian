@@ -441,7 +441,7 @@ generatePriorsRandom <- function(model,file){
     else{
       for(k in 1:length(model$random$priors)){
         cat("\t",model$random$name,"[",k,"] ~ ",
-            unpack(model$random$priors[[k]]),
+            unpackPrior(model$random$priors[[k]]),
             file=file,append=TRUE,sep="")
         cat("\t\t tau.",model$random$name,"[",k,"] <- ",
           "1/pow(sd.",model$random$name,"[",k,"],2)\n",
