@@ -33,7 +33,7 @@ cs.args <- list(n.iter=5000,thin=20)
 
 ## Run the model using dalmatian
 system.time(
-  gresults <- dalmatian(df=gamma_data_1,
+  gmcmc <- dalmatian(df=gamma_data_1,
                         family = "gamma",
                         mean.model=mymean,
                         dispersion.model=mydisp,
@@ -50,8 +50,8 @@ system.time(
 )
 
 ## For use on remote server
-## save(gresults,file = "gresults.RData") 
+## save(gmcmc,file = "gmcmc.RData") 
 
 ## For use on local machine within package
-save(gresults,
-     file = file.path(proj_path(),"inst","Gamma_1","gresults.RData"))
+save(gmcmc,
+     file = file.path(proj_path(),"data-mcmc","Gamma_1","gmcmc.RData"))

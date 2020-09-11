@@ -32,7 +32,7 @@ jm.args <- list(file=file.path(workingDir,"nbinom_test_1.R"),n.chains = 3, n.ada
 cs.args <- list(n.iter=5000,thin=20)
 
 ## Run the model using dalmatian
-nbresults <- dalmatian(df=nbinom_data_1,
+nbmcmc <- dalmatian(df=nbinom_data_1,
                        family = "nbinom",
                        mean.model=mymean,
                        dispersion.model=mydisp,
@@ -47,8 +47,8 @@ nbresults <- dalmatian(df=nbinom_data_1,
                        saveJAGSinput = workingDir)
 
 ## For use on remote server
-## save(nbresults,"nbresults.RData") 
+## save(nbmcmc,"nbmcmc.RData") 
 
 ## For use on local machine within packge
-save(nbresults,
-     file = file.path(proj_path(),"inst","Negative_Binomial_1","nbresults.RData"))
+save(nbmcmc,
+     file = file.path(proj_path(),"data-mcmc","Negative_Binomial_1","nbmcmc.RData"))

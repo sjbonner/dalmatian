@@ -32,7 +32,7 @@ jm.args <- list(file=file.path(workingDir,"betabin_test_1.R"),n.chains = 3, n.ad
 cs.args <- list(n.iter=5000,thin=20)
 
 ## Run the model using dalmatian
-bbresults <- dalmatian(df=betabin_data_1,
+bbmcmc <- dalmatian(df=betabin_data_1,
                        family = "betabin",
                        mean.model=mymean,
                        dispersion.model=mydisp,
@@ -48,8 +48,8 @@ bbresults <- dalmatian(df=betabin_data_1,
                        saveJAGSinput = workingDir)
 
 ## For use on remote server
-## save(bbresults,"bbresults.RData") 
+## save(bbmcmc,"bbmcmc.RData") 
 
 ## For use on local machine within packge
-save(bbresults,
-     file = file.path(proj_path(),"inst","Beta_Binomial_1","bbresults.RData"))
+save(bbmcmc,
+     file = file.path(proj_path(),"data-mcmc","Beta_Binomial_1","bbmcmc.RData"))
