@@ -53,6 +53,6 @@ pfmcmc4 <- dalmatian(df=pfdata,
                         overwrite = TRUE,
                         debug=FALSE)
   
-file <- file.path(proj_path(),"inst","Pied_Flycatchers_3","pfmcmc4.RData")
+file <- file.path(proj_path(),"data-mcmc","Pied_Flycatchers_3","pfmcmc4.RData")
 save(pfmcmc4, file = file)
 
