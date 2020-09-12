@@ -58,11 +58,7 @@ pfresults <- list(
   summary = summary(pfmcmc),
   caterpillar = caterpillar(pfmcmc, show = FALSE),
   ranef = ranef(pfmcmc),
-  fitted = fitted(object = pfresults,
-                  df = pfdata,
-                  method = "mean",
-                  ci = TRUE,
-                  level = 0.95))
+  fitted = predict(pfmcmc))
 
 save(pfresults,
      file = file.path(proj_path(),"inst","pfresults.RData"))
@@ -106,7 +102,7 @@ pfmcmc2 <- dalmatian(df=pfdata,
                         overwrite = TRUE,
                         debug=FALSE)
 
-file <- file.path(proj_path(),"data-mcmc","Pied_Flycatchers_1","pfmcmc2.RData")
+file <- file.path(proj_path(),"data-mcmc","pfmcmc2.RData")
 save(pfmcmc2, file = file)
 
 
@@ -117,11 +113,7 @@ pfresults2 <- list(
   summary = summary(pfmcmc2),
   caterpillar = caterpillar(pfmcmc2, show = FALSE),
   ranef = ranef(pfmcmc2),
-  fitted = fitted(object = pfresults2,
-                  df = pfdata,
-                  method = "mean",
-                  ci = TRUE,
-                  level = 0.95))
+  fitted = predict(pfmcmc2))
 
 save(pfresults2,
      file = file.path(proj_path(),"inst","pfresults2.RData"))
