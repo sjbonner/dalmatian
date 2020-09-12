@@ -51,7 +51,7 @@ nbmcmc <- dalmatian(df=nbinom_data_1,
 
 ## For use on local machine within packge
 save(nbmcmc,
-     file = file.path(proj_path(),"data-mcmc","Negative_Binomial_1","nbmcmc.RData"))
+     file = file.path(proj_path(),"data-mcmc","nbmcmc.RData"))
 
 ## Post-processing
 nbresults <- list(

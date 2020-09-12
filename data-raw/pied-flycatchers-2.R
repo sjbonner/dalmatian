@@ -46,7 +46,7 @@ pfmcmc3 <- dalmatian(df=pfdata,
                         debug=FALSE)
   
 save(pfmcmc3,
-     file = file.path(proj_path(),"data-mcmc","Pied_Flycatchers_2","pfmcmc3.RData"))
+     file = file.path(proj_path(),"data-mcmc","pfmcmc3.RData"))
 
 ## Post-processing
 pfresults3 <- list(

@@ -52,7 +52,7 @@ bbmcmc <- dalmatian(df=betabin_data_1,
 
 ## For use on local machine within packge
 save(bbmcmc,
-     file = file.path(proj_path(),"data-mcmc","Beta_Binomial_1","bbmcmc.RData"))
+     file = file.path(proj_path(),"data-mcmc","bbmcmc.RData"))
 
 ## Post-processing
 bbresults <- list(
