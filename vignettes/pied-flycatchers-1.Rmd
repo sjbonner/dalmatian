@@ -286,19 +286,21 @@ By using 'prediction' function, predictions for the mean and dispersion models c
 pfdata$'log(IVI)' <- log(pfdata$IVI)
 ```
 
-We can now get predictions.
+As an example we computed the fitted means and dispersion parameters from both models for the first 5 observations.
 
 ```{r}
 ## Compute predictions for model 1
-## pfresults$fitted <- predict(pfmcmc)
+## pfresults$fitted <- predict(pfmcmc,
+##                             newdata = pfdata[1:5,])
 
-head(pfresults$fitted$mean)
-head(pfresults$fitted$dispersion)
+pfresults$fitted$mean
+pfresults$fitted$dispersion
 
 # Compute predictions for model 2
-## pfresults2$fitted <- predict(pfmcmc2)
+## pfresults2$fitted <- predict(pfmcmc2,
+##                              newdata = pfdata[1:5,]))
 
-head(pfresults2$fitted$mean)
-head(pfresults2$fitted$dispersion)
+pfresults2$fitted$mean
+pfresults2$fitted$dispersion
 
 ```

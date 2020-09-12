@@ -58,7 +58,8 @@ pfresults <- list(
   summary = summary(pfmcmc),
   caterpillar = caterpillar(pfmcmc, show = FALSE),
   ranef = ranef(pfmcmc),
-  fitted = predict(pfmcmc))
+  fitted = predict(pfmcmc,
+                   newdata = pfdata[1:5,]))
 
 save(pfresults,
      file = file.path(proj_path(),"inst","pfresults.RData"))
@@ -113,7 +114,8 @@ pfresults2 <- list(
   summary = summary(pfmcmc2),
   caterpillar = caterpillar(pfmcmc2, show = FALSE),
   ranef = ranef(pfmcmc2),
-  fitted = predict(pfmcmc2))
+  fitted = predict(pfmcmc2,
+                   newdata = pfdata[1:5,]))
 
 save(pfresults2,
      file = file.path(proj_path(),"inst","pfresults2.RData"))
