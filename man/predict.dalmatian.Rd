@@ -48,15 +48,3 @@ predictions (list)
 \description{
 Prediction method for dalmatian objects
 }
-\examples{
-
-## Load output from previously run model*R
-load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
-
-## Compute predict values 
-pred.pfresults <- predict(object = pfresults, 
-                         newdata = pfdata,
-                         method = "mean",
-                         ci = TRUE,
-                         level = c(0.50,0.95))
-}
