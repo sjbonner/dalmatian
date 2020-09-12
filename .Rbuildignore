@@ -1,5 +1,6 @@
 .gitignore
 .git
+LICENSE
 ^data-raw$
 ^doc$
 ^Meta$
