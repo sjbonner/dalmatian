@@ -51,6 +51,22 @@ pfmcmc <- dalmatian(df=pfdata,
 file <- file.path(proj_path(),"data-mcmc","Pied_Flycatchers_1","pfmcmc.RData")
 save(pfmcmc, file = file)
 
+## Post-processing
+pfresults <- list(
+  convergence = convergence(pfmcmc),
+  traceplots = traceplots(pfmcmc, show = FALSE),
+  summary = summary(pfmcmc),
+  caterpillar = caterpillar(pfmcmc, show = FALSE),
+  ranef = ranef(pfmcmc),
+  fitted = fitted(object = pfresults,
+                  df = pfdata,
+                  method = "mean",
+                  ci = TRUE,
+                  level = 0.95))
+
+save(pfresults,
+     file = file.path(proj_path(),"inst","pfresults.RData"))
+
 ##### Model 2 #####
 
 # Random component of mean
@@ -94,4 +110,18 @@ file <- file.path(proj_path(),"data-mcmc","Pied_Flycatchers_1","pfmcmc2.RData")
 save(pfmcmc2, file = file)
 
 
+## Post-processing
+pfresults2 <- list(
+  convergence = convergence(pfmcmc2),
+  traceplots = traceplots(pfmcmc2, show = FALSE),
+  summary = summary(pfmcmc2),
+  caterpillar = caterpillar(pfmcmc2, show = FALSE),
+  ranef = ranef(pfmcmc2),
+  fitted = fitted(object = pfresults2,
+                  df = pfdata,
+                  method = "mean",
+                  ci = TRUE,
+                  level = 0.95))
 
+save(pfresults2,
+     file = file.path(proj_path(),"inst","pfresults2.RData"))

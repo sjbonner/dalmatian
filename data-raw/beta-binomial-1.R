@@ -53,3 +53,13 @@ bbmcmc <- dalmatian(df=betabin_data_1,
 ## For use on local machine within packge
 save(bbmcmc,
      file = file.path(proj_path(),"data-mcmc","Beta_Binomial_1","bbmcmc.RData"))
+
+## Post-processing
+bbresults <- list(
+  convergence = convergence(bbmcmc),
+  traceplots = traceplots(bbmcmc, show = FALSE),
+  summary = summary(bbmcmc),
+  caterpillar = caterpillar(bbmcmc, show = FALSE))
+
+save(bbresults,
+     file = file.path(proj_path(),"inst","bbresults.RData"))
