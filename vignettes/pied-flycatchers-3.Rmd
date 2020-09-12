@@ -9,10 +9,6 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r,echo=FALSE}
-runModels <- FALSE # If true rerun models. OTW, reload previous output.
-```
-
 Joint effects are fixed or random effects that take the same value in linear predictors describing variation in both the mean and the dispersion parameter. As an example, we consider the simplest model of the pied flycatcher data with only fixed effects on the mean and dispersion, except that we assume that the effect of broodsize is the same in both linear predictors. 
 
 # Library
@@ -63,7 +59,7 @@ These three objects will now be used to generate the JAGS code, data, and initia
 # Running the Model 
 
 The model can then be fit with `dalmatian` by defining the arguments that control the construction and updating of the JAGS model. Full details are included in `vignette(pied-flycatchers-1)`. 
-```{r}
+```{r, eval = FALSE}
 
 ## Set working directory
 ## By default uses a system temp directory. You probably want to change this.
@@ -76,71 +72,74 @@ jm.args <- list(file=file.path(workingDir,"pied_flycatcher_joint_1_jags.R"),n.ad
 cs.args <- list(n.iter=5000,thin=20)
 
 ## Run the model using dalmatian
-## This is how the model is run. However, to save you time we will load output from a previous run instead.
-if(runModels){
-  pfresults4 <- dalmatian(df=pfdata,
-                          mean.model=mymean,
-                          dispersion.model=mydisp,
-                          joint.model=myjoint,
-                          jags.model.args=jm.args,
-                          coda.samples.args=cs.args,
-                          rounding=TRUE,
-                          lower="lower",
-                          upper="upper",
-                          residuals = FALSE,
-                          debug=FALSE)
-}
-if(!runModels){
-  load(system.file("Pied_Flycatchers_3","pfresults4.RData",package="dalmatian"))
-}
+pfresults4 <- dalmatian(df=pfdata,
+                        mean.model=mymean,
+                        dispersion.model=mydisp,
+                        joint.model=myjoint,
+                        jags.model.args=jm.args,
+                        coda.samples.args=cs.args,
+                        rounding=TRUE,
+                        lower="lower",
+                        upper="upper",
+                        residuals = FALSE,
+                        debug=FALSE)
+```
+
+```{r, echo = FALSE}
+load(system.file("pfresults4.RData",package="dalmatian"))
 ```
 
 # Results
 
 The following illustrates the functions for processing the results. Again, these are fully described in `vignette(pied-flycatchers-1)`.
 
+The first line in each snippets of code illustrating these functions (commented out) shows how the functions were applied to the raw output. The following lines display the results. The sample MCMC output is available in the source code repository on GitHub and can be downloaded from https://github.com/sjbonner/dalmatian/blob/issue54/data-mcmc/pfmcmc4.RData .
+
 ## Numerical Convergence Diagnostics
 ```{r}
 ## Compute convergence diagnostics
-pfconvergence <- convergence(pfresults4)
+## pfresults4$convergence <- convergence(pfmcmc4)
 
 ## Gelman-Rubin diagnostics
-pfconvergence$gelman
+pfresults4$convergence$gelman
 
 ## Raftery diagnostics
-pfconvergence$raftery
+pfresults4$convergence$raftery
 
 ## Effective sample size
-pfconvergence$effectiveSize
+pfresults4$convergence$effectiveSize
 ```
 
 ## Graphical Convergence Diagnostics
 ```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
-pftraceplots <- traceplots(pfresults4,show=FALSE,nthin=10)
+## pfresults4$traceplots <- traceplots(pfmcmc4,show=FALSE,nthin=10)
 
 ## Fixed effects for mean
-pftraceplots$meanFixed
+pfresults4$traceplots$meanFixed
 
 ## Fixed effects for dispersion
-pftraceplots$dispersionFixed
+pfresults4$traceplots$dispersionFixed
 
 ```
 
 ## Numerical Summaries
 ```{r}
 ## Compute numerical summaries
-summary(pfresults4)
+## pfresults4$summary <- summary(pfmcmc4)
+
+## Numerical summaries
+pfresults4
 ```
 
 ## Graphical Summaries
 ```{r,fig.width=6,fig.align="center"}
 ## Generate caterpillar
-pfcaterpillar <- caterpillar(pfresults4,show = FALSE)
+## pfresults4$caterpillar <- caterpillar(pfmcmc4,show = FALSE)
 
 ## Fixed effects for mean
-pfcaterpillar$meanFixed
+pfresults4$caterpillar$meanFixed
 
 ## Fixed effects for dispersion
-pfcaterpillar$dispersionFixed
+pfresults4$caterpillar$dispersionFixed
 ```

@@ -55,3 +55,13 @@ system.time(
 ## For use on local machine within package
 save(gmcmc,
      file = file.path(proj_path(),"data-mcmc","gmcmc.RData"))
+
+## Post-processing
+gresults <- list(
+  convergence = convergence(gmcmc),
+  traceplots = traceplots(gmcmc, show = FALSE),
+  summary = summary(gmcmc),
+  caterpillar = caterpillar(gmcmc, show = FALSE))
+
+save(gresults,
+     file = file.path(proj_path(),"inst","gresults.RData"))

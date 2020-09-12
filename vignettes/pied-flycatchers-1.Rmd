@@ -9,10 +9,6 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r,echo=FALSE}
-runModels <- FALSE # If true rerun models. OTW, reload previous output.
-```
-
 As a first example of the functions in this package we will fit a model to the pied flycatcher data. We will start by fitting a model with fixed effects on the mean and dispersion components. Specifically, we will model the load returned on each trip by the adult flycatchers a independent normal random variables with mean given by a linear combination of the logarithm of the inter-visit interval (IVI), the broodsize manipulation (broodsize), and the adult's sex, and standard deviation given by a linear combination of broodsize and sex, on the log scale. We will then incorporate individual random effects into this model. 
 
 # Library
@@ -72,8 +68,7 @@ These two objects will now be used to generate the JAGS code, data, and initial 
 
 The primary function in the package `dalmatian` automates the creation of the `JAGS` code, data, and initial values and then passes these to `JAGS` via the functions in the `rjags` package. The `dalmatian` function takes requires several arguments including the data frame for the analysis, the model objects created above, and the name of the `JAGS` model file. It also requires two lists containing named arguments for the functions `jags.model` and `coda.samples` from the `rjags` package. Descriptions of the arguments for these two functions are available in their own help pages. Any arguments that are not specified in these lists will take the default values given by `rjags`. The two exceptions are the `file` argument of `jags.model` and the `n.iter` argument of `coda.samples` which do not have default values and must be specified. The number of parallel chains will be taken from the `jags.model` list. If this value is not specified then three chains will be run in order that convergence diagnostics can be computed. Note that the chains have been run for a relatively small number of iterations and heavily subsampled to satisfy the size requirements for packages on \texttt{CRAN}. Neither of these is recommended in practice.
 
-```{r}
-
+```{r, eval = FALSE}
 ## Set working directory
 ## By default uses a system temp directory. You probably want to change this.
 workingDir <- tempdir()
@@ -85,22 +80,21 @@ jm.args <- list(file=file.path(workingDir,"pied_flycatcher_1_jags.R"),n.adapt=10
 cs.args <- list(n.iter=5000,thin=20)
 
 ## Run the model using dalmatian
-## This is how the model is run. However, to save you time we will load output from a previous run instead.
-if(runModels){
-  pfresults <- dalmatian(df=pfdata,
-                         mean.model=mymean,
-                         dispersion.model=mydisp,
-                         jags.model.args=jm.args,
-                         coda.samples.args=cs.args,
-                         rounding=TRUE,
-                         lower="lower",
-                         upper="upper",
-                         residuals = FALSE,
-                         debug=FALSE)
+pfmcmc <- dalmatian(df=pfdata,
+                    mean.model=mymean,
+                    dispersion.model=mydisp,
+                    jags.model.args=jm.args,
+                    coda.samples.args=cs.args,
+                    rounding=TRUE,
+                    lower="lower",
+                    upper="upper",
+                    residuals = FALSE,
+                    debug=FALSE)
 }
-if(!runModels){
-  load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
-}
+```
+
+```{r, echo = FALSE}
+load(system.file("pfresults.RData",package="dalmatian"))
 ```
 
 ## Results
@@ -115,50 +109,55 @@ The function `dalmatian` returns list containing three objects:
 ## Results
 Inference is based on the output from the MCMC chain which is stored in the `coda` object. Summaries of the MCMC sampler and the posterior distribution can be constructed from `coda` with a variety of tools designed to work with objects of the `mcmc.list` class. For example, we can use the tools in the package `coda` to generate traceplots, density plots and histograms, numerical summaries of the posterior, and convergence diagnostics. The `ggmcmc` package can also be used to create fancier looking traceplots, density plots, and plots summarizing the posterior distribition in terms of posterior means and quantiles (credible intervals). However, several wrapper functions exist within the package to automate some of these tasks.
 
+The first line in each snippets of code illustrating these functions (commented out) shows how the functions were applied to the raw output. The following lines display the results. The sample MCMC output is available in the source code repository on GitHub and can be downloaded from https://github.com/sjbonner/dalmatian/blob/issue54/data-mcmc/pfmcmc.RData .
+
 The first thing we should do is to check the convergence of the chains. Summary statistics computed from the output in `coda` are only valid if the chain has converged and is sampling from the correct distribution. The wrapper function `convergence()` applies three of the convergence diagnostics from the `coda` package. 
 ```{r}
 ## Compute convergence diagnostics
-pfconvergence <- convergence(pfresults)
+## pfresults$convergence <- convergence(pfmcmc)
 
 ## Gelman-Rubin diagnostics
-pfconvergence$gelman
+pfresults$convergence$gelman
 
 ## Raftery diagnostics
-pfconvergence$raftery
+pfresults$convergence$raftery
 
 ## Effective sample size
-pfconvergence$effectiveSize
+pfresults$convergence$effectiveSize
 ```
 Details of these measures can be found in the help files of the `coda` package. Not surprisingly, these all suggest that the chains need to be run for longer. 
 
 Convergence and mixing of the chains can also be examined visually through traceplots. The wrapper function `traceplots` generates traces using the functions from the `ggmcmc` package and separates the variables by the model components. One of the advantages of using `ggmcmc` which is based on `ggplot2` is that the plots can be saved and easily reproduced. Here I have thinned the chains further prior to plotting to reduce the size of the vignette. Note that thinning is conducted relative to the original chain, not the already thinned chain. I.e., thinning by 20 selects the output from every 20th iteration of the original chain (every 2nd iteration from the retained samples).
 ```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
-pftraceplots <- traceplots(pfresults,show=FALSE,nthin=20)
+## pfresults$traceplots <- traceplots(pfmcmc,show=FALSE,nthin=20)
 
 ## Fixed effects for mean
-pftraceplots$meanFixed
+pfresults$traceplots$meanFixed
 
 ## Fixed effects for dispersion
-pftraceplots$dispersionFixed
+pfresults$traceplots$dispersionFixed
 
 ```
 
 Numerical summaries of the posterior distribution computed from the output in `coda` can be obtained with the summary function.
 ```{r}
 ## Compute numerical summaries
-summary(pfresults)
+## pfresults$summary <- summary(pfmcmc)
+
+## Numerical summaries
+pfresults$summary
 ```
 For each component of the model the tables provide statistics including the estimated posterior mean, median, and standard deviation and the end points of the 50% and 95% highest posterior density credible intervals. Note that these summaries are only valid if the previous diagnostics have suggested that the chain has converged and the effective sample size is large enough. Graphical summaries can also be computed with the `caterpillar` which, like `traceplots`, is a simple wrapper for the functions in the `ggmcmc` package.
 ```{r,fig.width=6,fig.align="center"}
 ## Generate caterpillar
-pfcaterpillar <- caterpillar(pfresults,show = FALSE)
+## pfresults$caterpillar <- caterpillar(pfmcmc,show = FALSE)
 
 ## Fixed effects for mean
-pfcaterpillar$meanFixed
+pfresults$caterpillar$meanFixed
 
 ## Fixed effects for dispersion
-pfcaterpillar$dispersionFixed
+pfresults$caterpillar$dispersionFixed
 ```
 
 # Model 2: Random Effects
@@ -185,15 +184,14 @@ mydisp$random <- list(name="xi",formula=~-1 + indidx)
 
 The new model can now be run using `dalmatian` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and dispersion components by taking the values from the final iterations of each of the chains run for the fixed effects model. I have also found that it is best to set initial values for the response variable, `y`, if the response is rounded. Otherwise, JAGS often fails to generate initial values that fall between the rounding limits. For convenience, we set the random effects variances equal to 1 in all three chains. Note that the chains have been run for a relatively small number of iterations and heavily subsampled to satisfy the size requirements for packages on \texttt{CRAN}. Neither of these is recommended in practice.
 
-```{r}
-
+```{r, eval = FALSE}
 ## Define initial values
 inits <- lapply(1:3,function(i){
                 setJAGSInits(mymean,
                       mydisp,
                       y = runif(nrow(pfdata),pfdata$lower,pfdata$upper),
-                      fixed.mean = tail(pfresults$coda[[i]],1)[1:4],
-                      fixed.dispersion = tail(pfresults$coda[[i]],1)[5:7],
+                      fixed.mean = tail(pfmcmc$coda[[i]],1)[1:4],
+                      fixed.dispersion = tail(pfmcmc$coda[[i]],1)[5:7],
                       sd.mean = 1,
                       sd.dispersion=1)
   })
@@ -205,79 +203,79 @@ jm.args <- list(file=file.path(workingDir,"pied_flycatcher_2_jags.R"),inits=init
 cs.args <- list(n.iter=5000,thin=10)
 
 ## Run the model using dalmatian
-## This is how the model is run. However, to save you time we will load output from a previous run instead.
+pfmcmc2 <- dalmatian(df=pfdata,
+                     mean.model=mymean,
+                     dispersion.model=mydisp,
+                     jags.model.args=jm.args,
+                     coda.samples.args=cs.args,
+                     rounding=TRUE,
+                     lower="lower",
+                     upper="upper",
+                     residuals=FALSE,
+                     debug=FALSE)
+```
 
-if(runModels){
-  pfresults2 <- dalmatian(df=pfdata,
-                          mean.model=mymean,
-                          dispersion.model=mydisp,
-                          jags.model.args=jm.args,
-                          coda.samples.args=cs.args,
-                          rounding=TRUE,
-                          lower="lower",
-                          upper="upper",
-                          residuals=FALSE,
-                          debug=FALSE)
-}
-if(!runModels){
-  load(system.file("Pied_Flycatchers_1","pfresults2.RData",package="dalmatian"))
-}
-
+```{r, echo = FALSE}
+  load(system.file("pfresults2.RData",package="dalmatian"))
 ```
 
 ## Results
-As before, we can use the wrapper functions within the package to examine the convergence and compute summaries of the posterior distribution. 
+Once again, we can use the wrapper functions within the package to examine the convergence and compute summaries of the posterior distribution. 
+
+As before, the first line in each snippets of code illustrating these functions (commented out) shows how the functions were applied to the raw output. The following lines display the results. The sample MCMC output is available in the source code repository on GitHub and can be downloaded from https://github.com/sjbonner/dalmatian/blob/issue54/data-mcmc/pfmcmc2.RData .
 
 1. Convergence diagnostics
 ```{r}
 ## Compute convergence diagnostics
-pfconvergence2 <- convergence(pfresults2)
+## pfresults2$convergence <- convergence(pfmcmc2)
 
 ## Gelman-Rubin diagnostics
-pfconvergence2$gelman
+pfresults2$convergence$gelman
 
 ## Raftery diagnostics
-pfconvergence2$raftery
+pfresults2$convergence$raftery
 
 ## Effective sample size
-pfconvergence2$effectiveSize
+pfresults2$convergence$effectiveSize
 ```
 
 2. Traceplots
 ```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
-pftraceplots2 <- traceplots(pfresults2,show = FALSE,nthin=20)
+## pfresults$traceplots2 <- traceplots(pfmcmc2,show = FALSE,nthin=20)
 
 ## Fixed effects for mean
-pftraceplots2$meanFixed
+pfresults2$traceplots2$meanFixed
 
 ## Fixed effects for dispersion
-pftraceplots2$dispersionFixed
+pfresults2$traceplots2$dispersionFixed
 
 ## Random effects variances for mean
-pftraceplots2$meanRandom
+pfresults2$traceplots2$meanRandom
 
 ## Random effects variances for dispersion
-pftraceplots2$dispersionRandom
-
+pfresults2$traceplots2$dispersionRandom
 ```
 
 3. Numerical summaries
 ```{r}
 ## Compute numerical summaries
-summary(pfresults2)
+## pfresults2$summary <- summary(pfmcmc2)
+
+## Numerical summaries
+pfresults2$summary
 ```
 
 4. Graphical summaries
 ```{r,fig.width=6,fig.align="center"}
 ## Generate caterpillar
-pfcaterpillar2 <- caterpillar(pfresults2,show = FALSE)
+## pfresults2$caterpillar <- caterpillar(pfmcmc2,show = FALSE)
 
 ## Fixed effects for mean
-pfcaterpillar2$meanFixed
+pfresults2$caterpillar$meanFixed
 
 ## Fixed effects for dispersion
-pfcaterpillar2$dispersionFixed
+pfresults2$caterpillar$dispersionFixed
 ```
 
 ## Predictions
@@ -291,17 +289,14 @@ pfdata$'log(IVI)' <- log(pfdata$IVI)
 We can now get predictions.
 
 ```{r}
-## Plot predictions for Model 1
-pred.pfresults <- fitted(object = pfresults, 
-                         df = pfdata,
-                         method = "mean",
-                         ci = TRUE,
-                         level = 0.95)
+## Compute predictions for model 1
+## pfresults$fitted <- predict(pfmcmc)
 
-# predictions for Model 2
-pred.pfresults2 <- fitted(object = pfresults2,
-                          df = pfdata,
-                          method = "mean",
-                          ci = TRUE,
-                          level = 0.95)
+head(pfresults$fitted)
+
+# Compute predictions for model 2
+## pfresults2$fitted <- predict(pfmcmc2)
+
+head(pfresults2$fitted)
+
 ```

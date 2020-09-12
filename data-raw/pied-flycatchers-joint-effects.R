@@ -56,3 +56,12 @@ pfmcmc4 <- dalmatian(df=pfdata,
 file <- file.path(proj_path(),"data-mcmc","pfmcmc4.RData")
 save(pfmcmc4, file = file)
 
+## Post-processing
+pfresults4 <- list(
+  convergence = convergence(pfmcmc4),
+  traceplots = traceplots(pfmcmc4, show = FALSE),
+  summary = summary(pfmcmc4),
+  caterpillar = caterpillar(pfmcmc4, show = FALSE))
+
+save(pfresults4,
+     file = file.path(proj_path(),"inst","pfresults4.RData"))
