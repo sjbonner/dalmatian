@@ -29,3 +29,12 @@ output (list)
 \description{
 Compute posterior summary statistics for the individual random effects in each part of the model.
 }
+\examples{
+
+## Load output from previously run model
+load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
+
+## Compute numerical summaries
+ranef(pfresults)
+
+}

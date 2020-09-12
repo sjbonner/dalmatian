@@ -9,6 +9,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r,echo=FALSE}
+runModels <- FALSE # If true rerun models. OTW, reload previous output.
+```
+
 This package illustrates the implementation of the gamma model for analyzing data including a continuous response that is constrained to be positive. As an example we consider the analysis of a simulated data set. We recommend that you first work through the vignettes for the pied flycatcher data ("pied-flycatcher-1" and "pied-flycatcher-2") which contain further information on the structure of the package.
 
 # Gamma model
@@ -79,7 +83,7 @@ mydisp <- list(fixed = list(name = "psi",
 
 Once the model structure has been defined the model can be fit with the function `dalmatian`. The following code creates the lists of arguments supplied to `jags.model` and `coda.samples` and then calls `dalmatian` to run the MCMC sampler. Note that the gamma model is fit by specifying that `family="gamma"`.
 
-```{r, eval = FALSE}
+```{r}
 
 ## Set working directory
 ## By default uses a system temp directory. You probably want to change this.
@@ -92,75 +96,72 @@ jm.args <- list(file=file.path(workingDir,"gamma_test_1.R"),n.chains = 3, n.adap
 cs.args <- list(n.iter=5000,thin=20)
 
 ## Run the model using dalmatian
-gresults <- dalmatian(df=gamma_data_1,
-                      family = "gamma",
-                      mean.model=mymean,
-                      dispersion.model=mydisp,
-                      jags.model.args=jm.args,
-                      coda.samples.args=cs.args,
-                      response = "y",
-                      residuals = FALSE,
-                      run.model = TRUE,
-                      engine = "JAGS",
-                      n.cores = 3,
-                      overwrite = TRUE,
-                      saveJAGSinput = workingDir)
-```
-
-```{r, echo = FALSE}
-load(system.file("gresults.RData",package="dalmatian"))
+## This is how the model is run. However, to save you time we will load output from a previous run instead.
+if(runModels){
+  gresults <- dalmatian(df=gamma_data_1,
+                         family = "gamma",
+                         mean.model=mymean,
+                         dispersion.model=mydisp,
+                         jags.model.args=jm.args,
+                         coda.samples.args=cs.args,
+                         response = "y",
+                         residuals = FALSE,
+                         run.model = TRUE,
+                         engine = "JAGS",
+                         n.cores = 3,
+                         overwrite = TRUE,
+                         saveJAGSinput = workingDir)
+}
+if(!runModels){
+  load(system.file("Gamma_1","gresults.RData",package="dalmatian"))
+}
 ```
 
 # Results
 
 Once the samples have been generated the post-processing functions can be used to examine the behaviour of the sampler and compute posterior summary statistics. These functions are described further in the help pages and in the vignettes analyzing the pied flycatcher data.
 
-The first line in each of the following snippets of code (commented out) shows how the functions were applied to the raw output and the following lines display the results. The sample MCMC output is available in the source code repository on GitHub and can be downloaded from https://github.com/sjbonner/dalmatian/blob/issue54/data-mcmc/gmcmc.RData .
-
 ## Convergence Diagnostics
 ```{r}
 ## Compute convergence diagnostics
-## gresults$convergence <- convergence(gmcmc)
+gconvergence <- convergence(gresults)
 
 ## Gelman-Rubin diagnostics
-gresults$convergence$gelman
+gconvergence$gelman
 
 ## Raftery diagnostics
-gresults$convergence$raftery
+gconvergence$raftery
 
 ## Effective sample size
-gresults$convergence$effectiveSize
+gconvergence$effectiveSize
 ```
 
 ## Traceplots
 ```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
-## gresults$traceplots <- traceplots(gmcmc,show=FALSE)
+gtraceplots <- traceplots(gresults,show=FALSE)
 
 ## Fixed effects for mean
-gresults$traceplots$meanFixed
+gtraceplots$meanFixed
 
 ## Fixed effects for dispersion
-gresults$traceplots$dispersionFixed
+gtraceplots$dispersionFixed
 ```
 
 ## Numerical Summaries
 ```{r}
 ## Compute numerical summaries
-## gresults$summary <- summary(gmcmc)
-
-## Numerical summaries
-gresults$summary
+summary(gresults)
 ```
 
 ## Graphical Summaries
 ```{r,fig.width=6,fig.align="center"}
 ## Generate caterpillar
-## gresults$caterpillar <- caterpillar(gmcmc,show = FALSE)
+gcaterpillar <- caterpillar(gresults,show = FALSE)
 
 ## Fixed effects for mean
-gresults$caterpillar$meanFixed
+gcaterpillar$meanFixed
 
 ## Fixed effects for dispersion
-gresults$caterpillar$dispersionFixed
+gcaterpillar$dispersionFixed
 ```

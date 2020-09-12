@@ -35,7 +35,7 @@ jm.args <- list(file=file.path(workingDir,"pied_flycatcher_1_jags.R"),n.adapt=10
 cs.args <- list(n.iter=5000,thin=20)
 
 ## Run the model using dalmatian
-pfmcmc <- dalmatian(df=pfdata,
+pfresults <- dalmatian(df=pfdata,
                        mean.model=mymean,
                        dispersion.model=mydisp,
                        jags.model.args=jm.args,
@@ -48,21 +48,8 @@ pfmcmc <- dalmatian(df=pfdata,
                        overwrite = TRUE,
                        debug=FALSE)
 
-file <- file.path(proj_path(),"data-mcmc","pfmcmc.RData")
-save(pfmcmc, file = file)
-
-## Post-processing
-pfresults <- list(
-  convergence = convergence(pfmcmc),
-  traceplots = traceplots(pfmcmc, show = FALSE),
-  summary = summary(pfmcmc),
-  caterpillar = caterpillar(pfmcmc, show = FALSE),
-  ranef = ranef(pfmcmc),
-  fitted = predict(pfmcmc,
-                   newdata = pfdata[1:5,]))
-
-save(pfresults,
-     file = file.path(proj_path(),"inst","pfresults.RData"))
+file <- file.path(proj_path(),"inst","Pied_Flycatchers_1","pfresults.RData")
+save(pfresults, file = file)
 
 ##### Model 2 #####
 
@@ -77,8 +64,8 @@ inits <- lapply(1:3,function(i){
   setJAGSInits(mymean,
                mydisp,
                y = runif(nrow(pfdata),pfdata$lower,pfdata$upper),
-               fixed.mean = tail(pfmcmc$coda[[i]],1)[1:4],
-               fixed.dispersion = tail(pfmcmc$coda[[i]],1)[5:7],
+               fixed.mean = tail(pfresults$coda[[i]],1)[1:4],
+               fixed.dispersion = tail(pfresults$coda[[i]],1)[5:7],
                sd.mean = 1,
                sd.dispersion=1)
 })
@@ -90,7 +77,7 @@ jm.args <- list(file=file.path(workingDir,"pied_flycatcher_2_jags.R"),inits=init
 cs.args <- list(n.iter=5000,thin=10)
 
 ## Run the model using dalmatian
-pfmcmc2 <- dalmatian(df=pfdata,
+pfresults2 <- dalmatian(df=pfdata,
                         mean.model=mymean,
                         dispersion.model=mydisp,
                         jags.model.args=jm.args,
@@ -103,19 +90,8 @@ pfmcmc2 <- dalmatian(df=pfdata,
                         overwrite = TRUE,
                         debug=FALSE)
 
-file <- file.path(proj_path(),"data-mcmc","pfmcmc2.RData")
-save(pfmcmc2, file = file)
+file <- file.path(proj_path(),"inst","Pied_Flycatchers_1","pfresults2.RData")
+save(pfresults2, file = file)
 
 
-## Post-processing
-pfresults2 <- list(
-  convergence = convergence(pfmcmc2),
-  traceplots = traceplots(pfmcmc2, show = FALSE),
-  summary = summary(pfmcmc2),
-  caterpillar = caterpillar(pfmcmc2, show = FALSE),
-  ranef = ranef(pfmcmc2),
-  fitted = predict(pfmcmc2,
-                   newdata = pfdata[1:5,]))
 
-save(pfresults2,
-     file = file.path(proj_path(),"inst","pfresults2.RData"))

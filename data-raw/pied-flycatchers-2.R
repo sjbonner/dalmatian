@@ -34,7 +34,7 @@ jm.args <- list(file=file.path(workingDir,"pied_flycatcher_3_jags.R"),n.adapt=10
 cs.args <- list(n.iter=1000)
 
 ## Run the model using dalmatian
-pfmcmc3 <- dalmatian(df=pfdata,
+pfresults3 <- dalmatian(df=pfdata,
                         mean.model=mymean,
                         dispersion.model=mydisp,
                         jags.model.args=jm.args,
@@ -45,16 +45,6 @@ pfmcmc3 <- dalmatian(df=pfdata,
 			n.cores = 3,
                         debug=FALSE)
   
-save(pfmcmc3,
-     file = file.path(proj_path(),"data-mcmc","pfmcmc3.RData"))
-
-## Post-processing
-pfresults3 <- list(
-  convergence = convergence(pfmcmc3),
-  traceplots = traceplots(pfmcmc3, show = FALSE),
-  summary = summary(pfmcmc3),
-  caterpillar = caterpillar(pfmcmc3, show = FALSE),
-  ranef = ranef(pfmcmc3))
-
 save(pfresults3,
-     file = file.path(proj_path(),"inst","pfresults3.RData"))
+     file = file.path(proj_path(),"inst","Pied_Flycatchers_2","pfresults3.RData"))
+

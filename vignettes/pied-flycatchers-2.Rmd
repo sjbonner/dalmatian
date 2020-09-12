@@ -9,6 +9,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r,echo=FALSE}
+runModels <- FALSE # If true rerun models. OTW, reload previous output.
+```
+
 This vignette continues the example of the pied flycatchers discussed in the vignette "pied-flycatchers-1" by adding a random slope to the fixed effects model. I highly recommend that you work through the other vignette first.
 
 # Library
@@ -64,7 +68,7 @@ mydisp=list(fixed=list(name="psi",
 The new model can now be run using `dalmatian` in exactly the same way as above. However, we will make one change. In order to shorten the convergence time, we will base initial values on the results of the fixed effects model and then provide these as input. In particular, we will define initial values for the fixed effects of both the mean and dispersion components by taking the values from the final iterations of each of the chains run for the fixed effects model. For convenience, we set the random effects variances equal to 1 in all three chains. Note that the chains have been run for a relatively small number of iterations and heavily subsampled to satisfy the size requirements for packages on \texttt{CRAN}. Neither of these is recommended in practice.
 
 
-```{r, eval = FALSE}
+```{r}
 ## Set working directory
 ## By default uses a system temp directory. You probably want to change this.
 workingDir <- tempdir()
@@ -76,91 +80,92 @@ jm.args <- list(file=file.path(workingDir,"pied_flycatcher_3_jags.R"),n.adapt=10
 cs.args <- list(n.iter=1000)
 
 ## Run the model using dalmatian
-pfresults3 <- dalmatian(df=pfdata,
-                        mean.model=mymean,
-                        dispersion.model=mydisp,
-                        jags.model.args=jm.args,
-                        coda.samples.args=cs.args,
-                        rounding=TRUE,
-                        lower="lower",
-                        upper="upper",
-                        debug=FALSE)
-```
+if(runModels){
+  pfresults3 <- dalmatian(df=pfdata,
+                          mean.model=mymean,
+                          dispersion.model=mydisp,
+                          jags.model.args=jm.args,
+                          coda.samples.args=cs.args,
+                          rounding=TRUE,
+                          lower="lower",
+                          upper="upper",
+                          debug=FALSE)
+}
+if(!runModels){
+  ## Load output from previously run chain
+  load(system.file("Pied_Flycatchers_2","pfresults3.RData",package="dalmatian"))
+}
 
-```{r, echo = FALSE}
-## Load output from previously run chain
-load(system.file("pfresults3.RData",package="dalmatian"))
 ```
 
 ## Results
 Once again, we can use the wrapper functions provided with `dalmatian` to conduct convergence diagnostics and compute summary statistics for the posterior distribution from which we can make inference. 
 
-The first line in each snippets of code illustrating these functions (commented out) shows how the functions were applied to the raw output. The following lines display the results. The sample MCMC output is available in the source code repository on GitHub and can be downloaded from https://github.com/sjbonner/dalmatian/blob/issue54/data-mcmc/pfmcmc3.RData .
-
-
 1. Convergence diagnostics
 ```{r}
 ## Compute convergence diagnostics
-## pfresults3$convergence <- convergence(pfmcmc3,raftery=list(r=.01))
+pfconvergence2 <- convergence(pfresults3,raftery=list(r=.01))
 
 ## Gelman-Rubin diagnostics
-pfresults3$convergence$gelman
+pfconvergence2$gelman
 
 ## Raftery diagnostics
-pfresults3$convergence$raftery
+pfconvergence2$raftery
 
 ## Effective sample size
-pfresults3$convergence$effectiveSize
+pfconvergence2$effectiveSize
 ```
 
 2. Traceplots
 ```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
-## pfresults3$traceplots <- traceplots(pfmcmc3,show = FALSE)
+pftraceplots2 <- traceplots(pfresults3,show = FALSE)
 
 ## Fixed effects for mean
-pfresults3$traceplots$meanFixed
+pftraceplots2$meanFixed
 
 ## Fixed effects for dispersion
-pfresults3$traceplots$dispersionFixed
+pftraceplots2$dispersionFixed
 
 ## Random effects variances for mean
-pfresults3$traceplots$meanRandom
+pftraceplots2$meanRandom
 
 ## Random effects variances for dispersion
-pfresults3$traceplots$dispersionRandom
+pftraceplots2$dispersionRandom
 
 ```
 
 3. Numerical summaries
 ```{r}
 ## Compute numerical summaries
-## pfresults3$summary <- summary(pfmcmc3)
-
-## Numerical summaries
-pfresults3$summary
+summary(pfresults3)
 ```
 
 4. Graphical summaries
 ```{r,fig.width=6,fig.align="center"}
 ## Generate caterpillar
-## pfresults3$caterpillar <- caterpillar(pfmcmc3,show = FALSE)
+pfcaterpillar2 <- caterpillar(pfresults3,show = FALSE)
 
 ## Fixed effects for mean
-pfresults3$caterpillar$meanFixed
+pfcaterpillar2$meanFixed
 
 ## Fixed effects for dispersion
-pfresults3$caterpillar$dispersionFixed
+pfcaterpillar2$dispersionFixed
 ```
 
-The convergence diagnostics and traceplots suggest that the chains should be run for longer. In particular, the effective sample size for the variance of the random slopes is very small, but we will proceed with inference for illustration. In the numerical summaries we see that the estimated variance of the random slopes is very small, `r pfresults3$summary$meanRandom[2,"Mean"]` with 95% credible interval (`r pfresults3$summary$meanRandom[2,"Lower 95%"]`,`r pfresults3$summary$meanRandom[2,"Upper 95%"]`). This suggests that there is very little inter-individual variation in the effect of `log(IVI)`.
+```{r, echo = FALSE}
+## Extract numerical output
+summ <- summary(pfresults3)
+```
+
+The convergence diagnostics and traceplots suggest that the chains should be run for longer. In particular, the effective sample size for the variance of the random slopes is very small, but we will proceed with inference for illustration. In the numerical summaries we see that the estimated variance of the random slopes is very small, `r summ$meanRandom[2,"Mean"]` with 95% credible interval (`r summ$meanRandom[2,"Lower 95%"]`,`r summ$meanRandom[2,"Upper 95%"]`). This suggests that there is very little inter-individual variation in the effect of `log(IVI)`.
 
 Estimates of the individual random effects (predictions for frequentists) can be obtained from the function `ranef()`. This function computes posterior summary statistics for the individual random effects. In this case, the random effects for the mean include both the intercept and the effect of `log(IVI)`. 
 
 The following code computes the summary statistics and plots the predicted values of the random slopes with HPD 95% confidence intervals. 
 ```{r,fig.width=6,fig.align="center"}
 ## Compute summary statistics for random effects
-## pfresults3$ranef <- ranef(pfresults3)
+ranef2 <- ranef(pfresults3)
 
 ## Load ggplot2
 library(ggplot2)
@@ -169,7 +174,7 @@ library(ggplot2)
 nind <- nlevels(pfdata$indidx)
 
 ## Plot predicted random slopes
-ggplot(data=as.data.frame(pfresults3$ranef$mean[nind+(1:nind),]),aes(x=1:nind,y=Mean)) + 
+ggplot(data=as.data.frame(ranef2$mean[nind+(1:nind),]),aes(x=1:nind,y=Mean)) + 
   geom_point() + 
   geom_errorbar(aes(ymin=`Lower 95%`,ymax=`Upper 95%`)) +
   geom_abline(intercept=0,slope=0)

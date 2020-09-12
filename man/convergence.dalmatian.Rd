@@ -35,3 +35,12 @@ List containing Gelman-Rubin and Raftery convergence diagnostics and effective s
 \description{
 Compute convergence diagnostics for a dalmatian object.
 }
+\examples{
+
+## Load output from previously run model
+load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
+
+## Compute convergence diagnostics
+pfconvergence <- convergence(pfresults)
+
+}
