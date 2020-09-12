@@ -54,4 +54,4 @@ system.time(
 
 ## For use on local machine within package
 save(gmcmc,
-     file = file.path(proj_path(),"data-mcmc","Gamma_1","gmcmc.RData"))
+     file = file.path(proj_path(),"data-mcmc","gmcmc.RData"))
