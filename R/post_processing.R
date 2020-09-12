@@ -65,13 +65,6 @@ myCodaSummary <-
 #' @return output (list)
 #' @export
 #' 
-#' @examples 
-#' 
-#' ## Load output from previously run model
-#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
-#' 
-#' ## Compute numerical summaries
-#' summary(pfresults)
 summary.dalmatian <-
     function(object,
              nstart = start(object$coda),
@@ -164,14 +157,6 @@ summary.dalmatian <-
 #'
 #' @export
 #' 
-#' @examples 
-#' 
-#' ## Load output from previously run model
-#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
-#' 
-#' ## Compute numerical summaries
-#' print(summary(pfresults))
-#'
 print.dalmatian.summary <- function(x, digits = 2, ...) {
     ## Basic information about chains
 
@@ -232,14 +217,6 @@ print.dalmatian.summary <- function(x, digits = 2, ...) {
 #'
 #' @export
 #'
-#' @examples 
-#' 
-#' ## Load output from previously run model
-#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
-#' 
-#' ## Compute numerical summaries
-#' ranef(pfresults)
-#'
 ranef <- function(object, ...) {
     UseMethod("ranef")
 }
@@ -256,14 +233,6 @@ ranef <- function(object, ...) {
 #'
 #' @return output (list)
 #' @export
-#'
-#' @examples 
-#' 
-#' ## Load output from previously run model
-#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
-#' 
-#' ## Compute numerical summaries
-#' ranef(pfresults)
 #'
 ranef.dalmatian <-
     function(object,
@@ -299,14 +268,6 @@ ranef.dalmatian <-
 #'
 #' @export
 #'
-#' @examples 
-#' 
-#' ## Load output from previously run model
-#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
-#' 
-#' ## Compute convergence diagnostics
-#' pfconvergence <- convergence(pfresults)
-#'
 convergence <- function(object, ...) {
     UseMethod("convergence")
 }
@@ -325,14 +286,6 @@ convergence <- function(object, ...) {
 #'
 #' @return List containing Gelman-Rubin and Raftery convergence diagnostics and effective sampel sizes for the selected parameters.
 #' @export
-#'
-#' @examples 
-#' 
-#' ## Load output from previously run model
-#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
-#' 
-#' ## Compute convergence diagnostics
-#' pfconvergence <- convergence(pfresults)
 #'
 convergence.dalmatian <-
     function(object,
@@ -433,14 +386,6 @@ convergence.dalmatian <-
 #'
 #' @export
 #' 
-#' @examples 
-#' 
-#' ## Load output from previously run model
-#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
-#' 
-#' ## Generate traceplots
-#' pftraceplots <- traceplots(pfresults)
-#'
 traceplots <- function(object, ...) {
     UseMethod("traceplots")
 }
@@ -461,14 +406,6 @@ traceplots <- function(object, ...) {
 #' @return A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
 #' @export
 #'  
-#' @examples 
-#' 
-#' ## Load output from previously run model
-#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
-#' 
-#' ## Generate traceplots
-#' pftraceplots <- traceplots(pfresults)
-#'
 traceplots.dalmatian <-
     function(object,
              family = NULL,
@@ -612,14 +549,6 @@ traceplots.dalmatian <-
 #'
 #' @export
 #'
-#' @examples 
-#' 
-#' ## Load output from previously run model
-#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
-#' 
-#' ## Generate caterpillar
-#' pfcaterpillar <- caterpillar(pfresults,plot = FALSE)
-#'
 caterpillar <- function(object, ...) {
     UseMethod("caterpillar")
 }
@@ -639,14 +568,6 @@ caterpillar <- function(object, ...) {
 #'
 #' @return A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
 #' @export
-#' @examples 
-#' 
-#' ## Load output from previously run model
-#' load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
-#' 
-#' ## Generate caterpillar
-#' pfcaterpillar <- caterpillar(pfresults,plot = FALSE)
-#'
 caterpillar.dalmatian <-
     function(object,
              family = NULL,
@@ -796,14 +717,6 @@ caterpillar.dalmatian <-
 ##' corresponding to the fixed and random components of that model component (if present).
 ##' @export
 ##' @author Simon Bonner
-##' @examples
-##' \dontrun{
-##' ## Extract the terms objects corresponding to the pied-flycatcher model without random effects
-##' terms(pfresults)
-##'
-##' ## Extract the terms objects corresponding to the pied-flycatcher model with random effects
-##' terms(pfresults2)
-##' }
 terms.dalmatian <- function(x,...){
   ## Extract terms objects for each component of the fitted model
 
