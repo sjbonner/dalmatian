@@ -292,11 +292,13 @@ We can now get predictions.
 ## Compute predictions for model 1
 ## pfresults$fitted <- predict(pfmcmc)
 
-head(pfresults$fitted)
+head(pfresults$fitted$mean)
+head(pfresults$fitted$dispersion)
 
 # Compute predictions for model 2
 ## pfresults2$fitted <- predict(pfmcmc2)
 
-head(pfresults2$fitted)
+head(pfresults2$fitted$mean)
+head(pfresults2$fitted$dispersion)
 
 ```
