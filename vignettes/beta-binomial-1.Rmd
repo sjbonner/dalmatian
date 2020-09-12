@@ -112,55 +112,59 @@ if(runModels){
                          saveJAGSinput = workingDir)
 }
 if(!runModels){
-  load(system.file("Beta_Binomial_1","bbresults.RData",package="dalmatian"))
+  load(system.file("bbresults.RData",package="dalmatian"))
 }
 ```
 
 # Results
 
-Once the samples have been generated the post-processing functions can be used to examine the behaviour of the sampler and compute posterior summary statistics. These functions are described further in the help pages and in the vignettes analyzing the pied flycatcher data.
+Once the samples have been generated the post-processing functions can be used to examine the behaviour of the sampler and compute posterior summary statistics. These functions are described further in the help pages and in the vignettes analyzing the pied flycatcher data. The first line in each of the following snippets of code, commented out, shows how the functions were applied to the raw output and the following lines display the results. The sample MCMC output is available in the source code repository on GitHub and can be downloaded from https://github.com/sjbonner/dalmatian/blob/issue54/data-mcmc/Beta_Binomial_1/bbmcmc.RData.
 
 ## Convergence Diagnostics
 ```{r}
 ## Compute convergence diagnostics
-bbconvergence <- convergence(bbresults)
+## bbresults$convergence <- convergence(bbmcmc)
 
 ## Gelman-Rubin diagnostics
-bbconvergence$gelman
+bbresults$convergence$gelman
 
 ## Raftery diagnostics
-bbconvergence$raftery
+bbresults$convergence$raftery
 
 ## Effective sample size
-bbconvergence$effectiveSize
+bbresults$convergence$effectiveSize
 ```
 
 ## Traceplots
 ```{r,fig.width=6,fig.align="center"}
 ## Generate traceplots
-bbtraceplots <- traceplots(bbresults,show=FALSE)
+## bbresults$traceplots <- traceplots(bbmcmc,show=FALSE)
 
 ## Fixed effects for mean
-bbtraceplots$meanFixed
+bbresults$traceplots$meanFixed
 
 ## Fixed effects for dispersion
-bbtraceplots$dispersionFixed
+bbresults$traceplots$dispersionFixed
 ```
 
 ## Numerical Summaries
 ```{r}
 ## Compute numerical summaries
-summary(bbresults)
+## bbresults$summary <- summary(bbmcmc)
+
+## Numerical summaries
+bbresults$summary
+
 ```
 
 ## Graphical Summaries
 ```{r,fig.width=6,fig.align="center"}
 ## Generate caterpillar
-bbcaterpillar <- caterpillar(bbresults,show = FALSE)
+## bbresults$caterpillar <- caterpillar(bbmcmc,show = FALSE)
 
 ## Fixed effects for mean
-bbcaterpillar$meanFixed
+bbresults$caterpillar$meanFixed
 
 ## Fixed effects for dispersion
-bbcaterpillar$dispersionFixed
+bbresults$caterpillar$dispersionFixed
 ```
