@@ -22,15 +22,6 @@ terms (dalmatian)
 Constructs a list of terms objects for each component of the model specified in the
 input object.
 }
-\examples{
-\dontrun{
-## Extract the terms objects corresponding to the pied-flycatcher model without random effects
-terms(pfresults)
-
-## Extract the terms objects corresponding to the pied-flycatcher model with random effects
-terms(pfresults2)
-}
-}
 \author{
 Simon Bonner
 }

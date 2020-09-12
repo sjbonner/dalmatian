@@ -38,7 +38,7 @@ jm.args <- list(file=file.path(workingDir,"pied_flycatcher_joint_1_jags.R"),n.ad
 cs.args <- list(n.iter=1000,thin=20)
 
 ## Run the model using dalmatian
-pfresults4 <- dalmatian(df=pfdata,
+pfmcmc4 <- dalmatian(df=pfdata,
                         mean.model=mymean,
                         dispersion.model=mydisp,
                         joint.model = myjoint,
@@ -53,6 +53,15 @@ pfresults4 <- dalmatian(df=pfdata,
                         overwrite = TRUE,
                         debug=FALSE)
   
-file <- file.path(proj_path(),"inst","Pied_Flycatchers_3","pfresults4.RData")
-save(pfresults4, file = file)
+file <- file.path(proj_path(),"data-mcmc","pfmcmc4.RData")
+save(pfmcmc4, file = file)
 
+## Post-processing
+pfresults4 <- list(
+  convergence = convergence(pfmcmc4),
+  traceplots = traceplots(pfmcmc4, show = FALSE),
+  summary = summary(pfmcmc4),
+  caterpillar = caterpillar(pfmcmc4, show = FALSE))
+
+save(pfresults4,
+     file = file.path(proj_path(),"inst","pfresults4.RData"))

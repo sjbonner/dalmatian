@@ -14,12 +14,3 @@ convergence(object, ...)
 \description{
 Generic function for computing convergence diagnostics.
 }
-\examples{
-
-## Load output from previously run model
-load(system.file("Pied_Flycatchers_1","pfresults.RData",package="dalmatian"))
-
-## Compute convergence diagnostics
-pfconvergence <- convergence(pfresults)
-
-}
