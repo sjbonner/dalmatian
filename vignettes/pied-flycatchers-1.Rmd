@@ -281,7 +281,7 @@ pfsummary2 <- summary(pfmcmc2)
 
 ```{r}
 ## Print numerical summaries
-pfresults2$summary
+pfsummary2
 ```
 
 4. Graphical summaries

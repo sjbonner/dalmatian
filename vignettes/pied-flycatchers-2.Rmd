@@ -162,7 +162,7 @@ pfcaterpillar3$meanFixed
 pfcaterpillar3$dispersionFixed
 ```
 
-The convergence diagnostics and traceplots suggest that the chains should be run for longer. In particular, the effective sample size for the variance of the random slopes is very small, but we will proceed with inference for illustration. In the numerical summaries we see that the estimated variance of the random slopes is very small, `r pfsummary3$meanRandom[2,"Mean"]` with 95% credible interval (`r pfsummary3$meanRandom[2,"Lower 95%"]`,`r pf$summary3$meanRandom[2,"Upper 95%"]`). This suggests that there is very little inter-individual variation in the effect of `log(IVI)`.
+The convergence diagnostics and traceplots suggest that the chains should be run for longer. In particular, the effective sample size for the variance of the random slopes is very small, but we will proceed with inference for illustration. In the numerical summaries we see that the estimated variance of the random slopes is very small, `r pfsummary3$meanRandom[2,"Mean"]` with 95% credible interval (`r pfsummary3$meanRandom[2,"Lower 95%"]`,`r pfsummary3$meanRandom[2,"Upper 95%"]`). This suggests that there is very little inter-individual variation in the effect of `log(IVI)`.
 
 Estimates of the individual random effects (predictions for frequentists) can be obtained from the function `ranef()`. This function computes posterior summary statistics for the individual random effects. In this case, the random effects for the mean include both the intercept and the effect of `log(IVI)`. 
 

@@ -128,7 +128,7 @@ pftraceplots4$dispersionFixed
 ```
 
 ## Numerical Summaries
-```{r}
+```{r, eval = FALSE}
 ## Compute numerical summaries
 pfsummary4 <- summary(pfmcmc4)
 ```

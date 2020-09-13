@@ -112,14 +112,18 @@ save(pfmcmc2, file = file)
 
 
 ## Post-processing
-pfresults2 <- list(
-  convergence = convergence(pfmcmc2),
-  traceplots = traceplots(pfmcmc2, show = FALSE),
-  summary = summary(pfmcmc2),
-  caterpillar = caterpillar(pfmcmc2, show = FALSE),
-  ranef = ranef(pfmcmc2),
-  fitted = predict(pfmcmc2,
-                   newdata = pfdata[1:5,]))
+pfconvergence2 <- convergence(pfmcmc2)
+pftraceplots2 <- traceplots(pfmcmc2, show = FALSE)
+pfsummary2 <- summary(pfmcmc2)
+pfcaterpillar2 <- caterpillar(pfmcmc2, show = FALSE)
+pfranef2 <- ranef(pfmcmc2)
+pffitted2 <- predict(pfmcmc2,
+                     newdata = pfdata[1:5,])
 
-save(pfresults2,
-     file = file.path(proj_path(),"inst","pfresults2.RData"))
+save(pfconvergence2,
+     pftraceplots2,
+     pfsummary2,
+     pfcaterpillar2,
+     pfranef2,
+     pffitted2,
+     file =file.path(proj_path(),"inst","pfresults2.RData"))
