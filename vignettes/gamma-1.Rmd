@@ -115,8 +115,6 @@ load(system.file("gresults.RData",package="dalmatian"))
 
 Once the samples have been generated the post-processing functions can be used to examine the behaviour of the sampler and compute posterior summary statistics. These functions are described further in the help pages and in the vignettes analyzing the pied flycatcher data.
 
-The first line in each of the following snippets of code (commented out) shows how the functions were applied to the raw output and the following lines display the results. The sample MCMC output is available in the source code repository on GitHub and can be downloaded from https://github.com/sjbonner/dalmatian/blob/issue54/data-mcmc/gmcmc.RData .
-
 ## Convergence Diagnostics
 ```{r, eval = FALSE}
 ## Compute convergence diagnostics
