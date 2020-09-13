@@ -54,11 +54,13 @@ save(nbmcmc,
      file = file.path(proj_path(),"data-mcmc","nbmcmc.RData"))
 
 ## Post-processing
-nbresults <- list(
-  convergence = convergence(nbmcmc),
-  traceplots = traceplots(nbmcmc, show = FALSE),
-  summary = summary(nbmcmc),
-  caterpillar = caterpillar(nbmcmc, show = FALSE))
+nbconvergence <- convergence(nbmcmc)
+nbtraceplots <- traceplots(nbmcmc, show = FALSE)
+nbsummary <- summary(nbmcmc)
+nbcaterpillar <- caterpillar(nbmcmc, show = FALSE)
 
-save(nbresults,
+save(nbconvergence,
+     nbtraceplots,
+     nbsummary,
+     nbcaterpillar,
      file = file.path(proj_path(),"inst","nbresults.RData"))
