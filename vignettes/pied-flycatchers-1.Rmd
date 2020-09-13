@@ -231,7 +231,7 @@ pfmcmc2 <- dalmatian(df=pfdata,
 ```
 
 ## Results
-Once again, we can use the wrapper functions within the package to examine the convergence and compute summaries of the posterior distribution. 
+Once again, we can use the wrapper functions within the package to examine the convergence and compute summaries of the posterior distribution. Note that the chains have been thinned in creating the traceplots to reduce the size of the package.
 
 1. Convergence diagnostics
 ```{r, eval = FALSE}
@@ -254,7 +254,7 @@ pfconvergence2$effectiveSize
 2. Traceplots
 ```{r, eval = FALSE}
 ## Generate traceplots
-pftraceplots2 <- traceplots(pfmcmc2,show = FALSE,nthin=20)
+pftraceplots2 <- traceplots(pfmcmc2, show = FALSE, nthin=20)
 
 ```
 

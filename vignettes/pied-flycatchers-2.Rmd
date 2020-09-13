@@ -93,7 +93,7 @@ load(system.file("pfresults3.RData",package="dalmatian"))
 ```
 
 ## Results
-Once again, we can use the wrapper functions provided with `dalmatian` to conduct convergence diagnostics and compute summary statistics for the posterior distribution from which we can make inference. 
+Once again, we can use the wrapper functions provided with `dalmatian` to conduct convergence diagnostics and compute summary statistics for the posterior distribution from which we can make inference. Note that the chains have been thinned prior to creating the traceplots in order to reduce the size of the package.
 
 1. Convergence diagnostics
 ```{r, eval = FALSE}
@@ -116,7 +116,7 @@ pfconvergence3$effectiveSize
 2. Traceplots
 ```{r, eval = FALSE}
 ## Generate traceplots
-pftraceplots3 <- traceplots(pfmcmc3,show = FALSE)
+pftraceplots3 <- traceplots(pfmcmc3, nthin = 20, show = FALSE)
 
 ```
 
