@@ -94,7 +94,7 @@ pfmcmc1 <- dalmatian(df=pfdata,
 ```
 
 ```{r, echo = FALSE}
-load(system.file("pfresults.RData",package="dalmatian"))
+load(system.file("pfresults1.RData",package="dalmatian"))
 ```
 
 ## Results

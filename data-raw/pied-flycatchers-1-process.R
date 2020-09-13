@@ -22,4 +22,4 @@ save(pfconvergence1,
      pfcaterpillar1,
      pfranef1,
      pffitted1,
-     file = file.path(proj_path(),"inst","pfresults.RData"))
+     file = file.path(proj_path(),"inst","pfresults1.RData"))
