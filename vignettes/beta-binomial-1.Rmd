@@ -90,20 +90,20 @@ jm.args <- list(file=file.path(workingDir,"betabin_test_1.R"),n.chains = 3, n.ad
 cs.args <- list(n.iter=5000,thin=20)
 
 ## Run the model using dalmatian
-bbresults <- dalmatian(df=betabin_data_1,
-                       family = "betabin",
-                       mean.model=mymean,
-                       dispersion.model=mydisp,
-                       jags.model.args=jm.args,
-                       coda.samples.args=cs.args,
-                       response = "y",
-                       ntrials = "m",
-                       residuals = FALSE,
-                       run.model = TRUE,
-                       engine = "JAGS",
-                       n.cores = 3,
-                       overwrite = TRUE,
-                       saveJAGSinput = workingDir)
+bbmcmc <- dalmatian(df=betabin_data_1,
+                    family = "betabin",
+                    mean.model=mymean,
+                    dispersion.model=mydisp,
+                    jags.model.args=jm.args,
+                    coda.samples.args=cs.args,
+                    response = "y",
+                    ntrials = "m",
+                    residuals = FALSE,
+                    run.model = TRUE,
+                    engine = "JAGS",
+                    n.cores = 3,
+                    overwrite = TRUE,
+                    saveJAGSinput = workingDir)
 ```
 
 ```{r, echo = FALSE}
@@ -115,50 +115,61 @@ load(system.file("bbresults.RData",package="dalmatian"))
 Once the samples have been generated the post-processing functions can be used to examine the behaviour of the sampler and compute posterior summary statistics. These functions are described further in the help pages and in the vignettes analyzing the pied flycatcher data. The first line in each of the following snippets of code (commented out) shows how the functions were applied to the raw output and the following lines display the results. The sample MCMC output is available in the source code repository on GitHub and can be downloaded from https://github.com/sjbonner/dalmatian/blob/issue54/data-mcmc/bbmcmc.RData .
 
 ## Convergence Diagnostics
-```{r}
+```{r, eval = FALSE}
 ## Compute convergence diagnostics
-## bbresults$convergence <- convergence(bbmcmc)
+bbconvergence <- convergence(bbmcmc)
+```
 
+```{r}
 ## Gelman-Rubin diagnostics
-bbresults$convergence$gelman
+bbconvergence$gelman
 
 ## Raftery diagnostics
-bbresults$convergence$raftery
+bbconvergence$raftery
 
 ## Effective sample size
-bbresults$convergence$effectiveSize
+bbconvergence$effectiveSize
 ```
 
 ## Traceplots
-```{r,fig.width=6,fig.align="center"}
-## Generate traceplots
-## bbresults$traceplots <- traceplots(bbmcmc,show=FALSE)
 
+```{r, eval = FALSE}
+## Generate traceplots
+## bbtraceplots <- traceplots(bbmcmc,show=FALSE)
+```
+
+```{r,fig.width=6,fig.align="center"}
 ## Fixed effects for mean
-bbresults$traceplots$meanFixed
+bbtraceplots$meanFixed
 
 ## Fixed effects for dispersion
-bbresults$traceplots$dispersionFixed
+bbtraceplots$dispersionFixed
 ```
 
 ## Numerical Summaries
-```{r}
+```{r, eval = FALSE}
 ## Compute numerical summaries
-## bbresults$summary <- summary(bbmcmc)
+bbsummary <- summary(bbmcmc)
 
-## Numerical summaries
-bbresults$summary
+```
+
+```{r}
+## Print numerical summaries
+bbsummary
 
 ```
 
 ## Graphical Summaries
-```{r,fig.width=6,fig.align="center"}
+```{r, eval = FALSE}
 ## Generate caterpillar
-## bbresults$caterpillar <- caterpillar(bbmcmc,show = FALSE)
+bbcaterpillar <- caterpillar(bbmcmc,show = FALSE)
 
+```
+
+```{r,fig.width=6,fig.align="center"}
 ## Fixed effects for mean
-bbresults$caterpillar$meanFixed
+bbcaterpillar$meanFixed
 
 ## Fixed effects for dispersion
-bbresults$caterpillar$dispersionFixed
+bbcaterpillar$dispersionFixed
 ```

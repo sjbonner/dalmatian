@@ -55,11 +55,13 @@ save(bbmcmc,
      file = file.path(proj_path(),"data-mcmc","bbmcmc.RData"))
 
 ## Post-processing
-bbresults <- list(
-  convergence = convergence(bbmcmc),
-  traceplots = traceplots(bbmcmc, show = FALSE),
-  summary = summary(bbmcmc),
-  caterpillar = caterpillar(bbmcmc, show = FALSE))
+bbconvergence <- convergence(bbmcmc)
+bbtraceplots <- traceplots(bbmcmc, show = FALSE)
+bbsummary <- summary(bbmcmc)
+bbcaterpillar <- caterpillar(bbmcmc, show = FALSE)
 
-save(bbresults,
+save(bbconvergence,
+     bbtraceplots,
+     bbsummary,
+     bbcaterpillar,
      file = file.path(proj_path(),"inst","bbresults.RData"))
