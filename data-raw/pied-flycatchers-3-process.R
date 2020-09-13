@@ -8,7 +8,7 @@ load(file.path(proj_path(),"data-mcmc","pfmcmc3.RData"))
 
 ## Post-processing
 pfconvergence3 <- convergence(pfmcmc3)
-pftraceplots3 <- traceplots(pfmcmc3, show = FALSE)
+pftraceplots3 <- traceplots(pfmcmc3, nthin = 20, show = FALSE)
 pfsummary3 <- summary(pfmcmc3)
 pfcaterpillar3 <- caterpillar(pfmcmc3, show = FALSE)
 pfranef3 <- ranef(pfmcmc3)
