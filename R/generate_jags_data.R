@@ -13,11 +13,7 @@ generateJAGSdata <-
            drop.missing = TRUE) {
     ## Remove unused factor level from data frame
     if (drop.levels){
-      if (!requireNamespace("gdata", quietly = TRUE)) {
-        stop("Dropping unused factor levels requires the package \"gdata\". Please install this package with install.packages(\"gdata\") or rerun this function with drop.levels = FALSE.")
-      }
-
-      df <- gdata::drop.levels(df, reorder = FALSE)
+      df <- droplevels(df)
     }
 
     ## Remove records with missing responses
