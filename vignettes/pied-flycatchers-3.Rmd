@@ -72,17 +72,17 @@ jm.args <- list(file=file.path(workingDir,"pied_flycatcher_joint_1_jags.R"),n.ad
 cs.args <- list(n.iter=5000,thin=20)
 
 ## Run the model using dalmatian
-pfresults4 <- dalmatian(df=pfdata,
-                        mean.model=mymean,
-                        dispersion.model=mydisp,
-                        joint.model=myjoint,
-                        jags.model.args=jm.args,
-                        coda.samples.args=cs.args,
-                        rounding=TRUE,
-                        lower="lower",
-                        upper="upper",
-                        residuals = FALSE,
-                        debug=FALSE)
+pfmcmc4 <- dalmatian(df=pfdata,
+                     mean.model=mymean,
+                     dispersion.model=mydisp,
+                     joint.model=myjoint,
+                     jags.model.args=jm.args,
+                     coda.samples.args=cs.args,
+                     rounding=TRUE,
+                     lower="lower",
+                     upper="upper",
+                     residuals = FALSE,
+                     debug=FALSE)
 ```
 
 ```{r, echo = FALSE}
@@ -93,53 +93,62 @@ load(system.file("pfresults4.RData",package="dalmatian"))
 
 The following illustrates the functions for processing the results. Again, these are fully described in `vignette(pied-flycatchers-1)`.
 
-The first line in each snippets of code illustrating these functions (commented out) shows how the functions were applied to the raw output. The following lines display the results. The sample MCMC output is available in the source code repository on GitHub and can be downloaded from https://github.com/sjbonner/dalmatian/blob/issue54/data-mcmc/pfmcmc4.RData .
-
 ## Numerical Convergence Diagnostics
-```{r}
+```{r, eval = FALSE}
 ## Compute convergence diagnostics
-## pfresults4$convergence <- convergence(pfmcmc4)
+pfconvergence4 <- convergence(pfmcmc4)
 
+```
+
+```{r}
 ## Gelman-Rubin diagnostics
-pfresults4$convergence$gelman
+pfconvergence4$gelman
 
 ## Raftery diagnostics
-pfresults4$convergence$raftery
+pfconvergence4$raftery
 
 ## Effective sample size
-pfresults4$convergence$effectiveSize
+pfconvergence4$effectiveSize
 ```
 
 ## Graphical Convergence Diagnostics
-```{r,fig.width=6,fig.align="center"}
+```{r, eval = FALSE}
 ## Generate traceplots
-## pfresults4$traceplots <- traceplots(pfmcmc4,show=FALSE,nthin=10)
+pftraceplots4 <- traceplots(pfmcmc4,show=FALSE,nthin=10)
 
+```
+
+```{r,fig.width=6,fig.align="center"}
 ## Fixed effects for mean
-pfresults4$traceplots$meanFixed
+pftraceplots4$meanFixed
 
 ## Fixed effects for dispersion
-pfresults4$traceplots$dispersionFixed
+pftraceplots4$dispersionFixed
 
 ```
 
 ## Numerical Summaries
 ```{r}
 ## Compute numerical summaries
-## pfresults4$summary <- summary(pfmcmc4)
+pfsummary4 <- summary(pfmcmc4)
+```
 
-## Numerical summaries
-pfresults4
+```{r}
+## Print numerical summaries
+pfsummary4
 ```
 
 ## Graphical Summaries
-```{r,fig.width=6,fig.align="center"}
+```{r, eval = FALSE}
 ## Generate caterpillar
-## pfresults4$caterpillar <- caterpillar(pfmcmc4,show = FALSE)
+pfcaterpillar4 <- caterpillar(pfmcmc4,show = FALSE)
 
+```
+
+```{r,fig.width=6,fig.align="center"}
 ## Fixed effects for mean
-pfresults4$caterpillar$meanFixed
+pfcaterpillar4$meanFixed
 
 ## Fixed effects for dispersion
-pfresults4$caterpillar$dispersionFixed
+pfcaterpillar4$dispersionFixed
 ```
