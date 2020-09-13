@@ -76,15 +76,15 @@ jm.args <- list(file=file.path(workingDir,"pied_flycatcher_3_jags.R"),n.adapt=10
 cs.args <- list(n.iter=1000)
 
 ## Run the model using dalmatian
-pfresults3 <- dalmatian(df=pfdata,
-                        mean.model=mymean,
-                        dispersion.model=mydisp,
-                        jags.model.args=jm.args,
-                        coda.samples.args=cs.args,
-                        rounding=TRUE,
-                        lower="lower",
-                        upper="upper",
-                        debug=FALSE)
+pfmcmc3 <- dalmatian(df=pfdata,
+                     mean.model=mymean,
+                     dispersion.model=mydisp,
+                     jags.model.args=jm.args,
+                     coda.samples.args=cs.args,
+                     rounding=TRUE,
+                     lower="lower",
+                     upper="upper",
+                     debug=FALSE)
 ```
 
 ```{r, echo = FALSE}
@@ -93,75 +93,87 @@ load(system.file("pfresults3.RData",package="dalmatian"))
 ```
 
 ## Results
-Once again, we can use the wrapper functions provided with `dalmatian` to conduct convergence diagnostics and compute summary statistics for the posterior distribution from which we can make inference. 
-
-The first line in each snippets of code illustrating these functions (commented out) shows how the functions were applied to the raw output. The following lines display the results. The sample MCMC output is available in the source code repository on GitHub and can be downloaded from https://github.com/sjbonner/dalmatian/blob/issue54/data-mcmc/pfmcmc3.RData .
-
+Once again, we can use the wrapper functions provided with `dalmatian` to conduct convergence diagnostics and compute summary statistics for the posterior distribution from which we can make inference. Note that the chains have been thinned prior to creating the traceplots in order to reduce the size of the package.
 
 1. Convergence diagnostics
-```{r}
+```{r, eval = FALSE}
 ## Compute convergence diagnostics
-## pfresults3$convergence <- convergence(pfmcmc3,raftery=list(r=.01))
+pfconvergence3 <- convergence(pfmcmc3,raftery=list(r=.01))
 
+```
+
+```{r}
 ## Gelman-Rubin diagnostics
-pfresults3$convergence$gelman
+pfconvergence3$gelman
 
 ## Raftery diagnostics
-pfresults3$convergence$raftery
+pfconvergence3$raftery
 
 ## Effective sample size
-pfresults3$convergence$effectiveSize
+pfconvergence3$effectiveSize
 ```
 
 2. Traceplots
-```{r,fig.width=6,fig.align="center"}
+```{r, eval = FALSE}
 ## Generate traceplots
-## pfresults3$traceplots <- traceplots(pfmcmc3,show = FALSE)
+pftraceplots3 <- traceplots(pfmcmc3, nthin = 20, show = FALSE)
 
+```
+
+```{r,fig.width=6,fig.align="center"}
 ## Fixed effects for mean
-pfresults3$traceplots$meanFixed
+pftraceplots3$meanFixed
 
 ## Fixed effects for dispersion
-pfresults3$traceplots$dispersionFixed
+pftraceplots3$dispersionFixed
 
 ## Random effects variances for mean
-pfresults3$traceplots$meanRandom
+pftraceplots3$meanRandom
 
 ## Random effects variances for dispersion
-pfresults3$traceplots$dispersionRandom
+pftraceplots3$dispersionRandom
 
 ```
 
 3. Numerical summaries
-```{r}
+```{r, eval = FALSE}
 ## Compute numerical summaries
-## pfresults3$summary <- summary(pfmcmc3)
+pfsummary3 <- summary(pfmcmc3)
 
-## Numerical summaries
-pfresults3$summary
+```
+
+```{r}
+## Print numerical summaries
+pfsummary3
 ```
 
 4. Graphical summaries
-```{r,fig.width=6,fig.align="center"}
+```{r, eval = FALSE}
 ## Generate caterpillar
-## pfresults3$caterpillar <- caterpillar(pfmcmc3,show = FALSE)
+pfcaterpillar3 <- caterpillar(pfmcmc3,show = FALSE)
 
-## Fixed effects for mean
-pfresults3$caterpillar$meanFixed
-
-## Fixed effects for dispersion
-pfresults3$caterpillar$dispersionFixed
 ```
 
-The convergence diagnostics and traceplots suggest that the chains should be run for longer. In particular, the effective sample size for the variance of the random slopes is very small, but we will proceed with inference for illustration. In the numerical summaries we see that the estimated variance of the random slopes is very small, `r pfresults3$summary$meanRandom[2,"Mean"]` with 95% credible interval (`r pfresults3$summary$meanRandom[2,"Lower 95%"]`,`r pfresults3$summary$meanRandom[2,"Upper 95%"]`). This suggests that there is very little inter-individual variation in the effect of `log(IVI)`.
+```{r,fig.width=6,fig.align="center"}
+## Fixed effects for mean
+pfcaterpillar3$meanFixed
+
+## Fixed effects for dispersion
+pfcaterpillar3$dispersionFixed
+```
+
+The convergence diagnostics and traceplots suggest that the chains should be run for longer. In particular, the effective sample size for the variance of the random slopes is very small, but we will proceed with inference for illustration. In the numerical summaries we see that the estimated variance of the random slopes is very small, `r pfsummary3$meanRandom[2,"Mean"]` with 95% credible interval (`r pfsummary3$meanRandom[2,"Lower 95%"]`,`r pfsummary3$meanRandom[2,"Upper 95%"]`). This suggests that there is very little inter-individual variation in the effect of `log(IVI)`.
 
 Estimates of the individual random effects (predictions for frequentists) can be obtained from the function `ranef()`. This function computes posterior summary statistics for the individual random effects. In this case, the random effects for the mean include both the intercept and the effect of `log(IVI)`. 
 
 The following code computes the summary statistics and plots the predicted values of the random slopes with HPD 95% confidence intervals. 
-```{r,fig.width=6,fig.align="center"}
+```{r, eval = FALSE}
 ## Compute summary statistics for random effects
-## pfresults3$ranef <- ranef(pfresults3)
+pfranef3 <- ranef(pfresults3)
 
+```
+
+```{r,fig.width=6,fig.align="center"}
 ## Load ggplot2
 library(ggplot2)
 
@@ -169,7 +181,7 @@ library(ggplot2)
 nind <- nlevels(pfdata$indidx)
 
 ## Plot predicted random slopes
-ggplot(data=as.data.frame(pfresults3$ranef$mean[nind+(1:nind),]),aes(x=1:nind,y=Mean)) + 
+ggplot(data=as.data.frame(pfranef3$mean[nind+(1:nind),]),aes(x=1:nind,y=Mean)) + 
   geom_point() + 
   geom_errorbar(aes(ymin=`Lower 95%`,ymax=`Upper 95%`)) +
   geom_abline(intercept=0,slope=0)

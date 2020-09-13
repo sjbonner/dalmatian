@@ -57,11 +57,13 @@ file <- file.path(proj_path(),"data-mcmc","pfmcmc4.RData")
 save(pfmcmc4, file = file)
 
 ## Post-processing
-pfresults4 <- list(
-  convergence = convergence(pfmcmc4),
-  traceplots = traceplots(pfmcmc4, show = FALSE),
-  summary = summary(pfmcmc4),
-  caterpillar = caterpillar(pfmcmc4, show = FALSE))
+pfconvergence4 <- convergence(pfmcmc4)
+pftraceplots4 <- traceplots(pfmcmc4, show = FALSE)
+pfsummary4 <- summary(pfmcmc4)
+pfcaterpillar4 <- caterpillar(pfmcmc4, show = FALSE)
 
-save(pfresults4,
+save(pfconvergence4,
+     pftraceplots4,
+     pfsummary4,
+     pfcaterpillar4,
      file = file.path(proj_path(),"inst","pfresults4.RData"))

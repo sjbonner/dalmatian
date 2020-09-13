@@ -47,14 +47,3 @@ pfmcmc3 <- dalmatian(df=pfdata,
   
 save(pfmcmc3,
      file = file.path(proj_path(),"data-mcmc","pfmcmc3.RData"))
-
-## Post-processing
-pfresults3 <- list(
-  convergence = convergence(pfmcmc3),
-  traceplots = traceplots(pfmcmc3, show = FALSE),
-  summary = summary(pfmcmc3),
-  caterpillar = caterpillar(pfmcmc3, show = FALSE),
-  ranef = ranef(pfmcmc3))
-
-save(pfresults3,
-     file = file.path(proj_path(),"inst","pfresults3.RData"))

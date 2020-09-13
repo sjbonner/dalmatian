@@ -4,8 +4,8 @@ library(devtools)
 ## Load dalmatian
 devtools::load_all()
 
-## Load negative binomial data
-data(nbinom_data_1)
+## Load beta-binomial data
+data(betabin_data_1)
 
 ## Define mean and variance objects
 mymean <- list(fixed = list(name = "alpha",
@@ -13,32 +13,33 @@ mymean <- list(fixed = list(name = "alpha",
                             priors = list(c("dnorm",0,.001))),
                random = list(name = "epsilon",
                              formula = ~ID - 1),
-               link = "log")
+               link = "logit")
 
 mydisp <- list(fixed = list(name = "psi",
                             formula = ~x2,
                             priors = list(c("dnorm",0,.001))),
                random = list(name = "xi",
                              formula = ~ID - 1),
-               link = "log")
+               link = "logit")
 
 ## Set working directory
 workingDir <- tempdir()
 
 ## Define list of arguments for jags.model()
-jm.args <- list(file=file.path(workingDir,"nbinom_test_1.R"),n.chains = 3, n.adapt = 1000)
+jm.args <- list(file=file.path(workingDir,"betabin_test_1.R"),n.chains = 3, n.adapt = 1000)
 
 ## Define list of arguments for coda.samples()
 cs.args <- list(n.iter=5000,thin=20)
 
 ## Run the model using dalmatian
-nbmcmc <- dalmatian(df=nbinom_data_1,
-                       family = "nbinom",
+bbmcmc <- dalmatian(df=betabin_data_1,
+                       family = "betabin",
                        mean.model=mymean,
                        dispersion.model=mydisp,
                        jags.model.args=jm.args,
                        coda.samples.args=cs.args,
                        response = "y",
+                       ntrials = "m",
                        residuals = FALSE,
                        run.model = TRUE,
                        engine = "JAGS",
@@ -47,18 +48,20 @@ nbmcmc <- dalmatian(df=nbinom_data_1,
                        saveJAGSinput = workingDir)
 
 ## For use on remote server
-## save(nbmcmc,"nbmcmc.RData") 
+## save(bbmcmc,"bbmcmc.RData") 
 
 ## For use on local machine within packge
-save(nbmcmc,
-     file = file.path(proj_path(),"data-mcmc","nbmcmc.RData"))
+save(bbmcmc,
+     file = file.path(proj_path(),"data-mcmc","bbmcmc.RData"))
 
 ## Post-processing
-nbresults <- list(
-  convergence = convergence(nbmcmc),
-  traceplots = traceplots(nbmcmc, show = FALSE),
-  summary = summary(nbmcmc),
-  caterpillar = caterpillar(nbmcmc, show = FALSE))
+bbconvergence <- convergence(bbmcmc)
+bbtraceplots <- traceplots(bbmcmc, show = FALSE)
+bbsummary <- summary(bbmcmc)
+bbcaterpillar <- caterpillar(bbmcmc, show = FALSE)
 
-save(nbresults,
-     file = file.path(proj_path(),"inst","nbresults.RData"))
+save(bbconvergence,
+     bbtraceplots,
+     bbsummary,
+     bbcaterpillar,
+     file = file.path(proj_path(),"inst","bbresults.RData"))

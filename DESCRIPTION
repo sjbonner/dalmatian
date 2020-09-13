@@ -21,7 +21,6 @@ Imports:
     rlang
 Suggests:
     rmarkdown,
-    gdata,
     rjags,
     nimble,
     knitr,
