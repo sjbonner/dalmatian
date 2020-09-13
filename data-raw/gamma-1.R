@@ -57,11 +57,13 @@ save(gmcmc,
      file = file.path(proj_path(),"data-mcmc","gmcmc.RData"))
 
 ## Post-processing
-gresults <- list(
-  convergence = convergence(gmcmc),
-  traceplots = traceplots(gmcmc, show = FALSE),
-  summary = summary(gmcmc),
-  caterpillar = caterpillar(gmcmc, show = FALSE))
+gconvergence <- convergence(gmcmc)
+gtraceplots <- traceplots(gmcmc, show = FALSE)
+gsummary <- summary(gmcmc)
+gcaterpillar <- caterpillar(gmcmc, show = FALSE)
 
-save(gresults,
+save(gconvergence,
+     gtraceplots,
+     gsummary,
+     gcaterpillar,
      file = file.path(proj_path(),"inst","gresults.RData"))

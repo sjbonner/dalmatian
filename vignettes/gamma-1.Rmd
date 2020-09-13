@@ -92,19 +92,19 @@ jm.args <- list(file=file.path(workingDir,"gamma_test_1.R"),n.chains = 3, n.adap
 cs.args <- list(n.iter=5000,thin=20)
 
 ## Run the model using dalmatian
-gresults <- dalmatian(df=gamma_data_1,
-                      family = "gamma",
-                      mean.model=mymean,
-                      dispersion.model=mydisp,
-                      jags.model.args=jm.args,
-                      coda.samples.args=cs.args,
-                      response = "y",
-                      residuals = FALSE,
-                      run.model = TRUE,
-                      engine = "JAGS",
-                      n.cores = 3,
-                      overwrite = TRUE,
-                      saveJAGSinput = workingDir)
+gmcmc <- dalmatian(df=gamma_data_1,
+                   family = "gamma",
+                   mean.model=mymean,
+                   dispersion.model=mydisp,
+                   jags.model.args=jm.args,
+                   coda.samples.args=cs.args,
+                   response = "y",
+                   residuals = FALSE,
+                   run.model = TRUE,
+                   engine = "JAGS",
+                   n.cores = 3,
+                   overwrite = TRUE,
+                   saveJAGSinput = workingDir)
 ```
 
 ```{r, echo = FALSE}
@@ -118,49 +118,60 @@ Once the samples have been generated the post-processing functions can be used t
 The first line in each of the following snippets of code (commented out) shows how the functions were applied to the raw output and the following lines display the results. The sample MCMC output is available in the source code repository on GitHub and can be downloaded from https://github.com/sjbonner/dalmatian/blob/issue54/data-mcmc/gmcmc.RData .
 
 ## Convergence Diagnostics
-```{r}
+```{r, eval = FALSE}
 ## Compute convergence diagnostics
-## gresults$convergence <- convergence(gmcmc)
+gconvergence <- convergence(gmcmc)
 
+```
+
+```{r}
 ## Gelman-Rubin diagnostics
-gresults$convergence$gelman
+gconvergence$gelman
 
 ## Raftery diagnostics
-gresults$convergence$raftery
+gconvergence$raftery
 
 ## Effective sample size
-gresults$convergence$effectiveSize
+gconvergence$effectiveSize
 ```
 
 ## Traceplots
-```{r,fig.width=6,fig.align="center"}
+```{r, eval = FALSE}
 ## Generate traceplots
-## gresults$traceplots <- traceplots(gmcmc,show=FALSE)
+## gtraceplots <- traceplots(gmcmc,show=FALSE)
 
+```
+
+```{r,fig.width=6,fig.align="center"}
 ## Fixed effects for mean
-gresults$traceplots$meanFixed
+gtraceplots$meanFixed
 
 ## Fixed effects for dispersion
-gresults$traceplots$dispersionFixed
+gtraceplots$dispersionFixed
 ```
 
 ## Numerical Summaries
-```{r}
+```{r, eval = FALSE}
 ## Compute numerical summaries
-## gresults$summary <- summary(gmcmc)
+gsummary <- summary(gmcmc)
+```
 
-## Numerical summaries
-gresults$summary
+```{r}
+## Print numerical summaries
+gsummary
 ```
 
 ## Graphical Summaries
-```{r,fig.width=6,fig.align="center"}
+```{r, eval = FALSE}
 ## Generate caterpillar
-## gresults$caterpillar <- caterpillar(gmcmc,show = FALSE)
+gcaterpillar <- caterpillar(gmcmc,show = FALSE)
 
+```
+
+```{r,fig.width=6,fig.align="center"}
 ## Fixed effects for mean
-gresults$caterpillar$meanFixed
+gcaterpillar$meanFixed
 
 ## Fixed effects for dispersion
-gresults$caterpillar$dispersionFixed
+gcaterpillar$dispersionFixed
 ```
