@@ -11,6 +11,9 @@ ranef(object, ...)
 
 \item{...}{Ignored}
 }
+\value{
+List containing elements providing information on the predicted values of random effects as appropriate for the model.
+}
 \description{
 Generic function for exporting summaries of random effects.
 }

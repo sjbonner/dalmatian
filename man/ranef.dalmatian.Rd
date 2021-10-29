@@ -24,7 +24,7 @@
 \item{...}{Ignored}
 }
 \value{
-output (list)
+List containing elements mean, dispersion, and/or joint as appropraite. Each element provides information on the predicted values of the random effects as appropriate for each component of the model.
 }
 \description{
 Compute posterior summary statistics for the individual random effects in each part of the model.

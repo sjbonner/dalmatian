@@ -11,6 +11,9 @@ caterpillar(object, ...)
 
 \item{...}{Ignored}
 }
+\value{
+A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
+}
 \description{
 Caterpillar (Generic)
 }

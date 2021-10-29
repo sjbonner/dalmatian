@@ -11,6 +11,9 @@ convergence(object, ...)
 
 \item{...}{Ignored}
 }
+\value{
+List containing Gelman-Rubin and Raftery convergence diagnostics and effective sample sizes for the selected parameters. This information is used to diagnose convergence of the MCMC sampling algorithms.
+}
 \description{
 Generic function for computing convergence diagnostics.
 }

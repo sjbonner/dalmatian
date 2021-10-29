@@ -13,6 +13,9 @@
 
 \item{...}{Ignored}
 }
+\value{
+No return value. This function prints the summary of a dalmatian object in a nicely formatted manner.
+}
 \description{
 Print Summary (dalmatian)
 }

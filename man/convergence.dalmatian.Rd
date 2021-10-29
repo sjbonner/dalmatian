@@ -30,7 +30,7 @@
 \item{...}{Ignored}
 }
 \value{
-List containing Gelman-Rubin and Raftery convergence diagnostics and effective sampel sizes for the selected parameters.
+List containing Gelman-Rubin and Raftery convergence diagnostics and effective sample sizes for the selected parameters. This information is used to diagnose convergence of the MCMC sampling algorithms.
 }
 \description{
 Compute convergence diagnostics for a dalmatian object.
