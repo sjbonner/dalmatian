@@ -155,6 +155,7 @@ summary.dalmatian <-
 #' @param digits Number of digits to display after decimal.
 #' @param ... Ignored
 #'
+#' @return No return value. This function prints the summary of a dalmatian object in a nicely formatted manner. 
 #' @export
 #' 
 print.dalmatian.summary <- function(x, digits = 2, ...) {
@@ -215,6 +216,7 @@ print.dalmatian.summary <- function(x, digits = 2, ...) {
 #' @param object Input object
 #' @param ... Ignored
 #'
+#' @return List containing elements providing information on the predicted values of random effects as appropriate for the model. 
 #' @export
 #'
 ranef <- function(object, ...) {
@@ -231,7 +233,7 @@ ranef <- function(object, ...) {
 #' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
 #' @param ... Ignored
 #'
-#' @return output (list)
+#' @return List containing elements mean, dispersion, and/or joint as appropraite. Each element provides information on the predicted values of the random effects as appropriate for each component of the model. 
 #' @export
 #'
 ranef.dalmatian <-
@@ -266,6 +268,7 @@ ranef.dalmatian <-
 #' @param object Object to asses.
 #' @param ... Ignored
 #'
+#' @return List containing Gelman-Rubin and Raftery convergence diagnostics and effective sample sizes for the selected parameters. This information is used to diagnose convergence of the MCMC sampling algorithms.
 #' @export
 #'
 convergence <- function(object, ...) {
@@ -284,7 +287,7 @@ convergence <- function(object, ...) {
 #' @param raftery List of arguments to be passed to \code{raftery.diag()}. Any values not provided will be set to their defaults (see \code{help(raftery.diag())} for details).
 #' @param ... Ignored
 #'
-#' @return List containing Gelman-Rubin and Raftery convergence diagnostics and effective sampel sizes for the selected parameters.
+#' @return List containing Gelman-Rubin and Raftery convergence diagnostics and effective sample sizes for the selected parameters. This information is used to diagnose convergence of the MCMC sampling algorithms.
 #' @export
 #'
 convergence.dalmatian <-
@@ -384,6 +387,7 @@ convergence.dalmatian <-
 #' @param object Object to assess.
 #' @param ... Ignored
 #'
+#' @return A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
 #' @export
 #' 
 traceplots <- function(object, ...) {
@@ -547,6 +551,7 @@ traceplots.dalmatian <-
 #' @param object Object to assess.
 #' @param ... Ignored
 #'
+#' @return A list of \code{ggplot} objects that can be used to later reproduce the plots via \code{print}.
 #' @export
 #'
 caterpillar <- function(object, ...) {
