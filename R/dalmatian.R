@@ -171,7 +171,7 @@ by using the argument engine = \"JAGS\".")
   } 
 
   ## Generate JAGS input data
-  cat("Step 1: Generating JAGS data...")
+  message("Step 1: Generating JAGS data...")
 
   jags.model.args$data <-
     generateJAGSdata(
@@ -189,7 +189,7 @@ by using the argument engine = \"JAGS\".")
       drop.missing = drop.missing
     )
 
-  cat("Done\n")
+  message("Done\n")
 
   ## Create useful variable names that will be assigned later
   mean.names.fixed <- paste0(mean.model$fixed$name,
@@ -248,7 +248,7 @@ by using the argument engine = \"JAGS\".")
     
   ## Perform SVD if requested
   if (svd) {
-    cat("    Computing singular value decompositions to improve mixing...")
+    message("    Computing singular value decompositions to improve mixing...")
 
     ## Compute SVD and replace original matrices with orthogonal matrices
     if(!is.null(mean.model$fixed)){
@@ -272,11 +272,11 @@ by using the argument engine = \"JAGS\".")
         
     ## Replace design matrices with orthogal matrices
 
-    cat("Done\n")
+    message("Done\n")
   }
 
   ## Generate JAGS code
-  cat("Step 2: Generating JAGS code...")
+  message("Step 2: Generating JAGS code...")
 
   if (is.null(gencode)) {
     if (!file.exists(jags.model.args$file))
@@ -312,19 +312,19 @@ by using the argument engine = \"JAGS\".")
       include.checks = include.checks
     )
 
-  cat("Done\n")
+  message("Done\n")
   
   ## Generate JAGS initial values
-  cat("Step 3: Generating initial values...\n")
+  message("Step 3: Generating initial values...\n")
 
   ## Only implemented for normal model at the moment
   if(family == "gaussian"){
     if (is.null(jags.model.args$inits)) {
       if (is.null(jags.model.args$n.chains)){
-        cat("\n    Running three parallel chains by default...")
+        message("\n    Running three parallel chains by default...")
       }
       else {
-        cat("\n    Automatic generation of initial values currently works only with three chains. Setting n.chains=3...")
+        message("\n    Automatic generation of initial values currently works only with three chains. Setting n.chains=3...")
       }
       jags.model.args$n.chains <- 3
       
@@ -334,14 +334,14 @@ by using the argument engine = \"JAGS\".")
                           dispersion.model,
                           jags.model.args$data)
       
-      cat("Done\n")
+      message("Done\n")
     }
     else{
       if (is.null(jags.model.args$n.chains))
         jags.model.args$n.chains <-
           length(jags.model.args$inits)
       
-      cat("Skipped\n")
+      message("Skipped\n")
     }
   }
   else{
@@ -377,7 +377,7 @@ by using the argument engine = \"JAGS\".")
     return(output)
   }
 
-  cat("Step 4: Running model\n")
+  message("Step 4: Running model\n")
 
   ## List parameters to monitor
   if (is.null(parameters))
@@ -421,10 +421,10 @@ by using the argument engine = \"JAGS\".")
       coda <- runNimble(jags.model.args, coda.samples.args)
   }
 
-  cat("Done\n")
+  message("Done\n")
 
   ## Final tidying
-  cat("Step 5: Tidying Output...")
+  message("Step 5: Tidying Output...")
 
   ## Identify indices of mean, dispersion, and joint parameters in coda output
   if(!is.null(mean.model$fixed))
@@ -526,7 +526,7 @@ by using the argument engine = \"JAGS\".")
     }
   }
 
-  cat("Done\n")
+  message("Done\n")
   
   ## Create output object
   output$coda <- coda
