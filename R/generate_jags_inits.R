@@ -84,7 +84,7 @@ generateJAGSinits <- function(family,
     # Fit double GLM (without random effects)
     dlink <- dispersion.model$link # I don't understand, but this is necessary.
     
-      
+    
     dglmfit <- dglm::dglm(formula=mean.formula,
                  dformula=dispersion.formula,
                  family=gaussian(link=mean.model$link),
