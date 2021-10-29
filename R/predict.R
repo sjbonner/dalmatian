@@ -127,16 +127,22 @@ predict.dalmatian <- function(object,
   
 	# for random effects in mean and dispersion models
 	if (!is.null(object$mean.model$random)) { # mean model
-	  options(na.action='na.pass')
-		mean.random.designMat <- model.matrix(object$mean.model$random$formula, newdata)
+          mean.random.designMat <- model.matrix(object$mean.model$random$formula,
+                                                data = model.frame(object$mean.model$random$formula,
+                                                                   data = newdata,
+                                                                   na.action = "na.pass"))
+          
 		mean.random.designMat[is.na(mean.random.designMat)] <- 0
 	} else {
 		mean.random.designMat <- NULL
 	}
 
 	if (!is.null(object$dispersion.model$random)) { # dispersion model
-	  options(na.action='na.pass')
-		var.random.designMat <- model.matrix(object$dispersion.model$random$formula, newdata)
+          var.random.designMat <- model.matrix(object$dispersion.model$random$formula,
+                                               data = model.frame(object$dispersion.model$random$formula,
+                                                                  data = newdata,
+                                                                  na.action = "na.pass"))
+          
 		var.random.designMat[is.na(var.random.designMat)] <- 0
 	} else {
 		var.random.designMat <- NULL
