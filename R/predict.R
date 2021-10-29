@@ -62,8 +62,9 @@ predict.dalmatian <- function(object,
   check.names <- all.label %in% names(newdata)
   
 	if (all(check.names == TRUE) == FALSE) {
-        print(paste0("Missing variables: ", all.label[which(check.names == FALSE)]))
-		stop("newdata does not include all required variables. Check variable names in newdata.")
+          stop("Newdata does not include all required variables. Check variable names in newdata.\n",
+               "Missing variables: ",
+               all.label[which(check.names == FALSE)])
 	}
 
 	### CHECK IF "method" is entered correctly
