@@ -9,7 +9,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-This package illustrates the implementation of the gamma model for analyzing data including a continuous response that is constrained to be positive. As an example we consider the analysis of a simulated data set. We recommend that you first work through the vignettes for the pied flycatcher data ("pied-flycatcher-1" and "pied-flycatcher-2") which contain further information on the structure of the package.
+This package illustrates the implementation of the gamma model for analyzing data including a continuous response that is constrained to be positive. As an example we consider the analysis of a simulated data set. We recommend that you first work through the vignettes for the pied flycatcher data ("pied-flycatchers-1" and "pied-flycatchers-2") which contain further information on the structure of the package.
 
 # Gamma model
 
