@@ -7,7 +7,6 @@ devtools::load_all()
 ## Load pied flycatcher data
 data(pied_flycatchers_1)
 
-
 ## Create variables bounding the true load
 pfdata$lower=ifelse(pfdata$load==0,log(.001),log(pfdata$load-.049))
 pfdata$upper=log(pfdata$load+.05)
