@@ -112,7 +112,7 @@ Inference is based on the output from the MCMC chain which is stored in the `cod
 The first thing we should do is to check the convergence of the chains. Summary statistics computed from the output in `coda` are only valid if the chain has converged and is sampling from the correct distribution. The wrapper function `convergence()` applies three of the convergence diagnostics from the `coda` package. 
 ```{r, eval = FALSE}
 ## Compute convergence diagnostics
-pfconvergence1 <- convergence(pfmcmc)
+pfconvergence1 <- convergence(pfmcmc1)
 
 ```
 
