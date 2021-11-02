@@ -23,7 +23,7 @@ lower bounds of the 95% credible interval.
 If the response is not rounded then the residuals can either be
 sampled as part of the MCMC or computed during post-processing. If
 computed as part of the MCMC then \code{residuals()} will simply
-summarize the posterio distributions. Otherwise, \code{residuals()}
+summarize the posterior distributions. Otherwise, \code{residuals()}
 will compute the residuals and their posterior summaries. If the
 response is rounded then the residuals must be sampled
 when the MCMC sampler is run.
