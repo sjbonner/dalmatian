@@ -1,7 +1,7 @@
-##' The primary function which automates the running of \code{JAGS}.
+##' The primary function which automates the running of \code{JAGS} and \code{nimble}.
 ##'
 ##' The primary function in the package, dalmatian automates the generation of code, data, and initial values. These are then passed as arguments to function from the \code{rjags} package which automates the generation of samplse from the posterior.
-##' @title Run DGLM in \code{JAGS} via \code{rjags}
+##' @title Run DGLM in \code{JAGS} via \code{rjags} or in \code{nimble}
 ##'
 ##' @param df Data frame containing the response and predictor values for each individual. (data.frame)
 ##' @param family Name of family of response distribution. Currently supported families include normal (\code{gaussian}) and negative binomial (\code{nbinom}). (character)
@@ -32,6 +32,11 @@
 ##' @return An object of class \code{dalmatian} contaiining copies of the original data frame, the mean model, the
 ##' dispersion model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler. 
 ##' @author Simon Bonner
+##' @references Bonner, S., Kim, H., Westneat, D., Mutzel, A.,
+##' Wright, J., and Schofield, M.. (2021). \code{dalmatian}: A Package
+##' for Fitting Double Hierarchical Linear Models in \code{R} via \code{JAGS} and
+##' \code{nimble}. \emph{Journal of Statistical Software}, 100, 10, 1--25.
+##' \doi{10.18637/jss.v100.i10}.
 ##' @export
 ##' @examples
 ##' 
@@ -558,6 +563,11 @@ by using the argument engine = \"JAGS\".")
 ##' @param ... Ignored
 ##' @return List of two elements containing posterior summary statstics and convergence diagnostics (if requested). 
 ##' @author Simon Bonner
+##' @references Bonner, S., Kim, H., Westneat, D., Mutzel, A.,
+##' Wright, J., and Schofield, M.. (2021). \code{dalmatian}: A Package
+##' for Fitting Double Hierarchical Linear Models in \code{R} via \code{JAGS} and
+##' \code{nimble}. \emph{Journal of Statistical Software}, 100, 10, 1--25.
+##' \doi{10.18637/jss.v100.i10}.
 ##' @export
 ##'
 ##' @examples
@@ -655,6 +665,11 @@ print.dalmatian <- function(x,summary=TRUE,convergence=TRUE,...){
 ##' @param return_plots If TRUE (not default) return a list of \code{ggplot} objects representing the plots. 
 ##' @param ... Ignored
 ##' @return List of \code{ggplot} objects if \code{return_plots} is true. 
+##' @references Bonner, S., Kim, H., Westneat, D., Mutzel, A.,
+##' Wright, J., and Schofield, M.. (2021). \code{dalmatian}: A Package
+##' for Fitting Double Hierarchical Linear Models in \code{R} via \code{JAGS} and
+##' \code{nimble}. \emph{Journal of Statistical Software}, 100, 10, 1--25.
+##' \doi{10.18637/jss.v100.i10}.
 ##' @export
 ##' @author Simon Bonner
 ##'

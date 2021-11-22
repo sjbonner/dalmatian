@@ -3,7 +3,7 @@
 \docType{package}
 \name{dalmatian}
 \alias{dalmatian}
-\title{Run DGLM in \code{JAGS} via \code{rjags}}
+\title{Run DGLM in \code{JAGS} via \code{rjags} or in \code{nimble}}
 \usage{
 dalmatian(
   df,
@@ -89,7 +89,7 @@ An object of class \code{dalmatian} contaiining copies of the original data fram
 dispersion model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler.
 }
 \description{
-The primary function which automates the running of \code{JAGS}.
+The primary function which automates the running of \code{JAGS} and \code{nimble}.
 
 See vignettes included in the package for full documentation. The list
 of available vignettes can be generated with
@@ -139,6 +139,13 @@ pfresults <- dalmatian(df=pfdata,
                          upper="upper",
                          debug=FALSE)
 }                          
+}
+\references{
+Bonner, S., Kim, H., Westneat, D., Mutzel, A.,
+Wright, J., and Schofield, M.. (2021). \code{dalmatian}: A Package
+for Fitting Double Hierarchical Linear Models in \code{R} via \code{JAGS} and
+\code{nimble}. \emph{Journal of Statistical Software}, 100, 10, 1--25.
+\doi{10.18637/jss.v100.i10}.
 }
 \author{
 Simon Bonner

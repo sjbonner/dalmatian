@@ -17,3 +17,10 @@ List containing elements providing information on the predicted values of random
 \description{
 Generic function for exporting summaries of random effects.
 }
+\references{
+Bonner, S., Kim, H., Westneat, D., Mutzel, A.,
+Wright, J., and Schofield, M.. (2021). \code{dalmatian}: A Package
+for Fitting Double Hierarchical Linear Models in \code{R} via \code{JAGS} and
+\code{nimble}. \emph{Journal of Statistical Software}, 100, 10, 1--25.
+\doi{10.18637/jss.v100.i10}.
+}

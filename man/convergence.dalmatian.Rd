@@ -35,3 +35,10 @@ List containing Gelman-Rubin and Raftery convergence diagnostics and effective s
 \description{
 Compute convergence diagnostics for a dalmatian object.
 }
+\references{
+Bonner, S., Kim, H., Westneat, D., Mutzel, A.,
+Wright, J., and Schofield, M.. (2021). \code{dalmatian}: A Package
+for Fitting Double Hierarchical Linear Models in \code{R} via \code{JAGS} and
+\code{nimble}. \emph{Journal of Statistical Software}, 100, 10, 1--25.
+\doi{10.18637/jss.v100.i10}.
+}
