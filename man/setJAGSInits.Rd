@@ -19,13 +19,13 @@ setJAGSInits(
 \arguments{
 \item{mean.model}{Model list specifying the structure of the mean. (list)}
 
-\item{dispersion.model}{Model list specifyint the structure of the dispersion. (list)}
+\item{dispersion.model}{Model list specifying the structure of the dispersion. (list)}
 
 \item{fixed.mean}{Initial values for the fixed effects of the mean. (numeric)}
 
 \item{fixed.dispersion}{Initial values for the fixed effects of the dispersion. (numeric)}
 
-\item{y}{Inital values for the true response. This should only be specified if the \code{rounding = TRUE} in the main call to dalmatian.}
+\item{y}{Initial values for the true response. This should only be specified if the \code{rounding = TRUE} in the main call to dalmatian.}
 
 \item{random.mean}{Initial values for the random effects of the mean. (numeric)}
 

@@ -1,6 +1,6 @@
 ##' The primary function which automates the running of \code{JAGS} and \code{nimble}.
 ##'
-##' The primary function in the package, dalmatian automates the generation of code, data, and initial values. These are then passed as arguments to function from the \code{rjags} package which automates the generation of samplse from the posterior.
+##' The primary function in the package, dalmatian automates the generation of code, data, and initial values. These are then passed as arguments to function from the \code{rjags} package which automates the generation of samples from the posterior.
 ##' @title Run DGLM in \code{JAGS} via \code{rjags} or in \code{nimble}
 ##'
 ##' @param df Data frame containing the response and predictor values for each individual. (data.frame)
@@ -23,13 +23,13 @@
 ##' @param engine Specifies the sampling software. Packages currently supported include JAGS (the default) and nimble. (character)
 ##' @param n.cores Number of cores to use. If equal to 1 then chains will not be run in parallel. If greater than 1 then chains will be run in parallel using the designated number of cores.
 ##' @param include.checks If TRUE (default) then include extra Bernoulli variables in the model to ensure that the mean and dispersion parameters remain within their support. (logical)
-##' @param drop.levels If TRUE then drop unused levels from all factors in df. (logical)
+##' @param drop.levels If TRUE then drop unused levels from all factors in \code{df}. (logical)
 ##' @param drop.missing If TRUE then remove records with missing response variable. (logical)
 ##' @param overwrite If TRUE then overwrite existing JAGS files (non-interactive sessions only). (logical)
 ##' @param debug If TRUE then enter debug model. (logical)
 ##' @param saveJAGSinput Directory to which jags.model input is saved prior to calling \code{jags.model()}. This is useful for debugging. No files saved if NULL. (character)
 ##'
-##' @return An object of class \code{dalmatian} contaiining copies of the original data frame, the mean model, the
+##' @return An object of class \code{dalmatian} containing copies of the original data frame, the mean model, the
 ##' dispersion model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler. 
 ##' @author Simon Bonner
 ##' @references Bonner, S., Kim, H., Westneat, D., Mutzel, A.,

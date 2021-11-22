@@ -72,7 +72,7 @@ dalmatian(
 
 \item{n.cores}{Number of cores to use. If equal to 1 then chains will not be run in parallel. If greater than 1 then chains will be run in parallel using the designated number of cores.}
 
-\item{drop.levels}{If TRUE then drop unused levels from all factors in df. (logical)}
+\item{drop.levels}{If TRUE then drop unused levels from all factors in \code{df}. (logical)}
 
 \item{drop.missing}{If TRUE then remove records with missing response variable. (logical)}
 
@@ -85,7 +85,7 @@ dalmatian(
 \item{saveJAGSinput}{Directory to which jags.model input is saved prior to calling \code{jags.model()}. This is useful for debugging. No files saved if NULL. (character)}
 }
 \value{
-An object of class \code{dalmatian} contaiining copies of the original data frame, the mean model, the
+An object of class \code{dalmatian} containing copies of the original data frame, the mean model, the
 dispersion model the arguments of \code{jags.model} and \code{coda.samples}. and the output of the MCMC sampler.
 }
 \description{
@@ -96,7 +96,7 @@ of available vignettes can be generated with
 \code{vignette(package="dalmatian")}.
 }
 \details{
-The primary function in the package, dalmatian automates the generation of code, data, and initial values. These are then passed as arguments to function from the \code{rjags} package which automates the generation of samplse from the posterior.
+The primary function in the package, dalmatian automates the generation of code, data, and initial values. These are then passed as arguments to function from the \code{rjags} package which automates the generation of samples from the posterior.
 }
 \examples{
 

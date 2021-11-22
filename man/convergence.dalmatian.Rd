@@ -23,7 +23,7 @@
 
 \item{nend}{End point for computing summary statistics (relative to true start of chain).}
 
-\item{nthin}{Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).}
+\item{nthin}{Thinning factor for computing summary statistics (relative to full chain and not previously thinned output).}
 
 \item{raftery}{List of arguments to be passed to \code{raftery.diag()}. Any values not provided will be set to their defaults (see \code{help(raftery.diag())} for details).}
 

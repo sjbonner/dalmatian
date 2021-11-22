@@ -33,3 +33,5 @@ Meta
 
 # R output files
 *.Rout
+/doc/
+/Meta/

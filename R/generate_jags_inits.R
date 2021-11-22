@@ -206,10 +206,10 @@ generateJAGSinits <- function(family,
 ##' not specified will by initialized by \code{JAGS}.
 ##' @title Set initial values for \code{dalmatian}
 ##' @param mean.model Model list specifying the structure of the mean. (list)
-##' @param dispersion.model Model list specifyint the structure of the dispersion. (list)
+##' @param dispersion.model Model list specifying the structure of the dispersion. (list)
 ##' @param fixed.mean Initial values for the fixed effects of the mean. (numeric)
 ##' @param fixed.dispersion Initial values for the fixed effects of the dispersion. (numeric)
-##' @param y Inital values for the true response. This should only be specified if the \code{rounding = TRUE} in the main call to dalmatian.
+##' @param y Initial values for the true response. This should only be specified if the \code{rounding = TRUE} in the main call to dalmatian.
 ##' @param random.mean Initial values for the random effects of the mean. (numeric)
 ##' @param sd.mean Initial values for the standard deviation of the random effects of the mean. (numeric)
 ##' @param random.dispersion Initial values for the random effects of the dispersion. (numeric

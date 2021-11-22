@@ -24,7 +24,7 @@
 
 \item{nend}{End point for computing summary statistics (relative to true start of chain).}
 
-\item{nthin}{Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).}
+\item{nthin}{Thinning factor for computing summary statistics (relative to full chain and not previously thinned output).}
 
 \item{show}{If TRUE then plots are displayed on the computer screen and the session is paused between each plot.}
 

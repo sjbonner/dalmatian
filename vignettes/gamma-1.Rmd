@@ -13,7 +13,7 @@ This package illustrates the implementation of the gamma model for analyzing dat
 
 # Gamma model
 
-The gamma distribution is parametrized in JAGS according to the shape parameter, $r$, and the rate parameter, $\lambda$. Given this parametrization the mean and variance of $Y \sim \mbox{Gamma}(r,\lambda)$ are
+The gamma distribution is parameterized in JAGS according to the shape parameter, $r$, and the rate parameter, $\lambda$. Given this parametrization the mean and variance of $Y \sim \mbox{Gamma}(r,\lambda)$ are
 $$E(Y)=\mu=\frac{r}{\lambda}$$
 and 
 $$\mbox{Var(Y)}=\frac{r}{\lambda^2}=\phi\mu$$

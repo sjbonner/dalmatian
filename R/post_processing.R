@@ -59,7 +59,7 @@ myCodaSummary <-
 #' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
-#' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
+#' @param nthin Thinning factor for computing summary statistics (relative to full chain and not previously thinned output).
 #' @param ... Ignored
 #'
 #' @return output (list)
@@ -245,10 +245,10 @@ ranef <- function(object, ...) {
 #' @param object Object of class \code{dalmatian} created by \code{dalmatian()}.
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
-#' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
+#' @param nthin Thinning factor for computing summary statistics (relative to full chain and not previously thinned output).
 #' @param ... Ignored
 #'
-#' @return List containing elements mean, dispersion, and/or joint as appropraite. Each element provides information on the predicted values of the random effects as appropriate for each component of the model. 
+#' @return List containing elements mean, dispersion, and/or joint as appropriate. Each element provides information on the predicted values of the random effects as appropriate for each component of the model. 
 #' @references Bonner, S., Kim, H., Westneat, D., Mutzel, A.,
 #' Wright, J., and Schofield, M.. (2021). \code{dalmatian}: A Package
 #' for Fitting Double Hierarchical Linear Models in \code{R} via \code{JAGS} and
@@ -308,7 +308,7 @@ convergence <- function(object, ...) {
 #' @param pars List of parameters to assess. If NULL (default) then diagnostics are computed for the fixed effects and random effects standard deviations in the mean, dispersion, and joint components.
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
-#' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
+#' @param nthin Thinning factor for computing summary statistics (relative to full chain and not previously thinned output).
 #' @param raftery List of arguments to be passed to \code{raftery.diag()}. Any values not provided will be set to their defaults (see \code{help(raftery.diag())} for details).
 #' @param ... Ignored
 #'
@@ -432,7 +432,7 @@ traceplots <- function(object, ...) {
 #' @param family String defining selected family of variables (see help for \code{ggs()}).
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
-#' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
+#' @param nthin Thinning factor for computing summary statistics (relative to full chain and not previously thinned output).
 #' @param show If TRUE then plots are displayed on the computer screen and the session is paused between each plot. 
 #' @param return_plots If TRUE then return list of \code{ggplot} objects.
 #' @param ... Ignored
@@ -601,7 +601,7 @@ caterpillar <- function(object, ...) {
 #' @param family String defining selected family of variables (see help for \code{ggs()}).
 #' @param nstart Start point for computing summary statistics (relative to true start of chain).
 #' @param nend End point for computing summary statistics (relative to true start of chain).
-#' @param nthin Thinning factor for computing summary statsitics (relative to full chain and not previously thinned output).
+#' @param nthin Thinning factor for computing summary statistics (relative to full chain and not previously thinned output).
 #' @param show If TRUE then plots are displayed on the computer screen and the session is paused between each plot. 
 #' @param return_plots If TRUE then a named list of ggplot objects containing the plots will be returned as output. 
 #' @param ... Ignored

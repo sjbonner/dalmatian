@@ -186,5 +186,5 @@ ggplot(data=as.data.frame(pfranef3$mean[nind+(1:nind),]),aes(x=1:nind,y=Mean)) +
   geom_errorbar(aes(ymin=`Lower 95%`,ymax=`Upper 95%`)) +
   geom_abline(intercept=0,slope=0)
 ```
-Note that the 95% crebile intervals for all of the values include 0. This is further evidence that the effect of `log(IVI)` does not vary significantly between the individuals.
+Note that the 95% credible intervals for all of the values include 0. This is further evidence that the effect of `log(IVI)` does not vary significantly between the individuals.
 
