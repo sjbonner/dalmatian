@@ -5,7 +5,7 @@ library(devtools)
 devtools::load_all()
 
 ## Load MCMC output
-load(file.path(proj_path(),"data-mcmc","pfmcmc1.RData"))
+load(file.path(usethis::proj_path(),"data-mcmc","pfmcmc1.RData"))
 
 ## Post-processing
 pfconvergence1 <-  convergence(pfmcmc1)
