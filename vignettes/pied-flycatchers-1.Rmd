@@ -14,7 +14,7 @@ As a first example of the functions in this package we will fit a model to the p
 # Library
 
 First you have to load the package:
-```{r}
+```{r pkg}
 ## Load package
 library(dalmatian)
 ```
@@ -22,12 +22,12 @@ library(dalmatian)
 # Raw data
 
 The raw data for this example is provided in the package and can be accessed with:
-```{r}
+```{r get-data}
 ## Load pied flycatcher data
 data(pied_flycatchers_1)
 ```
 This data contains records on 5795 different food deliveries recorded during the pied flycatcher experiment. The response variable, `load`, records the load rounded to the nearest .1 gram. We want to model the logarithm of the load, and we also want to account for the rounding. To do this we will create two new variables in the data frame, `lower` and `upper`, which bound the logarithm of the true load. Not that we add .001 when the observed value is zero to avoid problems with the logarithm. 
-```{r}
+```{r bounds}
 ## Create variables bounding the true load
 pfdata$lower=ifelse(pfdata$load==0,log(.001),log(pfdata$load-.049))
 pfdata$upper=log(pfdata$load+.05)
@@ -50,7 +50,7 @@ The first step is to define the models for the mean and dispersion components. T
 
 The components of the model for the pied flycatcher data specified above would be generated with:
 
-```{r}
+```{r model1}
 ## Mean model
 mymean <- list(fixed=list(name="alpha",
                           formula=~ log(IVI) + broodsize + sex,
@@ -68,7 +68,7 @@ These two objects will now be used to generate the JAGS code, data, and initial 
 
 The primary function in the package `dalmatian` automates the creation of the `JAGS` code, data, and initial values and then passes these to `JAGS` via the functions in the `rjags` package. The `dalmatian` function takes requires several arguments including the data frame for the analysis, the model objects created above, and the name of the `JAGS` model file. It also requires two lists containing named arguments for the functions `jags.model` and `coda.samples` from the `rjags` package. Descriptions of the arguments for these two functions are available in their own help pages. Any arguments that are not specified in these lists will take the default values given by `rjags`. The two exceptions are the `file` argument of `jags.model` and the `n.iter` argument of `coda.samples` which do not have default values and must be specified. The number of parallel chains will be taken from the `jags.model` list. If this value is not specified then three chains will be run in order that convergence diagnostics can be computed. Note that the chains have been run for a relatively small number of iterations and heavily subsampled to satisfy the size requirements for packages on \texttt{CRAN}. Neither of these is recommended in practice.
 
-```{r, eval = FALSE}
+```{r fake1, eval = FALSE}
 ## Set working directory
 ## By default uses a system temp directory. You probably want to change this.
 workingDir <- tempdir()
@@ -93,7 +93,7 @@ pfmcmc1 <- dalmatian(df=pfdata,
 }
 ```
 
-```{r, echo = FALSE}
+```{r load1, echo = FALSE}
 load(system.file("pfresults1.RData",package="dalmatian"))
 ```
 
@@ -110,13 +110,13 @@ The function `dalmatian` returns list containing three objects:
 Inference is based on the output from the MCMC chain which is stored in the `coda` object. Summaries of the MCMC sampler and the posterior distribution can be constructed from `coda` with a variety of tools designed to work with objects of the `mcmc.list` class. For example, we can use the tools in the package `coda` to generate traceplots, density plots and histograms, numerical summaries of the posterior, and convergence diagnostics. The `ggmcmc` package can also be used to create fancier looking traceplots, density plots, and plots summarizing the posterior distribition in terms of posterior means and quantiles (credible intervals). However, several wrapper functions exist within the package to automate some of these tasks.
 
 The first thing we should do is to check the convergence of the chains. Summary statistics computed from the output in `coda` are only valid if the chain has converged and is sampling from the correct distribution. The wrapper function `convergence()` applies three of the convergence diagnostics from the `coda` package. 
-```{r, eval = FALSE}
+```{r conv1-fake, eval = FALSE}
 ## Compute convergence diagnostics
 pfconvergence1 <- convergence(pfmcmc)
 
 ```
 
-```{r}
+```{r conv1-real}
 ## Gelman-Rubin diagnostics
 pfconvergence1$gelman
 
@@ -135,7 +135,7 @@ pfraceplots1 <- traceplots(pfmcmc1,show=FALSE,nthin=20)
 
 ```
 
-```{r,fig.width=6,fig.align="center"}
+```{r traces,fig.width=6,fig.align="center"}
 ## Fixed effects for mean
 pftraceplots1$meanFixed
 

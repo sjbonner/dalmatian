@@ -115,7 +115,6 @@ pfconvergence4$effectiveSize
 ```{r, eval = FALSE}
 ## Generate traceplots
 pftraceplots4 <- traceplots(pfmcmc4,show=FALSE,nthin=10)
-
 ```
 
 ```{r,fig.width=6,fig.align="center"}
